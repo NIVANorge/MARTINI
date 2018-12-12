@@ -58,14 +58,32 @@ server <- function(input, output, session) {
                 title = "Chl a [µg/l]") %>%
       #addProviderTiles(providers$Esri.NatGeoWorldMap) %>% 
       #addPolygons(fill = TRUE, stroke = FALSE, color = "#03F",opacity=0.1)  %>%
-      addPolylines(stroke=TRUE,color="#03F",opacity=0.9,weight=0.5) %>%
-      addPolylines(data=waterbody1,stroke=TRUE,color="#FF0000",opacity=1,weight=2, popup=~as.character(Name))
+      #addPolylines(stroke=TRUE,color="#03F",opacity=0.9,weight=0.5) %>%
+      #addPolylines(data=waterbody1,stroke=TRUE,color="#FF0000",opacity=1,weight=2, popup=~as.character(Name))
     
-    
-    #addProviderTiles(providers$Stamen.TonerLite,
-    #                 options = providerTileOptions(noWrap = TRUE)
-    #) %>%
-    #addMarkers(data = points())
+    addPolygons(#data = hood_shp, 
+                fillColor = "#03F",
+                color = "transparent",
+                fillOpacity = 0.1,
+                
+                # Highlight neighbourhoods upon mouseover
+                highlight = highlightOptions(
+                  weight = 3,
+                  fillOpacity = 0,
+                  color = "red",
+                  opacity = 1.0,
+                  bringToFront = TRUE,
+                  sendToBack = TRUE),  
+                
+                # # Add label info when mouseover
+                label = waterbodies$Name,
+                labelOptions = labelOptions(
+                  style = list("font-weight" = "normal", padding = "3px 8px"),
+                  textsize = "15px",
+                  direction = "auto"),
+                popup=paste0("<div><a target='_blank' href='",waterbodies$Name,"'>",waterbodies$Name,"</a></div>")
+                
+                ) 
   })
 }
 
