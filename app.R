@@ -33,13 +33,23 @@ ui <- dashboardPage(skin = "black",title="MARTINI Status Assessment",
                               fluidRow(
                                 
                                 column(6,
-                                       leafletOutput("mymap",height="600px"),
-                                       selectInput("selParam",label="",c("Chlorophyll a"))
-                                ),
-                                column(3,""
+                                       leafletOutput("mymap",height="600px"),""),
+                                       
+                                
+                                column(3,selectInput("selParam",label="Display variable:",c("Chlorophyll a")
                                        #actionButton("recalc", "New points")
-                                       )
-                              )))))
+                                       ))
+                              )),
+                      tabItem(tabName = "indicators",
+                              fluidRow( column(6,
+                                               selectInput("selInd",label="",c("Chlorophyll a ","Total phosphorous","Phosphate P","Total nitrogen","Nitrate N","Ammonium N","Secchi depth","Oxygen","What else?"),multiple=T)
+                                               ))),
+                      tabItem(tabName = "status",
+                              fluidRow( column(6,""))),
+                      tabItem(tabName = "options",
+                              fluidRow( column(6,"")))
+                      
+                      )))
 
 server <- function(input, output, session) {
   
@@ -81,7 +91,7 @@ server <- function(input, output, session) {
                   style = list("font-weight" = "normal", padding = "3px 8px"),
                   textsize = "15px",
                   direction = "auto"),
-                popup=paste0("<div><a target='_blank' href='",waterbodies$Name,"'>",waterbodies$Name,"</a></div>")
+                popup=paste0("<div><a target='_blank' href='",waterbodies$Name,"'>Go to ",waterbodies$Name,"</a></div>")
                 
                 ) 
   })
