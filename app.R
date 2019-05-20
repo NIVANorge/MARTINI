@@ -12,7 +12,8 @@ names(r_colors) <- colors()
 
 waterbodies <- shapefile("shp/martini_shapes.shp")
 waterbody1 <- shapefile("shp/martini_shape_select.shp")
-r <- raster("C:/Data/GitHub/MARTINI/raster/chl")
+#r <- raster("C:/Data/GitHub/MARTINI/raster/chl")
+r <- raster("./raster/chl")
 pal <- colorNumeric(c( "#dffbf3", "#c8dda9","#018e18"), values(r),na.color = "transparent")
 
 
