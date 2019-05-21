@@ -4,7 +4,7 @@ library(leaflet)
 library(rgdal)
 library(raster)
 library(shinydashboard)
-#library(DT)
+library(DT)
 
 r_colors <- rgb(t(col2rgb(colors()) / 255))
 names(r_colors) <- colors()
@@ -26,17 +26,8 @@ plottitle<-function(parameter){
   
 }
 
-#data <- read.csv("data/data.csv")
-#map <- readOGR("shp/nve_kystsone_f.shp",layer = "nve_kystsone_f", GDAL1_integer64_policy = TRUE)
 
 waterbodies <- shapefile("nve/CoastalWBs_WGS84_no_holes_simple.shp")
-#waterbodies@data <- waterbodies@data %>%
-#  select(Vannforeko,Vannfore_1)
-#df_wb_info <- 
-#waterbodies@data$highlight<-0
-#match<-"0101000032-4-C"
-#waterbodies@data[waterbodies@data$Vannforeko==match,"highlight"]<-1
-
 
 
 # ----------------- UI -------------------------------------------------------- 
@@ -71,7 +62,7 @@ ui <- dashboardPage(skin = "black",title="MARTINI Status Assessment",
                       tabItem(tabName = "indicators",
                               fluidRow( column(10,
                                                h3(htmlOutput("SelectedWB")),
-                                               dataTableOutput("dtind")
+                                               DT::dataTableOutput("dtind")
                                                
                                                #selectInput("selInd",label="",c("Chlorophyll a ","Total phosphorous","Phosphate P","Total nitrogen","Nitrate N","Ammonium N","Secchi depth","Oxygen","What else?"),multiple=T)
                                                ))),
@@ -214,27 +205,23 @@ server <- function(input, output, session) {
   
   # table of indicator results
   #dtind
-  output$dtind <- renderDataTable({
+  output$dtind <- DT::renderDataTable({
     load("indicators.Rda")
     ClassList<-c("Bad","Poor","Moderate","Good","High")
     df<-df_ind %>%
       dplyr::select(WB,Indicator,Unit,type,Kvalitetselement,value,EQR,
                     Ref,HG,GM,MP,PB,Worst,ClassID)
     if(values$wbselected==""){
-      dt<-data.frame()
+      df<-data.frame()
     }else{
       df<-df %>% 
         filter(WB==values$wbselected) %>%
         mutate(Class=ClassList[ClassID]) %>%
+        mutate(value=round(value,4),EQR=round(EQR,3)) %>%
         dplyr::select(-c(WB,ClassID))
-    dt<- datatable(df,rownames=T,
-                   options=list(dom = 't',pageLength = 99,autoWidth=TRUE  )
-                   ) %>%
-      formatRound(columns=c("value"), digits=4) %>%
-      formatRound(columns=c("EQR"), digits=3)
     }
-    return(dt)
-  })
+    return(df)
+  },options=list(dom='t',pageLength = 99,autoWidth=TRUE))
     
   #   dt<-df.count %>% 
   #   group_by_(.dots=Groups) %>% 
