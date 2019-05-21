@@ -17,7 +17,7 @@ waterbody1 <- shapefile("shp/martini_shape_select.shp")
 #r <- raster("C:/Data/GitHub/MARTINI/raster/chl")
 r <- raster("./raster/chl")
 r <- raster("./raster/test_rotate.tif")
-crs(r) <- CRS('+init=EPSG:3035')
+crs(r) <- CRS('+init=epsg:3035')
 pal <- colorNumeric(c( "#dffbf3", "#c8dda9","#018e18"), values(r),na.color = "transparent")
 
 
