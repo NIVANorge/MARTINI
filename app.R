@@ -30,8 +30,8 @@ plottitle<-function(parameter){
 #map <- readOGR("shp/nve_kystsone_f.shp",layer = "nve_kystsone_f", GDAL1_integer64_policy = TRUE)
 
 waterbodies <- shapefile("nve/CoastalWBs_WGS84_no_holes_simple.shp")
-waterbodies@data <- waterbodies@data %>%
-  select(Vannforeko,Vannfore_1)
+#waterbodies@data <- waterbodies@data %>%
+#  select(Vannforeko,Vannfore_1)
 #df_wb_info <- 
 #waterbodies@data$highlight<-0
 #match<-"0101000032-4-C"
@@ -218,7 +218,7 @@ server <- function(input, output, session) {
     load("indicators.Rda")
     ClassList<-c("Bad","Poor","Moderate","Good","High")
     df<-df_ind %>%
-      select(WB,Indicator,Unit,type,Kvalitetselement,value,EQR,
+      dplyr::select(WB,Indicator,Unit,type,Kvalitetselement,value,EQR,
                     Ref,HG,GM,MP,PB,Worst,ClassID)
     if(values$wbselected==""){
       dt<-data.frame()
@@ -226,7 +226,7 @@ server <- function(input, output, session) {
       df<-df %>% 
         filter(WB==values$wbselected) %>%
         mutate(Class=ClassList[ClassID]) %>%
-        select(-c(WB,ClassID))
+        dplyr::select(-c(WB,ClassID))
     dt<- datatable(df,rownames=T,
                    options=list(dom = 't',pageLength = 99,autoWidth=TRUE  )
                    ) %>%
