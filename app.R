@@ -6,20 +6,21 @@ library(shinydashboard)
 
 r_colors <- rgb(t(col2rgb(colors()) / 255))
 names(r_colors) <- colors()
+values <- reactiveValues()
+values$wbselected <- ""
 
 #data <- read.csv("data/data.csv")
 #map <- readOGR("shp/nve_kystsone_f.shp",layer = "nve_kystsone_f", GDAL1_integer64_policy = TRUE)
 
-waterbodies <- shapefile("nve/CoastalWBs_WGS84.shp")
-waterbody1 <- shapefile("shp/martini_shape_select.shp")
+waterbodies <- shapefile("nve/CoastalWBs_WGS84_simple.shp")
+#waterbodies@data$highlight<-0
+#match<-"0101000032-4-C"
+#waterbodies@data[waterbodies@data$Vannforeko==match,"highlight"]<-1
 
-#crs(waterbodies) <- CRS('+init=EPSG:32633') # UTM 33N
-#r <- raster("C:/Data/GitHub/MARTINI/raster/chl")
-r <- raster("./raster/chl")
+
 r <- raster("./raster/test_rotate.tif")
 crs(r) <- CRS('+init=epsg:3035')
 pal <- colorNumeric(c( "#dffbf3", "#c8dda9","#018e18"), values(r),na.color = "transparent")
-
 
 
 ui <- dashboardPage(skin = "black",title="MARTINI Status Assessment",
@@ -27,9 +28,7 @@ ui <- dashboardPage(skin = "black",title="MARTINI Status Assessment",
                     dashboardSidebar(sidebarMenu(id="tabs",
                                                  menuItem("Map", tabName = "Map", icon = icon("map-marker")),
                                                  menuItem("Indicators", tabName = "indicators", icon = icon("tasks")),
-                                                 #menuItem("Data", tabName = "data", icon = icon("database"))
                                                  menuItem("Status", tabName = "status", icon = icon("bar-chart")),
-                                                 #menuItem("Download", tabName = "download", icon = icon("file"))
                                                  menuItem("Options", tabName = "options", icon = icon("cog"))#,
                     )),
                     dashboardBody(tabItems(
@@ -41,9 +40,11 @@ ui <- dashboardPage(skin = "black",title="MARTINI Status Assessment",
                                        leafletOutput("mymap",height="600px"),""),
                                        
                                 
-                                column(3,selectInput("selParam",label="Display variable:",c("Chlorophyll a")
+                                column(3,selectInput("selParam",label="Display variable:",c("Chlorophyll a")),
+                                       htmlOutput("WBinfo"),
+                                       uiOutput("WBbutton")        
                                        #actionButton("recalc", "New points")
-                                       ))
+                                       )
                               )),
                       tabItem(tabName = "indicators",
                               fluidRow( column(6,
@@ -58,32 +59,60 @@ ui <- dashboardPage(skin = "black",title="MARTINI Status Assessment",
 
 server <- function(input, output, session) {
   
+  load("indicators.Rda")
+  df_WB<-read.table(file="nve/WBlist.txt",header=T,stringsAsFactors=F,sep=";")
   
-  points <- eventReactive(input$recalc, {
-    cbind(rnorm(40) * 2 + 13, rnorm(40) + 48)
-  }, ignoreNULL = FALSE)
+  output$WBinfo <- renderText({
+    if (values$wbselected=="") {
+      ""
+    }else{
+      WB_name<-df_WB[df_WB$VANNFOREKOMSTID==values$wbselected,"VANNFOREKOMSTNAVN"]
+      #browser()
+     paste0("<b>Waterbody:</b><br>",
+            WB_name,"<br>",
+            values$wbselected)
+      
+    }
+  })
+  
+  tagList(
+    sliderInput("n", "N", 1, 1000, 500),
+    textInput("label", "Label")
+  )
+  
+  output$WBbutton <- renderUI({
+    if (values$wbselected=="") {
+      ""
+    }else{
+      buttontext <-paste0("Show ",values$wbselected)
+      tagList(actionButton("goWB", buttontext))
+    }
+  })
+  
+  #waterbodies$highlight <- as.factor(waterbodies$highlight)
+  #factpal <- colorFactor(c("#000000", "#FF0000"), waterbodies$highlight)
+  #factpalFill <- colorFactor(c("#0033FF", "#FF0000"), waterbodies$highlight)
+  #waterbodies$highlight <- 0
   
   output$mymap <- renderLeaflet({
     leaflet() %>% 
       #addProviderTiles(providers$OpenStreetMap) %>% 
-      addTiles() %>% 
+      #addTiles() %>% 
+      addProviderTiles(providers$Esri.NatGeoWorldMap) %>%
       addRasterImage(r, colors = pal, opacity=0.7) %>%
       addLegend(pal = pal, values = values(r),
                 #labFormat = labelFormat(transform = function(x) sort(x, decreasing = TRUE)),
                 title = "Chl a [µg/l]") %>%
 
-            #addProviderTiles(providers$Esri.NatGeoWorldMap) %>% 
-      #addPolygons(fill = TRUE, stroke = FALSE, color = "#03F",opacity=0.1)  %>%
-      #addPolylines(stroke=TRUE,color="#03F",opacity=0.9,weight=0.5) %>%
-      #addPolylines(data=waterbody1,stroke=TRUE,color="#FF0000",opacity=1,weight=2, popup=~as.character(Name))
-    
+            # 
+ 
     addPolygons(data = waterbodies, 
-                fillColor = "#03F",
-                color = "black",
-                opacity = 0.5,
+                fillColor = "#0033FF", #~factpalFill(highlight),
+                color = "black", #~factpal(highlight),
+               opacity = 0.5,
                 fillOpacity = 0.1,
                 weight = 1,
-                
+                layerId = waterbodies@data$Vannforeko,
                 
                 # Highlight WBs upon mouseover
                 highlight = highlightOptions(
@@ -99,11 +128,34 @@ server <- function(input, output, session) {
                 labelOptions = labelOptions(
                   style = list("font-weight" = "normal", padding = "3px 8px"),
                   textsize = "15px",
-                  direction = "auto"),
-                popup=paste0("<div><a target='_blank' href='",waterbodies$Vannfore_1,"'>Go to ",waterbodies$Vannfore_1,"</a></div>")
-                
+                  direction = "auto")#,
+ 
                 ) 
   })
+  
+  observeEvent(input$mymap_shape_click, {
+    #create object for clicked polygon
+    click <- input$mymap_shape_click
+    
+    waterbodies@data$highlight<-0
+    #browser()
+    if(values$wbselected==click$id){
+      values$wbselected <-""
+      
+    }else{
+     values$wbselected <- click$id
+     waterbodies@data[waterbodies@data$Vannforeko==click$id,"highlight"]<-1
+    
+    }
+    print(click$id)
+    #match<-"0101000032-4-C"
+    
+    })
+  
+  observeEvent(input$goWB, {  
+    updateTabItems(session, "tabs", "indicators")
+  }) 
+    
 }
 
 shinyApp(ui, server)
