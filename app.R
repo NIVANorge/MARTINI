@@ -98,6 +98,7 @@ server <- function(input, output, session) {
       "No waterbody selected"
     }else{
       load("indicators.Rda")
+      WB_name<-df_WB[df_WB$VANNFOREKOMSTID==values$wbselected,"VANNFOREKOMSTNAVN"]
       df_ind <- df_ind %>% filter(WB==values$wbselected)
       Salinity<-df_ind$Salinitet[1]
       CoastType<-df_ind$Kysttype[1]
