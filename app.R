@@ -79,8 +79,11 @@ server <- function(input, output, session) {
     
     addPolygons(data = waterbodies, 
                 fillColor = "#03F",
-                color = "transparent",
+                color = "black",
+                opacity = 0.5,
                 fillOpacity = 0.1,
+                weight = 1,
+                
                 
                 # Highlight WBs upon mouseover
                 highlight = highlightOptions(
