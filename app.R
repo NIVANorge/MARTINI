@@ -29,7 +29,7 @@ plottitle<-function(parameter){
 #data <- read.csv("data/data.csv")
 #map <- readOGR("shp/nve_kystsone_f.shp",layer = "nve_kystsone_f", GDAL1_integer64_policy = TRUE)
 
-waterbodies <- shapefile("nve/CoastalWBs_WGS84_simple3.shp")
+waterbodies <- shapefile("nve/CoastalWBs_WGS84_no_holes_simple.shp")
 waterbodies@data <- waterbodies@data %>%
   select(Vannforeko,Vannfore_1)
 #df_wb_info <- 
