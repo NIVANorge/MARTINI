@@ -10,10 +10,14 @@ names(r_colors) <- colors()
 #data <- read.csv("data/data.csv")
 #map <- readOGR("shp/nve_kystsone_f.shp",layer = "nve_kystsone_f", GDAL1_integer64_policy = TRUE)
 
-waterbodies <- shapefile("shp/martini_shapes.shp")
+waterbodies <- shapefile("nve/CoastalWBs_WGS84.shp")
 waterbody1 <- shapefile("shp/martini_shape_select.shp")
+
+#crs(waterbodies) <- CRS('+init=EPSG:32633') # UTM 33N
 #r <- raster("C:/Data/GitHub/MARTINI/raster/chl")
 r <- raster("./raster/chl")
+r <- raster("./raster/test_rotate.tif")
+crs(r) <- CRS('+init=EPSG:3035')
 pal <- colorNumeric(c( "#dffbf3", "#c8dda9","#018e18"), values(r),na.color = "transparent")
 
 
@@ -60,24 +64,25 @@ server <- function(input, output, session) {
   }, ignoreNULL = FALSE)
   
   output$mymap <- renderLeaflet({
-    leaflet(waterbodies) %>% 
+    leaflet() %>% 
       #addProviderTiles(providers$OpenStreetMap) %>% 
       addTiles() %>% 
-      addRasterImage(r, colors = pal, opacity=0.9) %>%
+      addRasterImage(r, colors = pal, opacity=0.7) %>%
       addLegend(pal = pal, values = values(r),
                 #labFormat = labelFormat(transform = function(x) sort(x, decreasing = TRUE)),
                 title = "Chl a [µg/l]") %>%
-      #addProviderTiles(providers$Esri.NatGeoWorldMap) %>% 
+
+            #addProviderTiles(providers$Esri.NatGeoWorldMap) %>% 
       #addPolygons(fill = TRUE, stroke = FALSE, color = "#03F",opacity=0.1)  %>%
       #addPolylines(stroke=TRUE,color="#03F",opacity=0.9,weight=0.5) %>%
       #addPolylines(data=waterbody1,stroke=TRUE,color="#FF0000",opacity=1,weight=2, popup=~as.character(Name))
     
-    addPolygons(#data = hood_shp, 
+    addPolygons(data = waterbodies, 
                 fillColor = "#03F",
                 color = "transparent",
                 fillOpacity = 0.1,
                 
-                # Highlight neighbourhoods upon mouseover
+                # Highlight WBs upon mouseover
                 highlight = highlightOptions(
                   weight = 3,
                   fillOpacity = 0,
@@ -87,12 +92,12 @@ server <- function(input, output, session) {
                   sendToBack = TRUE),  
                 
                 # # Add label info when mouseover
-                label = waterbodies$Name,
+                label = waterbodies$Vannfore_1,
                 labelOptions = labelOptions(
                   style = list("font-weight" = "normal", padding = "3px 8px"),
                   textsize = "15px",
                   direction = "auto"),
-                popup=paste0("<div><a target='_blank' href='",waterbodies$Name,"'>Go to ",waterbodies$Name,"</a></div>")
+                popup=paste0("<div><a target='_blank' href='",waterbodies$Vannfore_1,"'>Go to ",waterbodies$Vannfore_1,"</a></div>")
                 
                 ) 
   })
