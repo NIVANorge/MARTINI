@@ -4,7 +4,7 @@ library(leaflet)
 library(rgdal)
 library(raster)
 library(shinydashboard)
-library(DT)
+#library(DT)
 
 r_colors <- rgb(t(col2rgb(colors()) / 255))
 names(r_colors) <- colors()
@@ -71,7 +71,7 @@ ui <- dashboardPage(skin = "black",title="MARTINI Status Assessment",
                       tabItem(tabName = "indicators",
                               fluidRow( column(10,
                                                h3(htmlOutput("SelectedWB")),
-                                               DT::dataTableOutput("dtind")
+                                               dataTableOutput("dtind")
                                                
                                                #selectInput("selInd",label="",c("Chlorophyll a ","Total phosphorous","Phosphate P","Total nitrogen","Nitrate N","Ammonium N","Secchi depth","Oxygen","What else?"),multiple=T)
                                                ))),
@@ -214,7 +214,7 @@ server <- function(input, output, session) {
   
   # table of indicator results
   #dtind
-  output$dtind <- DT::renderDataTable({
+  output$dtind <- renderDataTable({
     load("indicators.Rda")
     ClassList<-c("Bad","Poor","Moderate","Good","High")
     df<-df_ind %>%
