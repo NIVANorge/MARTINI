@@ -27,7 +27,7 @@ plottitle<-function(parameter){
 #data <- read.csv("data/data.csv")
 #map <- readOGR("shp/nve_kystsone_f.shp",layer = "nve_kystsone_f", GDAL1_integer64_policy = TRUE)
 
-waterbodies <- shapefile("nve/CoastalWBs_WGS84_simple.shp")
+waterbodies <- shapefile("nve/CoastalWBs_WGS84_simple3.shp")
 #waterbodies@data$highlight<-0
 #match<-"0101000032-4-C"
 #waterbodies@data[waterbodies@data$Vannforeko==match,"highlight"]<-1
@@ -40,8 +40,8 @@ ui <- dashboardPage(skin = "black",title="MARTINI Status Assessment",
                     dashboardHeader(title = "MARTINI"),
                     dashboardSidebar(sidebarMenu(id="tabs",
                                                  menuItem("Map", tabName = "Map", icon = icon("map-marker")),
-                                                 menuItem("Indicators", tabName = "indicators", icon = icon("tasks")),
-                                                 menuItem("Status", tabName = "status", icon = icon("bar-chart")),
+                                                 menuItem("Waterbody", tabName = "indicators", icon=icon("bar-chart")),
+                                                 #menuItem("Status", tabName = "status", icon = icon("bar-chart")),
                                                  menuItem("Options", tabName = "options", icon = icon("cog"))#,
                     )),
                     dashboardBody(tabItems(
@@ -65,7 +65,10 @@ ui <- dashboardPage(skin = "black",title="MARTINI Status Assessment",
                               )),
                       tabItem(tabName = "indicators",
                               fluidRow( column(6,
-                                               selectInput("selInd",label="",c("Chlorophyll a ","Total phosphorous","Phosphate P","Total nitrogen","Nitrate N","Ammonium N","Secchi depth","Oxygen","What else?"),multiple=T)
+                                               h3(htmlOutput("SelectedWB")),
+                                               DT::dataTableOutput("dtind")
+                                               
+                                               #selectInput("selInd",label="",c("Chlorophyll a ","Total phosphorous","Phosphate P","Total nitrogen","Nitrate N","Ammonium N","Secchi depth","Oxygen","What else?"),multiple=T)
                                                ))),
                       tabItem(tabName = "status",
                               fluidRow( column(6,""))),
@@ -87,12 +90,23 @@ server <- function(input, output, session) {
     }else{
       WB_name<-df_WB[df_WB$VANNFOREKOMSTID==values$wbselected,"VANNFOREKOMSTNAVN"]
       #browser()
-     paste0("<b>Waterbody:</b><br>",
+     paste0("<b>Selected Waterbody:</b><br>",
             WB_name,"<br>",
             values$wbselected)
       
     }
   })
+  
+  output$SelectedWB <- renderText({
+    if (values$wbselected=="") {
+      ""
+    }else{
+      WB_name<-df_WB[df_WB$VANNFOREKOMSTID==values$wbselected,"VANNFOREKOMSTNAVN"]
+      paste0("<b>",values$wbselected," ",WB_name)
+            
+    }
+  })
+    
   
   tagList(
     sliderInput("n", "N", 1, 1000, 500),
@@ -113,11 +127,7 @@ server <- function(input, output, session) {
     rfile<-paste0("raster/",values$parameter,".grd")
     r <- raster(rfile)
  
-    #if(values$parameter %in% c("DO_bot")){
-    #  pal <- colorNumeric("magma", values(r),na.color = "transparent")
-    #}else{
-      pal <- colorNumeric("magma", values(r),na.color = "transparent", reverse=TRUE)
-    #}
+    pal <- colorNumeric("viridis", values(r),na.color = "transparent")
     
     leafletProxy("mymap") %>%
       clearImages() %>%
@@ -133,10 +143,11 @@ server <- function(input, output, session) {
   output$mymap <- renderLeaflet({
     rfile<-paste0("raster/",values$parameter,".grd")
     r <- raster(rfile)
-    pal <- colorNumeric("magma", values(r),na.color = "transparent", reverse=TRUE)
+    pal <- colorNumeric("viridis", values(r),na.color = "transparent")
     
     leaflet() %>% 
-      addTiles() %>% 
+      #addTiles() %>% 
+      addProviderTiles(providers$Esri.WorldGrayCanvas) %>% 
       addRasterImage(r, colors = pal, opacity=0.7) %>%
       addLegend(pal = pal,values=values(r),title=plottitle(values$parameter)) %>%
  
@@ -196,6 +207,3 @@ server <- function(input, output, session) {
 
 shinyApp(ui, server)
 
-
-#leaflet(data = llanos) %>% addTiles() 
-# addPolygons(fill = FALSE, stroke = TRUE, color = "#03F") %>% addLegend("bottomright", colors = "#03F", labels = "Llanos ecoregion"
