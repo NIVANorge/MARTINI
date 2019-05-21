@@ -97,7 +97,8 @@ server <- function(input, output, session) {
     if (values$wbselected=="") {
       "No waterbody selected"
     }else{
-      load("indicators.Rda")
+      #load("indicators.Rda")
+      df_ind <- read.table(file="indicator_results.txt",sep="\t",header=T)
       WB_name<-df_WB[df_WB$VANNFOREKOMSTID==values$wbselected,"VANNFOREKOMSTNAVN"]
       df_ind <- df_ind %>% filter(WB==values$wbselected)
       Salinity<-df_ind$Salinitet[1]
@@ -209,7 +210,8 @@ server <- function(input, output, session) {
   # table of indicator results
   #dtind
   output$dtind <- DT::renderDataTable({
-    load("indicators.Rda")
+    #load("indicators.Rda")
+    df_ind <- read.table(file="indicator_results.txt",sep="\t",header=T)
     ClassList<-c("Bad","Poor","Moderate","Good","High")
     df<-df_ind %>%
       dplyr::select(WB,Indicator,Unit,type,Kvalitetselement,value,EQR,
