@@ -214,13 +214,19 @@ server <- function(input, output, session) {
     if(values$wbselected==""){
       df<-data.frame()
     }else{
+      cat(file=stderr(),"values$wbselected=",values$wbselected,"\n")
+      #wbs<-distinct(df,WB)
+      #cat(file=stderr(),"wbs",paste(wbs,"\n"))
+      
       df<-df %>% 
         filter(WB==values$wbselected) %>%
         mutate(Class=ClassList[ClassID]) %>%
         mutate(value=round(value,4),EQR=round(EQR,3)) %>%
         dplyr::select(-c(WB,ClassID))
     }
+    cat(file=stderr(), "exiting renderDataTable\n")
     return(df)
+    
   },options=list(dom='t',pageLength = 99,autoWidth=TRUE))
     
   #   dt<-df.count %>% 
