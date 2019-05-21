@@ -1,0 +1,26 @@
+[general]
+creator=R package 'raster'
+created=2019-05-21 20:11:33
+[georeference]
+nrows=315
+ncols=305
+xmin=4060000.0817245
+ymin=3657400.305
+xmax=4548000.0817245
+ymax=4161400.305
+projection=+init=epsg:3035 +proj=laea +lat_0=52 +lon_0=10 +x_0=4321000 +y_0=3210000 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs
+[data]
+datatype=FLT4S
+byteorder=little
+nbands=1
+bandorder=BIL
+categorical=FALSE
+minvalue=0.280602868728258
+maxvalue=1.53490340660562
+nodatavalue=-3.4e+38
+[legend]
+legendtype=
+values=
+color=
+[description]
+layername=layer
