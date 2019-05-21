@@ -93,6 +93,7 @@ server <- function(input, output, session) {
   })
   
   output$SelectedWB <- renderText({
+    cat(file=stderr(),"output$SelectedWB=",values$wbselected,"\n")
     if (values$wbselected=="") {
       "No waterbody selected"
     }else{
@@ -100,6 +101,7 @@ server <- function(input, output, session) {
       df_ind <- df_ind %>% filter(WB==values$wbselected)
       Salinity<-df_ind$Salinitet[1]
       CoastType<-df_ind$Kysttype[1]
+      cat(file=stderr(),values$wbselected," ",WB_name,", ",CoastType,", ",Salinity,"\n")
       WB_name<-df_WB[df_WB$VANNFOREKOMSTID==values$wbselected,"VANNFOREKOMSTNAVN"]
       paste0("<b>",values$wbselected," ",WB_name,", ",CoastType,", ",Salinity,"</b>")
             
@@ -215,16 +217,14 @@ server <- function(input, output, session) {
       df<-data.frame()
     }else{
       cat(file=stderr(),"values$wbselected=",values$wbselected,"\n")
-      #wbs<-distinct(df,WB)
-      #cat(file=stderr(),"wbs",paste(wbs,"\n"))
-      
+
       df<-df %>% 
         filter(WB==values$wbselected) %>%
         mutate(Class=ClassList[ClassID]) %>%
         mutate(value=round(value,4),EQR=round(EQR,3)) %>%
         dplyr::select(-c(WB,ClassID))
     }
-    cat(file=stderr(), "exiting renderDataTable\n")
+    
     return(df)
     
   },options=list(dom='t',pageLength = 99,autoWidth=TRUE))
