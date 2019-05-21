@@ -1,0 +1,115 @@
+Region	Kvalitetselement	Indikator	Indicator	Match	MatchValue	NotUsed	Ref	HG	GM	MP	PB	Worst
+S	Planteplankton	Klorofyll a	Chl	type	S1		2.3	3.5	7	11	20	NA
+S	Planteplankton	Klorofyll a	Chl	type	S2		2	3	6	9	18	NA
+S	Planteplankton	Klorofyll a	Chl	type	S3		2	3	6	9	18	NA
+S	Planteplankton	Klorofyll a	Chl	type	S4	TRUE						
+S	Planteplankton	Klorofyll a	Chl	type	S5	TRUE						
+G	Planteplankton	Klorofyll a	Chl	type	G1		2	3	6	8	14	NA
+G	Planteplankton	Klorofyll a	Chl	type	G2		1.7	2.5	5	8	16	NA
+G	Planteplankton	Klorofyll a	Chl	type	G3		1.7	2.5	5	8	16	NA
+G	Planteplankton	Klorofyll a	Chl	type	G4		2	2.6	4	6	12	NA
+G	Planteplankton	Klorofyll a	Chl	type	G5	TRUE						
+H	Planteplankton	Klorofyll a	Chl	type	H1		2	3	6	8	14	NA
+H	Planteplankton	Klorofyll a	Chl	type	H2		1.7	2.5	5	8	16	NA
+H	Planteplankton	Klorofyll a	Chl	type	H3		1.7	2.5	5	8	16	NA
+H	Planteplankton	Klorofyll a	Chl	type	H4		2	2.6	4	6	12	NA
+H	Planteplankton	Klorofyll a	Chl	type	H5	TRUE						
+M	Planteplankton	Klorofyll a	Chl	type	M1		2	3	6	8	14	NA
+M	Planteplankton	Klorofyll a	Chl	type	M2		1.7	2.5	5	8	16	NA
+M	Planteplankton	Klorofyll a	Chl	type	M3		1.7	2.5	5	8	16	NA
+M	Planteplankton	Klorofyll a	Chl	type	M4		2	2.6	4	6	12	NA
+M	Planteplankton	Klorofyll a	Chl	type	M5	TRUE						
+N	Planteplankton	Klorofyll a	Chl	type	N1		2	3	6	8	14	NA
+N	Planteplankton	Klorofyll a	Chl	type	N2		1.7	2.5	5	8	16	NA
+N	Planteplankton	Klorofyll a	Chl	type	N3		1.7	2.5	5	8	16	NA
+N	Planteplankton	Klorofyll a	Chl	type	N4		2	2.6	4	6	12	NA
+N	Planteplankton	Klorofyll a	Chl	type	N5	TRUE						
+B	Planteplankton	Klorofyll a	Chl	type	B1		1.9	2.8	5.5	8	12	NA
+B	Planteplankton	Klorofyll a	Chl	type	B2	TRUE						
+B	Planteplankton	Klorofyll a	Chl	type	B3		1	1.5	3	6	10	NA
+B	Planteplankton	Klorofyll a	Chl	type	B4		0.9	1.2	2	3	6	NA
+B	Planteplankton	Klorofyll a	Chl	type	B5							
+HM	Makroalger	% andel opportunister			1							
+HM	Makroalger	% andel opportunister			2							
+HM	Makroalger	% andel opportunister			3							
+HM	Makroalger	% andel opportunister			4							
+HM	Makroalger	% andel opportunister			5							
+HM	Makroalger	% antall brunalger			1							
+HM	Makroalger	% antall brunalger			2							
+HM	Makroalger	% antall brunalger			3							
+HM	Makroalger	% antall brunalger			4							
+HM	Makroalger	% antall brunalger			5							
+HM	Makroalger	% antall grønnalger			1							
+HM	Makroalger	% antall grønnalger			2							
+HM	Makroalger	% antall grønnalger			3							
+HM	Makroalger	% antall grønnalger			4							
+HM	Makroalger	% antall grønnalger			5							
+HM	Makroalger	% antall rødalger			1							
+HM	Makroalger	% antall rødalger			2							
+HM	Makroalger	% antall rødalger			3							
+HM	Makroalger	% antall rødalger			4							
+HM	Makroalger	% antall rødalger			5							
+HM	Makroalger	ESG I/ESG II			1							
+HM	Makroalger	ESG I/ESG II			2							
+HM	Makroalger	ESG I/ESG II			3							
+HM	Makroalger	ESG I/ESG II			4							
+HM	Makroalger	ESG I/ESG II			5							
+HM	Makroalger	Normalisert artsantall			1							
+HM	Makroalger	Normalisert artsantall			2							
+HM	Makroalger	Normalisert artsantall			3							
+HM	Makroalger	Normalisert artsantall			4							
+HM	Makroalger	Normalisert artsantall			5							
+HM	Makroalger	Sum forekomst brunalger			1							
+HM	Makroalger	Sum forekomst brunalger			2							
+HM	Makroalger	Sum forekomst brunalger			3							
+HM	Makroalger	Sum forekomst brunalger			4							
+HM	Makroalger	Sum forekomst brunalger			5							
+HM	Makroalger	Sum forekomst grønnalger			1							
+HM	Makroalger	Sum forekomst grønnalger			2							
+HM	Makroalger	Sum forekomst grønnalger			3							
+HM	Makroalger	Sum forekomst grønnalger			4							
+HM	Makroalger	Sum forekomst grønnalger			5							
+S	Makroalger	MSMDI (Nedre voksegrense) - EQR			1							
+S	Makroalger	MSMDI (Nedre voksegrense) - EQR			2							
+S	Makroalger	MSMDI (Nedre voksegrense) - EQR			3							
+S	Makroalger	MSMDI (Nedre voksegrense) - EQR			4							
+S	Makroalger	MSMDI (Nedre voksegrense) - EQR			5							
+	Angiospermer	Nedre voksegrense (EQR)			Alle							
+	Bløtfunnsfauna	NQI			Alle							
+	Bløtfunnsfauna	H'			Alle							
+	Bløtfunnsfauna	ES100			Alle							
+	Bløtfunnsfauna	ISI2012			Alle							
+	Bløtfunnsfauna	NSI			Alle							
+	Bløtfunnsfauna	DI			Alle							
+	Bløtfunnsfauna	TOC			Alle							
+	Fysisk-kjemiske	Total fosfor (µg P/l), sommer	TP_summer	SalinityClass	>18		NA	11.5	16	29	60	NA
+	Fysisk-kjemiske	Total fosfor (µg P/l), sommer	TP_summer	SalinityClass	5		NA	8	12	22	53	NA
+	Fysisk-kjemiske	Total fosfor (µg P/l), sommer	TP_summer	SalinityClass	18		NA	11.5	15.5	28	59	NA
+	Fysisk-kjemiske	Fosfat-fosfor (µg P/l), sommer	PO4_summer	SalinityClass	>18		NA	3.5	7	16	50	NA
+	Fysisk-kjemiske	Fosfat-fosfor (µg P/l), sommer	PO4_summer	SalinityClass	5		NA	2	3.5	7.5	21	NA
+	Fysisk-kjemiske	Fosfat-fosfor (µg P/l), sommer	PO4_summer	SalinityClass	18		NA	3.5	6.5	15	46	NA
+	Fysisk-kjemiske	Total nitrogen (µg N/l), sommer	TN_summer	SalinityClass	>18		NA	250	330	500	800	NA
+	Fysisk-kjemiske	Total nitrogen (µg N/l), sommer	TN_summer	SalinityClass	5		NA	250	383	538	800	NA
+	Fysisk-kjemiske	Total nitrogen (µg N/l), sommer	TN_summer	SalinityClass	18		NA	250	337	505	800	NA
+	Fysisk-kjemiske	Nitrat-nitrogen (µg N/l), sommer	NO3_summer	SalinityClass	>18		NA	12	23	65	250	NA
+	Fysisk-kjemiske	Nitrat-nitrogen (µg N/l), sommer	NO3_summer	SalinityClass	5		NA	97	156	223	363	NA
+	Fysisk-kjemiske	Nitrat-nitrogen (µg N/l), sommer	NO3_summer	SalinityClass	18		NA	24	41	86	265	NA
+	Fysisk-kjemiske	Ammonium-nitrogen (µg N/l), sommer	NH4_summer	SalinityClass	>18		NA	19	50	200	325	NA
+	Fysisk-kjemiske	Siktdyp (m), sommer		SalinityClass	>18		NA	7.5	6	4.5	2.5	NA
+	Fysisk-kjemiske	Siktdyp (m), sommer		SalinityClass	5		NA	7	4.5	2.5	1.5	NA
+	Fysisk-kjemiske	Siktdyp (m), sommer		SalinityClass	18		NA	7.5	6	4	2.5	NA
+	Fysisk-kjemiske	Total fosfor (µg P/l), vinter	TP_winter	SalinityClass	>18		NA	20	25	42	60	NA
+	Fysisk-kjemiske	Total fosfor (µg P/l), vinter	TP_winter	SalinityClass	5		NA	10.5	14.5	26	53	NA
+	Fysisk-kjemiske	Total fosfor (µg P/l), vinter	TP_winter	SalinityClass	18		NA	20	24	40	59	NA
+	Fysisk-kjemiske	Fosfat-fosfor (µg P/l), vinter	PO4_winter	SalinityClass	>18		NA	14.5	21	34	50	NA
+	Fysisk-kjemiske	Fosfat-fosfor (µg P/l), vinter	PO4_winter	SalinityClass	5		NA	7	9	16	31	NA
+	Fysisk-kjemiske	Fosfat-fosfor (µg P/l), vinter	PO4_winter	SalinityClass	18		NA	14.5	19	32	48	NA
+	Fysisk-kjemiske	Total nitrogen (µg N/l), vinter	TN_winter	SalinityClass	>18		NA	291	380	560	800	NA
+	Fysisk-kjemiske	Total nitrogen (µg N/l), vinter	TN_winter	SalinityClass	5		NA	261	385	553	800	NA
+	Fysisk-kjemiske	Total nitrogen (µg N/l), vinter	TN_winter	SalinityClass	18		NA	291	398	559	800	NA
+	Fysisk-kjemiske	Nitrat-nitrogen (µg N/l), vinter	NO3_winter	SalinityClass	>18		NA	97	125	225	350	NA
+	Fysisk-kjemiske	Nitrat-nitrogen (µg N/l), vinter	NO3_winter	SalinityClass	5		NA	143	226	326	478	NA
+	Fysisk-kjemiske	Nitrat-nitrogen (µg N/l), vinter	NO3_winter	SalinityClass	18		NA	97	139	239	367	NA
+	Fysisk-kjemiske	Ammonium-nitrogen (µg N/l), vinter	NH4_winter	SalinityClass	>18		NA	33	75	155	325	NA
+	Fysisk-kjemiske	Oksygen (ml O2/l)	DO_bot	SalinityClass	>18		NA	4.5	3.5	2.5	1.5	NA
+	Fysisk-kjemiske	Oksygen metning (%)		SalinityClass	>18		NA	65	50	35	20	NA
