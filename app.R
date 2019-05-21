@@ -1,8 +1,10 @@
 library(shiny)
+library(dplyr)
 library(leaflet)
 library(rgdal)
 library(raster)
 library(shinydashboard)
+library(DT)
 
 r_colors <- rgb(t(col2rgb(colors()) / 255))
 names(r_colors) <- colors()
@@ -28,6 +30,9 @@ plottitle<-function(parameter){
 #map <- readOGR("shp/nve_kystsone_f.shp",layer = "nve_kystsone_f", GDAL1_integer64_policy = TRUE)
 
 waterbodies <- shapefile("nve/CoastalWBs_WGS84_simple3.shp")
+waterbodies@data <- waterbodies@data %>%
+  select(Vannforeko,Vannfore_1)
+#df_wb_info <- 
 #waterbodies@data$highlight<-0
 #match<-"0101000032-4-C"
 #waterbodies@data[waterbodies@data$Vannforeko==match,"highlight"]<-1
@@ -58,13 +63,13 @@ ui <- dashboardPage(skin = "black",title="MARTINI Status Assessment",
                                                        "NO3_summer","NO3_winter","PO4_summer","PO4_winter",
                                                        "TN_summer","TN_winter","TP_summer","TP_winter"
                                                        )),
-                                       htmlOutput("WBinfo"),
+                                       h3(htmlOutput("WBinfo")),
                                        uiOutput("WBbutton")        
                                        #actionButton("recalc", "New points")
                                        )
                               )),
                       tabItem(tabName = "indicators",
-                              fluidRow( column(6,
+                              fluidRow( column(10,
                                                h3(htmlOutput("SelectedWB")),
                                                DT::dataTableOutput("dtind")
                                                
@@ -81,7 +86,6 @@ ui <- dashboardPage(skin = "black",title="MARTINI Status Assessment",
 
 server <- function(input, output, session) {
   
-  load("indicators.Rda")
   df_WB<-read.table(file="nve/WBlist.txt",header=T,stringsAsFactors=F,sep=";")
   
   output$WBinfo <- renderText({
@@ -99,10 +103,14 @@ server <- function(input, output, session) {
   
   output$SelectedWB <- renderText({
     if (values$wbselected=="") {
-      ""
+      "No waterbody selected"
     }else{
+      load("indicators.Rda")
+      df_ind <- df_ind %>% filter(WB==values$wbselected)
+      Salinity<-df_ind$Salinitet[1]
+      CoastType<-df_ind$Kysttype[1]
       WB_name<-df_WB[df_WB$VANNFOREKOMSTID==values$wbselected,"VANNFOREKOMSTNAVN"]
-      paste0("<b>",values$wbselected," ",WB_name)
+      paste0("<b>",values$wbselected," ",WB_name,", ",CoastType,", ",Salinity,"</b>")
             
     }
   })
@@ -128,10 +136,11 @@ server <- function(input, output, session) {
     r <- raster(rfile)
  
     pal <- colorNumeric("viridis", values(r),na.color = "transparent")
-    
+    withProgress(message = 'Updating map...', value = 0, {
     leafletProxy("mymap") %>%
       clearImages() %>%
       addRasterImage(r, colors=pal, opacity = 0.7)
+    })
     
   })
   
@@ -201,8 +210,50 @@ server <- function(input, output, session) {
   
   observeEvent(input$goWB, {  
     updateTabItems(session, "tabs", "indicators")
-  }) 
+  })
+  
+  # table of indicator results
+  #dtind
+  output$dtind <- DT::renderDataTable({
+    load("indicators.Rda")
+    ClassList<-c("Bad","Poor","Moderate","Good","High")
+    df<-df_ind %>%
+      select(WB,Indicator,Unit,type,Kvalitetselement,value,EQR,
+                    Ref,HG,GM,MP,PB,Worst,ClassID)
+    if(values$wbselected==""){
+      dt<-data.frame()
+    }else{
+      df<-df %>% 
+        filter(WB==values$wbselected) %>%
+        mutate(Class=ClassList[ClassID]) %>%
+        select(-c(WB,ClassID))
+    dt<- datatable(df,rownames=T,
+                   options=list(dom = 't',pageLength = 99,autoWidth=TRUE  )
+                   ) %>%
+      formatRound(columns=c("value"), digits=4) %>%
+      formatRound(columns=c("EQR"), digits=3)
+    }
+    return(dt)
+  })
     
+  #   dt<-df.count %>% 
+  #   group_by_(.dots=Groups) %>% 
+  #   summarize(Classes = spk_chr(f,type='bar',barWidth=barwidthpx,chartRangeMin=ymin, chartRangeMax=ymax,
+  #                               colorMap=barcolours)) %>% 
+  #   ungroup() %>%
+  #   mutate(pGES=ifelse(Class=='','',pGES)) %>%
+  #   select(-one_of(remove)) %>%
+  #   datatable(escape = F,rownames = F,selection = 'single',
+  #             options = list(dom=sDOM,fnDrawCallback = htmlwidgets::JS('function(){HTMLWidgets.staticRender();}')))
+  # if(!is.null(roundlist)){
+  #   dt<-dt %>% formatRound(columns=roundlist, digits=3)
+  #   ClassOutputTableDT(
+  #     values$res4MC,
+  #     roundlist = c("EQR","pGES"),
+  #     Groups = grplist,
+  #     remove = rmlist,
+  #     ClassVar = "ClassMC"
+  #  )
 }
 
 shinyApp(ui, server)
