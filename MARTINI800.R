@@ -8,23 +8,24 @@ library(RColorBrewer)
 library(lattice)
 
 # http://geog.uoregon.edu/bartlein/courses/geog607/Rmd/netCDF_01.htm
-dname <- "Chl"  # note: tmp means temperature (not temporary)
-
 # open NetCDF file
-ncfname<-"MARTINI800/Combined_martini800_avg_Chl_surf.nc"
+ncfname<-"fram/MARTINI800/Combined_martini800_avg_Chl_surf.nc"
+dname <- "Chl"  # note: tmp means temperature (not temporary)
+ncfname<-"fram/MARTINI800/martini800_v2_Chl_surf.nc"
+
+ncfname<-"fram/MARTINI800/martini800_avg_17317.nc"
+dname <- "light_Chl"
 ncin <- nc_open(ncfname)
-#print(ncin)
+s<-print(ncin)
+names(ncin$var)
 
 # Get the longtiudes and latitudes, using the ncvar_get() function in ncdf4.
 lon <- ncvar_get(ncin, "lon_rho")
-#lon <- lon[,1]
 nlon <- dim(lon)
-head(lon)
 
 lat <- ncvar_get(ncin, "lat_rho", verbose = F)
-#lat <- lat[1,]
 nlat <- dim(lat)
-head(lat)
+#head(lat)
 
 print(c(nlon, nlat))
 
@@ -70,9 +71,14 @@ tmp.array[tmp.array == fillvalue$value] <- NA
 length(na.omit(as.vector(tmp.array[, , 1])))
 
 # Get a single time slice of the data, create an R data frame, and write a .csv file
-m <- 1
+m <- 364
 tmp.slice <- tmp.array[, , m]
 
+ts<-tmp.array[249,213,]
+tsdf<-data.frame(value=ts)
+tsdf$time<-seq(1,364,1)
+
+plot(tsdf)
 image(lon,lat,tmp.slice, col = rev(brewer.pal(10, "RdBu")))
 dim(tmp.slice)
 dim(lon)
@@ -101,3 +107,14 @@ gplot(r) +
 ggplot(aes(x=lat, y=lon, fill=tmp.slice), data=mpr) + geom_raster() + coord_equal()
 
 raster(x, xmn=0, xmx=1, ymn=0, ymx=1, crs=NA, template=NULL)
+
+
+
+levelplot(tmp.slice~lon*lat,col=rev(brewer.pal(10, "RdBu")))
+
+
+
+grid <- expand.grid(lon=lon, lat=lat)
+cutpts <- c(-50,-40,-30,-20,-10,0,10,20,30,40,50)
+levelplot(tmp_slice ~ lon * lat, data=grid, at=cutpts, cuts=11, pretty=T, 
+          col.regions=(rev(brewer.pal(10,"RdBu"))))
