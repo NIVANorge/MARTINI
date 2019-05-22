@@ -156,7 +156,8 @@ server <- function(input, output, session) {
       addLegend(pal = pal,values=values(r),title=plottitle(values$parameter)) %>%
  
       addPolygons(data = waterbodies, 
-                fillColor = "#0033FF", #~factpalFill(highlight),
+                  fillColor = "transparent",
+                #fillColor = "#0033FF", #~factpalFill(highlight),
                 color = "black", #~factpal(highlight),
                opacity = 0.5,
                 fillOpacity = 0.1,
@@ -166,7 +167,8 @@ server <- function(input, output, session) {
                 # Highlight WBs upon mouseover
                 highlight = highlightOptions(
                   weight = 3,
-                  fillOpacity = 0,
+                  fillColor = "#FF3300" ,#"transparent",
+                  fillOpacity = 0.3,
                   color = "red",
                   opacity = 1.0,
                   bringToFront = TRUE,
@@ -188,18 +190,49 @@ server <- function(input, output, session) {
     #create object for clicked polygon
     click <- input$mymap_shape_click
     
-    waterbodies@data$highlight<-0
+    #waterbodies@data$highlight<-0
     #browser()
     if(values$wbselected==click$id){
       values$wbselected <-""
       
     }else{
      values$wbselected <- click$id
-     waterbodies@data[waterbodies@data$Vannforeko==click$id,"highlight"]<-1
+     #waterbodies@data[waterbodies@data$Vannforeko==click$id,"highlight"]<-1
     
     }
     print(click$id)
     #match<-"0101000032-4-C"
+    
+    #pulls lat and lon from shiny click event
+    lat <- click$lat
+    lon <- click$lng
+    
+    #puts lat and lon for click point into its own data frame
+    coords <- as.data.frame(cbind(lon, lat))
+    
+    #converts click point coordinate data frame into SP object, sets CRS
+    point <- SpatialPoints(coords)
+    proj4string(point) <- CRS("+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs")
+    
+    #retrieves country in which the click point resides, set CRS for country
+    selected <- waterbodies[point,]
+    proj4string(selected) <- CRS("+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs")
+    
+    proxy <- leafletProxy("mymap")
+    if(click$id == "Selected"){
+      proxy %>% removeShape(layerId = "Selected")
+      values$wbselected <-""
+    } else {
+      proxy %>% addPolygons(data = selected, 
+                            fillColor = "transparent",
+                            fillOpacity = 1, 
+                            color = "red",
+                            weight = 3, 
+                            opacity = 1.0,
+                            stroke = T,
+                            layerId = "Selected")
+    } 
+    
     
     })
   
