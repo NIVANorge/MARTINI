@@ -36,7 +36,7 @@ ui <- dashboardPage(skin = "black",title="MARTINI Status Assessment",
                     dashboardHeader(title = "MARTINI"),
                     dashboardSidebar(sidebarMenu(id="tabs",
                                                  menuItem("Map", tabName = "Map", icon = icon("map-marker")),
-                                                 menuItem("Waterbody", tabName = "indicators", icon=icon("bar-chart")),
+                                                 menuItem("Indicators", tabName = "indicators", icon=icon("bar-chart")),
                                                  #menuItem("Status", tabName = "status", icon = icon("bar-chart")),
                                                  menuItem("Options", tabName = "options", icon = icon("cog"))#,
                     )),
@@ -101,11 +101,12 @@ server <- function(input, output, session) {
       df_ind <- read.table(file="indicator_results.txt",sep="\t",header=T)
       WB_name<-df_WB[df_WB$VANNFOREKOMSTID==values$wbselected,"VANNFOREKOMSTNAVN"]
       df_ind <- df_ind %>% filter(WB==values$wbselected)
+      type<-df_ind$type[1]
       Salinity<-df_ind$Salinitet[1]
       CoastType<-df_ind$Kysttype[1]
-      cat(file=stderr(),values$wbselected," ",WB_name,", ",CoastType,", ",Salinity,"\n")
+      cat(file=stderr(),values$wbselected," ",WB_name,", ",type," ",CoastType,", ",Salinity,"\n")
       WB_name<-df_WB[df_WB$VANNFOREKOMSTID==values$wbselected,"VANNFOREKOMSTNAVN"]
-      paste0("<b>",values$wbselected," ",WB_name,", ",CoastType,", ",Salinity,"</b>")
+      paste0("<b>",values$wbselected," ",WB_name,"</b><br>",type," ",CoastType,", ",Salinity,"</b>")
             
     }
   })
@@ -247,7 +248,7 @@ server <- function(input, output, session) {
     df_ind <- read.table(file="indicator_results.txt",sep="\t",header=T)
     ClassList<-c("Bad","Poor","Moderate","Good","High")
     df<-df_ind %>%
-      dplyr::select(WB,Indicator,Unit,type,Kvalitetselement,value,EQR,
+      dplyr::select(WB,Indicator,Unit,Kvalitetselement,value,EQR,
                     Ref,HG,GM,MP,PB,Worst,ClassID)
     if(values$wbselected==""){
       df<-data.frame()
@@ -257,32 +258,14 @@ server <- function(input, output, session) {
       df<-df %>% 
         filter(WB==values$wbselected) %>%
         mutate(Class=ClassList[ClassID]) %>%
-        mutate(value=round(value,4),EQR=round(EQR,3)) %>%
+        mutate(value=round(value,3),EQR=round(EQR,3)) %>%
         dplyr::select(-c(WB,ClassID))
     }
     
     return(df)
     
   },options=list(dom='t',pageLength = 99,autoWidth=TRUE))
-    
-  #   dt<-df.count %>% 
-  #   group_by_(.dots=Groups) %>% 
-  #   summarize(Classes = spk_chr(f,type='bar',barWidth=barwidthpx,chartRangeMin=ymin, chartRangeMax=ymax,
-  #                               colorMap=barcolours)) %>% 
-  #   ungroup() %>%
-  #   mutate(pGES=ifelse(Class=='','',pGES)) %>%
-  #   select(-one_of(remove)) %>%
-  #   datatable(escape = F,rownames = F,selection = 'single',
-  #             options = list(dom=sDOM,fnDrawCallback = htmlwidgets::JS('function(){HTMLWidgets.staticRender();}')))
-  # if(!is.null(roundlist)){
-  #   dt<-dt %>% formatRound(columns=roundlist, digits=3)
-  #   ClassOutputTableDT(
-  #     values$res4MC,
-  #     roundlist = c("EQR","pGES"),
-  #     Groups = grplist,
-  #     remove = rmlist,
-  #     ClassVar = "ClassMC"
-  #  )
+   
 }
 
 shinyApp(ui, server)
