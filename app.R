@@ -145,6 +145,12 @@ server <- function(input, output, session) {
   #factpalFill <- colorFactor(c("#0033FF", "#FF0000"), waterbodies$highlight)
   #waterbodies$highlight <- 0
   
+  labs <- lapply(seq(nrow(waterbodies@data)), function(i) {
+    paste0(waterbodies@data[i, "Vannfore_1"], '<br>', 
+            waterbodies@data[i, "Vannforeko"] ) 
+  })
+  
+  
   output$mymap <- renderLeaflet({
     rfile<-paste0("raster/",values$parameter,".grd")
     r <- raster(rfile)
@@ -176,7 +182,8 @@ server <- function(input, output, session) {
                   sendToBack = TRUE),  
                 
                 # # Add label info when mouseover
-                label = waterbodies$Vannfore_1,
+               label = lapply(labs, htmltools::HTML),
+                #label =  HTML(paste0("<p>",waterbodies$Vannfore_1,"</p><p>",waterbodies$Vannforeko,"</p>")),
                 labelOptions = labelOptions(
                   style = list("font-weight" = "normal", padding = "3px 8px"),
                   textsize = "15px",
