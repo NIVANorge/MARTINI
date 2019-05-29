@@ -1,21 +1,21 @@
 [general]
 creator=R package 'raster'
-created=2019-05-21 20:11:39
+created=2019-05-24 14:08:28
 [georeference]
-nrows=315
-ncols=305
-xmin=4060000.0817245
-ymin=3657400.305
-xmax=4548000.0817245
-ymax=4161400.305
-projection=+init=epsg:3035 +proj=laea +lat_0=52 +lon_0=10 +x_0=4321000 +y_0=3210000 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs
+nrows=1286
+ncols=1236
+xmin=5.6242345037528
+ymin=56.0359456096113
+xmax=13.8807145037528
+ymax=60.5626656096113
+projection=+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0
 [data]
 datatype=FLT4S
 byteorder=little
 nbands=1
 bandorder=BIL
 categorical=FALSE
-minvalue=3.7402058123396
+minvalue=3.7382413492497
 maxvalue=156.252155010517
 nodatavalue=-3.4e+38
 [legend]
@@ -23,4 +23,4 @@ legendtype=
 values=
 color=
 [description]
-layername=layer
+layername=time.averaged.nitrate.nitrogen

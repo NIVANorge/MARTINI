@@ -77,7 +77,11 @@ ui <- dashboardPage(skin = "black",title="MARTINI Status Assessment",
 
 server <- function(input, output, session) {
   
+  revList<-c("DO_bot")
+  
   df_WB<-read.table(file="nve/WBlist.txt",header=T,stringsAsFactors=F,sep=";")
+  df_ind <- read.table(file="indicator_results.txt",sep="\t",header=T)
+  
   
   output$WBinfo <- renderText({
     if (values$wbselected=="") {
@@ -98,7 +102,7 @@ server <- function(input, output, session) {
       "No waterbody selected"
     }else{
       #load("indicators.Rda")
-      df_ind <- read.table(file="indicator_results.txt",sep="\t",header=T)
+      
       WB_name<-df_WB[df_WB$VANNFOREKOMSTID==values$wbselected,"VANNFOREKOMSTNAVN"]
       df_ind <- df_ind %>% filter(WB==values$wbselected)
       type<-df_ind$type[1]
@@ -131,7 +135,11 @@ server <- function(input, output, session) {
     rfile<-paste0("raster/",values$parameter,".grd")
     r <- raster(rfile)
  
-    pal <- colorNumeric("viridis", values(r),na.color = "transparent")
+    if(input$selParam %in% revList){
+      pal <- colorNumeric("viridis", values(r),na.color = "transparent")
+    }else{
+      pal <- colorNumeric("viridis", values(r),na.color = "transparent",reverse=T)
+    }
     withProgress(message = 'Updating map...', value = 0, {
     leafletProxy("mymap") %>%
       clearImages() %>%
@@ -154,14 +162,21 @@ server <- function(input, output, session) {
   output$mymap <- renderLeaflet({
     rfile<-paste0("raster/",values$parameter,".grd")
     r <- raster(rfile)
-    pal <- colorNumeric("viridis", values(r),na.color = "transparent")
+    if(values$parameter %in% revList){
+      pal <- colorNumeric("viridis", values(r),na.color = "transparent")
+    }else{
+      pal <- colorNumeric("viridis", values(r),na.color = "transparent",reverse=T)
+    }
     
     leaflet() %>% 
       #addTiles() %>% 
       addProviderTiles(providers$Esri.WorldGrayCanvas) %>% 
       addRasterImage(r, colors = pal, opacity=0.7) %>%
-      addLegend(pal = pal,values=values(r),title=plottitle(values$parameter)) %>%
+      addLegend(pal = pal,values=values(r),title=plottitle(values$parameter),  
+                labFormat = labelFormat(transform = function(x) sort(x, decreasing = TRUE))
+                ) %>%
  
+      
       addPolygons(data = waterbodies, 
                   fillColor = "transparent",
                 #fillColor = "#0033FF", #~factpalFill(highlight),

@@ -1,8 +1,0 @@
-201810171608   0     0     0CJM C:\Data\GitHub\MARTINI\raster\chl = SPLINE(chl_crop,  'value', REGULARIZED, 0.10000000000000001, 12, 0.050000000000000003)
-201810171630   0     1     0CJM C:\Data\GitHub\MARTINI\raster\chl = SPLINE(chl2_crop,  'value', REGULARIZED, 0.10000000000000001, 12, 0.050000000000000003)
-201810171638   0     1     0CJM C:\Data\GitHub\MARTINI\raster\chl = IDW(chl3_crop,  'value', C:\Users\CJM\AppData\Local\Temp\arc3D2F\xcl966, 2.0, SAMPLE, 12, #,
-201810171639   0     1     0CJM C:\Data\GitHub\MARTINI\raster\chl = IDW(chl3_crop,  'value', #, 2.0, SAMPLE, 12, #, 0.025000000000000001)
-201810171641   1    14     0CJM C:\Data\GitHub\MARTINI\raster\chl = IDW(chl_crop,  'value', C:\Users\CJM\AppData\Local\Temp\arc3D2F\xcl969, 2.0, SAMPLE, 12, #,
-201810171724   1    57     0CJM C:\Data\GitHub\MARTINI\raster\chl = IDW(chl_crop,  'value', C:\Users\CJM\AppData\Local\Temp\arc3D2F\xcl9615, 1.0, SAMPLE, 12, #,
-201810171736   1    83     0CJM C:\Data\GitHub\MARTINI\raster\chl = IDW(chl_crop,  'value', C:\Users\CJM\AppData\Local\Temp\arc71E5\xcl604, 1.0, SAMPLE, 12, #,
-201810171742   1    82     0CJM C:\Data\GitHub\MARTINI\raster\chl = IDW(chl_crop,  'value', C:\Users\CJM\AppData\Local\Temp\arc71E5\xcl607, 1.0, SAMPLE, 12, #,
