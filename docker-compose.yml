@@ -1,0 +1,7 @@
+version: '3'
+
+services:
+  martini:
+    build: .
+    ports:
+      - 3838:3838
