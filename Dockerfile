@@ -17,4 +17,4 @@ ENV CPLUS_INCLUDE_PATH /usr/include/gdal
 RUN install2.r --error --ncpus 4 --deps TRUE tidyverse shiny leaflet rgdal raster shinydashboard DT
 RUN rm -rf /tmp/*
 
-ADD . /srv/shiny-server/martini_app
+ADD app /srv/shiny-server/martini_app
