@@ -1,0 +1,62 @@
+# Refer to the readme for further information on how to use this circleci config
+
+version: 2.1
+orbs:
+  niva-orb: nivanorge/niva-google-cloud-orb@0.0.12
+
+jobs:
+  determine_changed_containers:
+    docker:
+      - image: python:3.8-buster
+    steps:
+      - checkout
+      - run:
+          name: "Select new docker images to be build"
+          command: python ./.circleci/determine_changed_containers.py
+      - persist_to_workspace:
+          root: /root
+          paths:
+            - project
+
+workflows:
+  version: 2.1
+  build-test:
+    jobs:
+      - determine_changed_containers:
+          filters:
+            branches:
+              ignore:
+                - dev
+                - master
+      - niva-orb/build_containers:
+          context: nivacloud secrets
+          requires:
+            - determine_changed_containers
+  dev-build-test-deploy:
+    jobs:
+      - determine_changed_containers:
+          filters:
+            branches:
+              only: dev
+      - niva-orb/build_and_push_to_nivatest:
+          context: nivacloud secrets
+          requires:
+            - determine_changed_containers
+      - niva-orb/deploy_to_nivatest:
+          context: nivacloud secrets
+          requires:
+            - niva-orb/build_and_push_to_nivatest
+  master-copy-deploy:
+    jobs:
+      - determine_changed_containers:
+          filters:
+            branches:
+              only: master
+      - niva-orb/copy_containers_to_nivaprod:
+          context: nivacloud secrets
+          requires:
+            - determine_changed_containers
+      - niva-orb/deploy_to_nivaprod:
+          context: nivacloud secrets
+          requires:
+            - niva-orb/copy_containers_to_nivaprod

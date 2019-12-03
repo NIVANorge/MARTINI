@@ -1,0 +1,10 @@
+{
+  "containers": {
+    "martini": {
+      "image_name": "MARTINI_SHINY_IMAGENAME",
+      "docker_file_directory": ".",
+      "kubectl_deployment_directories": "k8s/deployments/",
+      "is_changed_regexp": "."
+    }
+  }
+}
