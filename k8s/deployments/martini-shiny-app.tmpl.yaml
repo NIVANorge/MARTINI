@@ -5,7 +5,9 @@ metadata:
   labels:
     app: martini
 spec:
-  replicas: 2
+  # shiny apps are stateful, and do not work very well with more than 1 replica
+  # see discussion https://github.com/rstudio/shiny/issues/2455
+  replicas: 1
   selector:
     matchLabels:
       app: martini
