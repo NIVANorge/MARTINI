@@ -18,7 +18,7 @@ spec:
     spec:
       containers:
       - name: martini
-        image: MARTINI_SHINY_IMAGENAME
+        image: app-image
         ports:
           - containerPort: 3838
         livenessProbe:
