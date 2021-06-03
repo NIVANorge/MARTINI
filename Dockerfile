@@ -19,5 +19,3 @@ RUN rm -rf /tmp/*
 
 ADD shiny.conf /etc/shiny-server/shiny-server.conf
 ADD app /srv/shiny-server/martini_app
-
-USER shiny
