@@ -65,7 +65,11 @@ ui <- dashboardPage(skin = "black",title="MARTINI Status Assessment",
                                                DT::dataTableOutput("dtind")
                                                
                                                #selectInput("selInd",label="",c("Chlorophyll a ","Total phosphorous","Phosphate P","Total nitrogen","Nitrate N","Ammonium N","Secchi depth","Oxygen","What else?"),multiple=T)
-                                               ))),
+                                               )),
+                              fluidRow( column(10,
+                                               h3(htmlOutput("SelectedWBStatus"))
+                                               
+                              ))),
                       tabItem(tabName = "status",
                               fluidRow( column(6,""))),
                       tabItem(tabName = "options",
@@ -114,7 +118,15 @@ server <- function(input, output, session) {
             
     }
   })
-    
+  
+  
+  output$SelectedWBStatus <- renderText({
+    if (values$wbselected=="") {
+      ""
+    }else{
+      "Aggregated status"
+    }
+  })
   
   tagList(
     sliderInput("n", "N", 1, 1000, 500),
