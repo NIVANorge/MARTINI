@@ -14,10 +14,10 @@ values$parameter <- "Chl"
 
 
 plottitle<-function(parameter){
-  params<-c("Chl","DO_bot","NH4_summer","NH4_winter",
+  params<-c("Chl","MSMDI","NQI1","H","Secchi","DO_bot","NH4_summer","NH4_winter",
             "NO3_summer","NO3_winter","PO4_summer","PO4_winter",
             "TN_summer","TN_winter","TP_summer","TP_winter")
-  titles<-c("Chl a [µg/l]","DO bottom [ml/l]","NH4 summer [µg-N/l]","NH4 winter [µg-N/l]",
+  titles<-c("Chl a [µg/l]","MSMDI [EQR]","NQI1 [EQR]","H [EQR]","Secchi [m]","DO bottom [ml/l]","NH4 summer [µg-N/l]","NH4 winter [µg-N/l]",
             "NO3 summer [µg-N/l]","NO3 winter [µg-N/l]","PO4 summer [µg-P/l]","PO4 winter [µg-P/l]",
             "TN summer [µg-N/l]","TN _winter [µg-N/l]","TP summer [µg-P/l]","TP winter [µg-P/l]")
   
@@ -38,7 +38,7 @@ ui <- dashboardPage(skin = "black",title="MARTINI Status Assessment",
                                                  menuItem("Map", tabName = "Map", icon = icon("map-marker")),
                                                  menuItem("Indicators", tabName = "indicators", icon=icon("bar-chart")),
                                                  #menuItem("Status", tabName = "status", icon = icon("bar-chart")),
-                                                 menuItem("Options", tabName = "options", icon = icon("cog"))#,
+                                                 menuItem("About", tabName = "about", icon = icon("book"))#,
                     )),
                     dashboardBody(tabItems(
                       # tab content
@@ -50,7 +50,7 @@ ui <- dashboardPage(skin = "black",title="MARTINI Status Assessment",
                                        
                                 
                                 column(3,selectInput("selParam",label="Display variable:",
-                                                     c("Chl","DO_bot","NH4_summer","NH4_winter",
+                                                     c("Chl","MSMDI","NQI1","H","Secchi","DO_bot","NH4_summer","NH4_winter",
                                                        "NO3_summer","NO3_winter","PO4_summer","PO4_winter",
                                                        "TN_summer","TN_winter","TP_summer","TP_winter"
                                                        )),
@@ -72,7 +72,7 @@ ui <- dashboardPage(skin = "black",title="MARTINI Status Assessment",
                               ))),
                       tabItem(tabName = "status",
                               fluidRow( column(6,""))),
-                      tabItem(tabName = "options",
+                      tabItem(tabName = "about",
                               fluidRow( column(6,"")))
                       
                       )))
@@ -144,7 +144,7 @@ server <- function(input, output, session) {
   
   observeEvent(input$selParam, ignoreInit = FALSE,{
     values$parameter<-input$selParam
-    rfile<-paste0("raster/",values$parameter,".grd")
+    rfile<-paste0("raster/",values$parameter,".tif")
     r <- raster(rfile)
  
     if(input$selParam %in% revList){
@@ -172,7 +172,7 @@ server <- function(input, output, session) {
   
   
   output$mymap <- renderLeaflet({
-    rfile<-paste0("raster/",values$parameter,".grd")
+    rfile<-paste0("raster/",values$parameter,".tif")
     r <- raster(rfile)
     if(values$parameter %in% revList){
       pal <- colorNumeric("viridis", values(r),na.color = "transparent")
