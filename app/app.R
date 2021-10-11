@@ -78,7 +78,11 @@ ui <- dashboardPage(skin = "black",title="MARTINI Status Assessment",
                       tabItem(tabName = "status",
                               fluidRow( column(6,""))),
                       tabItem(tabName = "about",
-                              fluidRow( column(6,"")))
+                              fluidRow( column(6,
+                                               h3("About this app"),
+                                               p("Description required...."),
+                                               h3("Instructions"),
+                                               p("How to use this app..."))))
                       
                       )))
 
