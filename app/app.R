@@ -54,6 +54,12 @@ ui <- dashboardPage(skin = "black",title="MARTINI Status Assessment",
                                                        "NO3_summer","NO3_winter","PO4_summer","PO4_winter",
                                                        "TN_summer","TN_winter","TP_summer","TP_winter"
                                                        )),
+                                       selectInput("selPeriod",label="Period:",
+                                                   c("2017-2019","2017","2018","2019"
+                                                   )),
+                                       
+                                       #checkboxInput("showStatus","Show WB status"),
+                                       
                                        h3(htmlOutput("WBinfo")),
                                        uiOutput("WBbutton")        
                                        #actionButton("recalc", "New points")
@@ -66,8 +72,9 @@ ui <- dashboardPage(skin = "black",title="MARTINI Status Assessment",
                                                
                                                #selectInput("selInd",label="",c("Chlorophyll a ","Total phosphorous","Phosphate P","Total nitrogen","Nitrate N","Ammonium N","Secchi depth","Oxygen","What else?"),multiple=T)
                                                )),
-                              fluidRow( column(10,
-                                               h3(htmlOutput("SelectedWBStatus"))
+                              fluidRow( column(7,
+                                               h3(htmlOutput("SelectedWBStatus")),
+                                               DT::dataTableOutput("dtWB")
                                                
                               ))),
                       tabItem(tabName = "status",
@@ -84,7 +91,13 @@ server <- function(input, output, session) {
   revList<-c("DO_bot")
   
   df_WB<-read.table(file="nve/WBlist.txt",header=T,stringsAsFactors=F,sep=";")
-  df_ind <- read.table(file="indicator_results.txt",sep="\t",header=T)
+  #df_ind <- read.table(file="indicator_results.txt",sep="\t",header=T)
+  df_ind <- read.table(file="indicator_results_v8.csv",sep=";",header=T)
+  df_wb <- read.table(file="WB_results_v8.csv",sep=";",header=T)
+  
+  params<-c("Chl","MSMDI","NQI1","H","Secchi","DO_bot","NH4_summer","NH4_winter",
+            "NO3_summer","NO3_winter","PO4_summer","PO4_winter",
+            "TN_summer","TN_winter","TP_summer","TP_winter")
   
   
   output$WBinfo <- renderText({
@@ -110,11 +123,12 @@ server <- function(input, output, session) {
       WB_name<-df_WB[df_WB$VANNFOREKOMSTID==values$wbselected,"VANNFOREKOMSTNAVN"]
       df_ind <- df_ind %>% filter(WB==values$wbselected)
       type<-df_ind$type[1]
-      Salinity<-df_ind$Salinitet[1]
-      CoastType<-df_ind$Kysttype[1]
+      Salinity<-df_ind$Salinity[1]
+      CoastType<-df_ind$Type[1]
       cat(file=stderr(),values$wbselected," ",WB_name,", ",type," ",CoastType,", ",Salinity,"\n")
       WB_name<-df_WB[df_WB$VANNFOREKOMSTID==values$wbselected,"VANNFOREKOMSTNAVN"]
-      paste0("<b>",values$wbselected," ",WB_name,"</b><br>",type," ",CoastType,", ",Salinity,"</b>")
+    
+      paste0("<b>",values$wbselected," ",WB_name,"</b><br>",type," ",CoastType,", ",Salinity,"</b><br>Period: ",values$period)
             
     }
   })
@@ -142,29 +156,18 @@ server <- function(input, output, session) {
     }
   })
   
-  observeEvent(input$selParam, ignoreInit = FALSE,{
+  
+  rs <- reactive({
     values$parameter<-input$selParam
-    rfile<-paste0("raster/",values$parameter,".tif")
-    r <- raster(rfile)
- 
-    if(input$selParam %in% revList){
-      pal <- colorNumeric("viridis", values(r),na.color = "transparent")
-    }else{
-      pal <- colorNumeric("viridis", values(r),na.color = "transparent",reverse=T)
-    }
-    withProgress(message = 'Updating map...', value = 0, {
-    leafletProxy("mymap") %>%
-      clearImages() %>%
-      addRasterImage(r, colors=pal, opacity = 0.7)
-    })
+    values$period<-input$selPeriod
     
+    rfile<-values$period
+    rfile<-ifelse(rfile=="2017-2019","",paste0("_",rfile))
+    rfile<-paste0("raster/",values$parameter,rfile,".tif")
+    raster(rfile)
   })
   
-  #waterbodies$highlight <- as.factor(waterbodies$highlight)
-  #factpal <- colorFactor(c("#000000", "#FF0000"), waterbodies$highlight)
-  #factpalFill <- colorFactor(c("#0033FF", "#FF0000"), waterbodies$highlight)
-  #waterbodies$highlight <- 0
-  
+
   labs <- lapply(seq(nrow(waterbodies@data)), function(i) {
     paste0(waterbodies@data[i, "Vannfore_1"], '<br>', 
             waterbodies@data[i, "Vannforeko"] ) 
@@ -172,8 +175,7 @@ server <- function(input, output, session) {
   
   
   output$mymap <- renderLeaflet({
-    rfile<-paste0("raster/",values$parameter,".tif")
-    r <- raster(rfile)
+    r <- rs()
     if(values$parameter %in% revList){
       pal <- colorNumeric("viridis", values(r),na.color = "transparent")
     }else{
@@ -225,15 +227,12 @@ server <- function(input, output, session) {
     #create object for clicked polygon
     click <- input$mymap_shape_click
     
-    #waterbodies@data$highlight<-0
-    #browser()
     if(values$wbselected==click$id){
       values$wbselected <-""
       
     }else{
      values$wbselected <- click$id
-     #waterbodies@data[waterbodies@data$Vannforeko==click$id,"highlight"]<-1
-    
+     
     }
     print(click$id)
     #match<-"0101000032-4-C"
@@ -278,12 +277,10 @@ server <- function(input, output, session) {
   # table of indicator results
   #dtind
   output$dtind <- DT::renderDataTable({
-    #load("indicators.Rda")
-    df_ind <- read.table(file="indicator_results.txt",sep="\t",header=T)
-    ClassList<-c("Bad","Poor","Moderate","Good","High")
+
     df<-df_ind %>%
-      dplyr::select(WB,Indicator,Unit,Kvalitetselement,value,EQR,
-                    Ref,HG,GM,MP,PB,Worst,ClassID)
+      dplyr::select(WB,Indicator,Period,Kvalitetselement,Value,EQR,
+                    Ref,HG,GM,MP,PB,Worst,Status)
     if(values$wbselected==""){
       df<-data.frame()
     }else{
@@ -291,14 +288,49 @@ server <- function(input, output, session) {
 
       df<-df %>% 
         filter(WB==values$wbselected) %>%
-        mutate(Class=ClassList[ClassID]) %>%
-        mutate(value=round(value,3),EQR=round(EQR,3)) %>%
-        dplyr::select(-c(WB,ClassID))
+        filter(Period==values$period)
+      
+      df$Indicator <- factor(df$Indicator,levels=params)
+      
+      df<-df %>%
+        arrange(Indicator) %>%
+        mutate(Value=round(Value,3),EQR=round(EQR,3)) %>%
+        dplyr::select(-c(WB,Period))
+      
+      
+      
     }
     
     return(df)
     
   },options=list(dom='t',pageLength = 99,autoWidth=TRUE))
+  
+  output$dtWB <- DT::renderDataTable({
+    ClassList<-c("Bad","Poor","Moderate","Good","High")
+    df<-df_wb %>%
+      dplyr::select(WB,Period,Worst_Biological,Biological,Worst_Supporting,Supporting,EQR,Status) 
+
+    if(values$wbselected==""){
+      df<-data.frame()
+    }else{
+      cat(file=stderr(),"values$wbselected=",values$wbselected,"\n")
+      
+      df<-df %>% 
+        filter(WB==values$wbselected) %>%
+        filter(Period==values$period) %>%
+        mutate(EQR_Biological=round(Biological,3),
+               EQR_Supporting=round(Supporting,3),
+               EQR=round(EQR,3)) %>%
+        dplyr::select(`Worst Biological QE`=Worst_Biological,`EQR Biological`=EQR_Biological,
+                      `Worst Supporting QE`=Worst_Supporting,`EQR Supporting`=EQR_Supporting,
+                      `EQR Overall`=EQR,Status)  
+    }
+    
+    return(df)
+    
+  },options=list(dom='t',pageLength = 99,autoWidth=TRUE),rownames= FALSE)
+  
+  
    
 }
 
