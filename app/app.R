@@ -290,6 +290,19 @@ server <- function(input, output, session) {
     }else{
       values$run<-TRUE
     }
+      
+    if(values$wbselected!=""){
+      selected <- waterbodies[waterbodies$Vannforeko==values$wbselected,]
+      lm <- lm %>%
+        addPolygons(data = selected, 
+                    fillColor = "transparent",
+                    fillOpacity = 1, 
+                    color = "red",
+                    weight = 3, 
+                    opacity = 1.0,
+                    stroke = T,
+                    layerId = "Selected")
+    }  
     lm
     
   })
