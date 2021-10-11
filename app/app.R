@@ -12,10 +12,10 @@ names(r_colors) <- colors()
 
 
 plottitle<-function(parameter){
-  params<-c("Chl","MSMDI","NQI1","H","Secchi","DO_bot","NH4_summer","NH4_winter",
+  params<-c("Ecological Status","Chl","MSMDI","NQI1","H","Secchi","DO_bot","NH4_summer","NH4_winter",
             "NO3_summer","NO3_winter","PO4_summer","PO4_winter",
             "TN_summer","TN_winter","TP_summer","TP_winter")
-  titles<-c("Chl a [µg/l]","MSMDI [EQR]","NQI1 [EQR]","H [EQR]","Secchi [m]","DO bottom [ml/l]","NH4 summer [µg-N/l]","NH4 winter [µg-N/l]",
+  titles<-c("Ecological status","Chl a [µg/l]","MSMDI [EQR]","NQI1 [EQR]","H [EQR]","Secchi [m]","DO bottom [ml/l]","NH4 summer [µg-N/l]","NH4 winter [µg-N/l]",
             "NO3 summer [µg-N/l]","NO3 winter [µg-N/l]","PO4 summer [µg-P/l]","PO4 winter [µg-P/l]",
             "TN summer [µg-N/l]","TN _winter [µg-N/l]","TP summer [µg-P/l]","TP winter [µg-P/l]")
   
@@ -48,7 +48,7 @@ ui <- dashboardPage(skin = "black",title="MARTINI Status Assessment",
                                        
                                 
                                 column(3,selectInput("selParam",label="Display variable:",
-                                                     c("Chl","MSMDI","NQI1","H","Secchi","DO_bot","NH4_summer","NH4_winter",
+                                                     c("Ecological Status","Chl","MSMDI","NQI1","H","Secchi","DO_bot","NH4_summer","NH4_winter",
                                                        "NO3_summer","NO3_winter","PO4_summer","PO4_winter",
                                                        "TN_summer","TN_winter","TP_summer","TP_winter"
                                                        )),
@@ -56,7 +56,7 @@ ui <- dashboardPage(skin = "black",title="MARTINI Status Assessment",
                                                    c("2017-2019","2017","2018","2019"
                                                    )),
                                        
-                                       checkboxInput("showStatus","Show WB status"),
+                                       checkboxInput("showStatus","Show WB status",value=TRUE),
                                        
                                        h3(htmlOutput("WBinfo")),
                                        uiOutput("WBbutton")        
@@ -87,15 +87,19 @@ ui <- dashboardPage(skin = "black",title="MARTINI Status Assessment",
 server <- function(input, output, session) {
   values <- reactiveValues()
   values$wbselected <- ""
-  values$parameter <- "Chl"
+  #values$parameter <- "Chl"
+  values$parameter <- "Ecological Status"
+  values$period<-"2017-2019"
+  
   revList<-c("DO_bot")
   
+
   df_WB<-read.table(file="nve/WBlist.txt",header=T,stringsAsFactors=F,sep=";")
   #df_ind <- read.table(file="indicator_results.txt",sep="\t",header=T)
   df_ind <- read.table(file="indicator_results_v8.csv",sep=";",header=T)
   df_wb <- read.table(file="WB_results_v8.csv",sep=";",header=T)
   
-  params<-c("Chl","MSMDI","NQI1","H","Secchi","DO_bot","NH4_summer","NH4_winter",
+  params<-c("Ecological Status","Chl","MSMDI","NQI1","H","Secchi","DO_bot","NH4_summer","NH4_winter",
             "NO3_summer","NO3_winter","PO4_summer","PO4_winter",
             "TN_summer","TN_winter","TP_summer","TP_winter")
   
@@ -160,11 +164,14 @@ server <- function(input, output, session) {
   rs <- reactive({
     values$parameter<-input$selParam
     values$period<-input$selPeriod
-    
-    rfile<-values$period
-    rfile<-ifelse(rfile=="2017-2019","",paste0("_",rfile))
-    rfile<-paste0("raster/",values$parameter,rfile,".tif")
-    raster(rfile)
+    if(values$parameter=="Ecological Status"){
+      return(NULL)
+    }else{
+      rfile<-values$period
+      rfile<-ifelse(rfile=="2017-2019","",paste0("_",rfile))
+      rfile<-paste0("raster/",values$parameter,rfile,".tif")
+      return(raster(rfile))
+    }
   })
   
 
@@ -175,13 +182,17 @@ server <- function(input, output, session) {
   
   
   wbstatus <- reactive({
+    if(values$parameter=="Ecological Status"){
+      df<-df_wb %>% 
+        filter(Period==values$period) %>%
+        dplyr::select(WB,Status)
+    }else{
     df<-df_ind %>% 
       filter(Indicator==values$parameter) %>%
       filter(Period==values$period) %>%
       dplyr::select(WB,Status)
-    
+    }
     df$Status <- factor(df$Status,levels=c("Bad","Poor","Moderate","Good","High"))
-    
     dat <- waterbodies@data
     dat <- dat %>%
       left_join(df,by=c("Vannforeko"="WB")) %>%
@@ -211,24 +222,29 @@ server <- function(input, output, session) {
     statuslevels <- c("Bad","Poor","Moderate","Good","High")
     statuslevels <- factor(statuslevels,levels=rev(statuslevels))
     
-    if(values$parameter %in% revList){
-      pal <- colorNumeric("viridis", values(r),na.color = "transparent")
-    }else{
-      pal <- colorNumeric("viridis", values(r),na.color = "transparent",reverse=T)
-    }
     
     #statusopacity <- ifelse(isolate(input$showStatus),0.9,0)
     statusopacity <- ifelse(input$showStatus,0.9,0)
     
     lm <- leaflet() %>% 
       #addTiles() %>% 
-      addProviderTiles(providers$Esri.WorldGrayCanvas) %>% 
-      addRasterImage(r, colors = pal, opacity=0.7) %>%
-      addLegend(pal = pal,values=values(r),title=plottitle(values$parameter),  
-                labFormat = labelFormat(transform = function(x) sort(x, decreasing = TRUE))
-                ) %>%
- 
+      addProviderTiles(providers$Esri.WorldGrayCanvas)
+    
+    if(!is.null(r)){
+      if(values$parameter %in% revList){
+        pal <- colorNumeric("viridis", values(r),na.color = "transparent")
+      }else{
+        pal <- colorNumeric("viridis", values(r),na.color = "transparent",reverse=T)
+      }
+      lm <- lm  %>%
+        addRasterImage(r, colors = pal, opacity=0.7) %>%
+        addLegend(pal = pal,values=values(r),title=plottitle(values$parameter),  
+                  labFormat = labelFormat(transform = function(x) sort(x, decreasing = TRUE))
+        ) 
+    }
       
+
+      lm <- lm %>%
       addPolygons(data = shape_wb, 
                   #fillColor = "transparent",
                   fillColor =  ~palshp(Status),
@@ -241,8 +257,8 @@ server <- function(input, output, session) {
                 # Highlight WBs upon mouseover
                 highlight = highlightOptions(
                   weight = 3,
-                  fillColor = "#FF3300" ,#"transparent",
-                  fillOpacity = 0.3,
+                  #fillColor = "#FF3300" ,#"transparent",
+                  #fillOpacity = 0.3,
                   color = "red",
                   opacity = 1.0,
                   bringToFront = TRUE,
