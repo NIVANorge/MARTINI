@@ -58,6 +58,8 @@ ui <- dashboardPage(skin = "black",title="MARTINI Status Assessment",
                                        
                                        checkboxInput("showStatus","Show WB status",value=TRUE),
                                        
+                                       actionButton("resetzoom", "Reset zoom"),
+                                       
                                        h3(htmlOutput("WBinfo")),
                                        uiOutput("WBbutton")        
                                        #actionButton("recalc", "New points")
@@ -94,6 +96,10 @@ server <- function(input, output, session) {
   #values$parameter <- "Chl"
   values$parameter <- "Ecological Status"
   values$period<-"2017-2019"
+  values$run <- FALSE
+  values$lng=9.208247
+  values$lat=58.273135
+  values$zoom=7
   
   revList<-c("DO_bot")
   
@@ -220,12 +226,15 @@ server <- function(input, output, session) {
   
   
   output$mymap <- renderLeaflet({
+    values$rezoom
+    values$rezoom<-FALSE
     r <- rs()
     shape_wb <- wbstatus()
     palshp <- colorpal()
     statuslevels <- c("Bad","Poor","Moderate","Good","High")
     statuslevels <- factor(statuslevels,levels=rev(statuslevels))
     
+    selected_wb <- isolate(values$wbselected)
     
     #statusopacity <- ifelse(isolate(input$showStatus),0.9,0)
     statusopacity <- ifelse(input$showStatus,0.9,0)
@@ -283,16 +292,15 @@ server <- function(input, output, session) {
       lm <- lm %>%
         addLegend(pal=palshp,values=statuslevels,title="Status")
     }
-    if(is.null(values$run)){
-      lm <- lm  %>%
-        #addMarkers(~Long, ~Lat, popup = ~htmlEscape(Name))
-        setView(lng=9.208247,lat=58.273135,zoom=7)
-    }else{
-      values$run<-TRUE
-    }
+ 
+     lm <- lm  %>%
+        setView(lng=isolate(values$lng),
+                lat=isolate(values$lat),
+                zoom=isolate(values$zoom))
+
       
-    if(values$wbselected!=""){
-      selected <- waterbodies[waterbodies$Vannforeko==values$wbselected,]
+    if(selected_wb!=""){
+      selected <- waterbodies[waterbodies$Vannforeko==selected_wb,]
       lm <- lm %>%
         addPolygons(data = selected, 
                     fillColor = "transparent",
@@ -306,7 +314,25 @@ server <- function(input, output, session) {
     lm
     
   })
-
+  
+  observeEvent(input$mymap_zoom, {
+    values$zoom<- input$mymap_zoom
+  })
+  
+  observeEvent(input$mymap_center$lng, {
+    values$lng<-input$mymap_center$lng
+  })
+  observeEvent(input$mymap_center$lat, {
+    values$lat<-input$mymap_center$lat
+  })
+  
+  observeEvent(input$resetzoom,{
+    values$lng=9.208247
+    values$lat=58.273135
+    values$zoom=7
+    values$rezoom=TRUE
+  }
+  )
   
   observeEvent(input$mymap_shape_click, {
     #create object for clicked polygon
@@ -358,12 +384,7 @@ server <- function(input, output, session) {
     updateTabItems(session, "tabs", "indicators")
   })
   
-  
-  
-   # observeEvent(input$showStatus, {
-   #   proxy <- leafletProxy("mymap")
-   #   
-   # })
+
    
   
   # table of indicator results
