@@ -8,9 +8,7 @@ library(DT)
 
 r_colors <- rgb(t(col2rgb(colors()) / 255))
 names(r_colors) <- colors()
-values <- reactiveValues()
-values$wbselected <- ""
-values$parameter <- "Chl"
+
 
 
 plottitle<-function(parameter){
@@ -87,7 +85,9 @@ ui <- dashboardPage(skin = "black",title="MARTINI Status Assessment",
 # ----------------- Server -------------------------------------------------------- 
 
 server <- function(input, output, session) {
-  
+  values <- reactiveValues()
+  values$wbselected <- ""
+  values$parameter <- "Chl"
   revList<-c("DO_bot")
   
   df_WB<-read.table(file="nve/WBlist.txt",header=T,stringsAsFactors=F,sep=";")
