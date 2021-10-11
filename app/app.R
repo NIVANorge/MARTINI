@@ -58,7 +58,7 @@ ui <- dashboardPage(skin = "black",title="MARTINI Status Assessment",
                                                    c("2017-2019","2017","2018","2019"
                                                    )),
                                        
-                                       #checkboxInput("showStatus","Show WB status"),
+                                       checkboxInput("showStatus","Show WB status"),
                                        
                                        h3(htmlOutput("WBinfo")),
                                        uiOutput("WBbutton")        
@@ -170,19 +170,57 @@ server <- function(input, output, session) {
 
   labs <- lapply(seq(nrow(waterbodies@data)), function(i) {
     paste0(waterbodies@data[i, "Vannfore_1"], '<br>', 
-            waterbodies@data[i, "Vannforeko"] ) 
+           waterbodies@data[i, "Vannforeko"] ) 
   })
+  
+  
+  wbstatus <- reactive({
+    df<-df_ind %>% 
+      filter(Indicator==values$parameter) %>%
+      filter(Period==values$period) %>%
+      dplyr::select(WB,Status)
+    
+    df$Status <- factor(df$Status,levels=c("Bad","Poor","Moderate","Good","High"))
+    
+    dat <- waterbodies@data
+    dat <- dat %>%
+      left_join(df,by=c("Vannforeko"="WB")) %>%
+      mutate(ShapeLabel = paste0(Vannfore_1,"<br>",Vannforeko)) %>%
+      mutate(ShapeLabel=ifelse(is.na(Status),ShapeLabel,paste0(ShapeLabel,"<br>Status: ",Status)))
+    
+    waterbodies@data <- dat
+    waterbodies
+  }) 
+  
+  # create color pal
+  colorpal <- reactive({
+    mypal <- c("#ff0000","#ff8c2b","#ffff00","#00d600","#007eff")
+      
+     colorFactor(palette=mypal, domain=wbstatus()$Status)})
+
+  colorpalrev <- reactive({
+    mypal <- c("#ff0000","#ff8c2b","#ffff00","#00d600","#007eff")
+    
+    colorFactor(palette=mypal, domain=wbstatus()$Status)})
   
   
   output$mymap <- renderLeaflet({
     r <- rs()
+    shape_wb <- wbstatus()
+    palshp <- colorpal()
+    statuslevels <- c("Bad","Poor","Moderate","Good","High")
+    statuslevels <- factor(statuslevels,levels=rev(statuslevels))
+    
     if(values$parameter %in% revList){
       pal <- colorNumeric("viridis", values(r),na.color = "transparent")
     }else{
       pal <- colorNumeric("viridis", values(r),na.color = "transparent",reverse=T)
     }
     
-    leaflet() %>% 
+    #statusopacity <- ifelse(isolate(input$showStatus),0.9,0)
+    statusopacity <- ifelse(input$showStatus,0.9,0)
+    
+    lm <- leaflet() %>% 
       #addTiles() %>% 
       addProviderTiles(providers$Esri.WorldGrayCanvas) %>% 
       addRasterImage(r, colors = pal, opacity=0.7) %>%
@@ -191,14 +229,14 @@ server <- function(input, output, session) {
                 ) %>%
  
       
-      addPolygons(data = waterbodies, 
-                  fillColor = "transparent",
-                #fillColor = "#0033FF", #~factpalFill(highlight),
+      addPolygons(data = shape_wb, 
+                  #fillColor = "transparent",
+                  fillColor =  ~palshp(Status),
                 color = "black", #~factpal(highlight),
                opacity = 0.5,
-                fillOpacity = 0.1,
+                fillOpacity = statusopacity,
                 weight = 1,
-                layerId = waterbodies@data$Vannforeko,
+                layerId = shape_wb@data$Vannforeko,
                 
                 # Highlight WBs upon mouseover
                 highlight = highlightOptions(
@@ -212,14 +250,28 @@ server <- function(input, output, session) {
                 
                 # # Add label info when mouseover
                label = lapply(labs, htmltools::HTML),
+               #label=HTML(ShapeLabel),
                 #label =  HTML(paste0("<p>",waterbodies$Vannfore_1,"</p><p>",waterbodies$Vannforeko,"</p>")),
                 labelOptions = labelOptions(
                   style = list("font-weight" = "normal", padding = "3px 8px"),
                   textsize = "15px",
                   direction = "auto")#,
- 
-                )  %>%
-      setView(lng=9.208247,lat=58.273135,zoom=7)
+
+      )
+    
+    if(input$showStatus){
+      lm <- lm %>%
+        addLegend(pal=palshp,values=statuslevels,title="Status")
+    }
+    if(is.null(values$run)){
+      lm <- lm  %>%
+        #addMarkers(~Long, ~Lat, popup = ~htmlEscape(Name))
+        setView(lng=9.208247,lat=58.273135,zoom=7)
+    }else{
+      values$run<-TRUE
+    }
+    lm
+    
   })
 
   
@@ -235,7 +287,6 @@ server <- function(input, output, session) {
      
     }
     print(click$id)
-    #match<-"0101000032-4-C"
     
     #pulls lat and lon from shiny click event
     lat <- click$lat
@@ -273,6 +324,14 @@ server <- function(input, output, session) {
   observeEvent(input$goWB, {  
     updateTabItems(session, "tabs", "indicators")
   })
+  
+  
+  
+   # observeEvent(input$showStatus, {
+   #   proxy <- leafletProxy("mymap")
+   #   
+   # })
+   
   
   # table of indicator results
   #dtind
