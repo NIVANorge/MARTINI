@@ -95,13 +95,14 @@ server <- function(input, output, session) {
   values$wbselected <- ""
   #values$parameter <- "Chl"
   values$parameter <- "Ecological Status"
+  #values$parameter <- "DO_bot"
   values$period<-"2017-2019"
   values$run <- FALSE
   values$lng=9.208247
   values$lat=58.273135
   values$zoom=7
   
-  revList<-c("DO_bot")
+  revList<-c("DO_bot","Secchi")
   
 
   df_WB<-read.table(file="nve/WBlist.txt",header=T,stringsAsFactors=F,sep=";")
@@ -244,16 +245,23 @@ server <- function(input, output, session) {
       addProviderTiles(providers$Esri.WorldGrayCanvas)
     
     if(!is.null(r)){
+      palrev <- colorNumeric("viridis", values(r),na.color = "transparent", reverse=T)
+      pal <- colorNumeric("viridis", values(r),na.color = "transparent")
+      
       if(values$parameter %in% revList){
-        pal <- colorNumeric("viridis", values(r),na.color = "transparent")
+        lm <- lm  %>%
+          addRasterImage(r, colors = palrev, opacity=0.7) %>%
+          addLegend(pal=pal,values=values(r),title=plottitle(values$parameter),  
+                    labFormat = labelFormat(transform = function(x) sort(x, decreasing = TRUE))
+                    )
+                    
       }else{
-        pal <- colorNumeric("viridis", values(r),na.color = "transparent",reverse=T)
+        lm <- lm  %>%
+          addRasterImage(r, colors = pal, opacity=0.7) %>%
+          addLegend(pal=palrev,values=values(r),title=plottitle(values$parameter),  
+                    labFormat = labelFormat(transform = function(x) sort(x, decreasing = TRUE))
+          ) 
       }
-      lm <- lm  %>%
-        addRasterImage(r, colors = pal, opacity=0.7) %>%
-        addLegend(pal = pal,values=values(r),title=plottitle(values$parameter),  
-                  labFormat = labelFormat(transform = function(x) sort(x, decreasing = TRUE))
-        ) 
     }
       
 
