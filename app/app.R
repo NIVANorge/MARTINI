@@ -10,7 +10,6 @@ r_colors <- rgb(t(col2rgb(colors()) / 255))
 names(r_colors) <- colors()
 
 
-
 plottitle<-function(parameter){
   params<-c("Ecological Status","Chl","MSMDI","NQI1","H","Secchi","DO_bot","NH4_summer","NH4_winter",
             "NO3_summer","NO3_winter","PO4_summer","PO4_winter",
@@ -34,7 +33,7 @@ ui <- dashboardPage(skin = "black",title="MARTINI Status Assessment",
                     dashboardHeader(title = "MARTINI"),
                     dashboardSidebar(sidebarMenu(id="tabs",
                                                  menuItem("Map", tabName = "Map", icon = icon("map-marker")),
-                                                 menuItem("Indicators", tabName = "indicators", icon=icon("bar-chart")),
+                                                 menuItem("Indicators", tabName = "indicators", icon=icon("chart-bar")),
                                                  #menuItem("Status", tabName = "status", icon = icon("bar-chart")),
                                                  menuItem("About", tabName = "about", icon = icon("book"))#,
                     )),
@@ -52,6 +51,11 @@ ui <- dashboardPage(skin = "black",title="MARTINI Status Assessment",
                                                        "NO3_summer","NO3_winter","PO4_summer","PO4_winter",
                                                        "TN_summer","TN_winter","TP_summer","TP_winter"
                                                        )),
+                                       radioButtons("colors", "Scale colours:",
+                                                    c("Viridis" = "virid",
+                                                      "pyncview (continuous)" = "pync_c",
+                                                      "pyncview (discrete)" = "pync_d")),
+                                       checkboxInput("logscale","Use log scale",value=FALSE),
                                        selectInput("selPeriod",label="Period:",
                                                    c("2017-2019","2017","2018","2019"
                                                    )),
@@ -245,21 +249,51 @@ server <- function(input, output, session) {
       addProviderTiles(providers$Esri.WorldGrayCanvas)
     
     if(!is.null(r)){
-      palrev <- colorNumeric("viridis", values(r),na.color = "transparent", reverse=T)
-      pal <- colorNumeric("viridis", values(r),na.color = "transparent")
+      if(input$logscale==T){
+        r <- calc(r, fun=function(x){log10(x)})
+      }
+      
+      palAS<-c("#ffffff","#4ed1d1","#00ffff","#00e38c","#00c000",
+               "#78de00","#ffff00","#ffa200","#ff0000","#ff1e78",
+               "#ec3fff","#7c22ff","#4040ff","#20207e","#242424",
+               "#7e7e7e","#e0e0e0","#eed3bb","#d8a476","#aa7647",
+               "#663300")
+      palAS<-palAS[2:21]
+      
+      colorscheme<-input$colors
+      if(colorscheme=="pync_c"){
+        palrev <- colorNumeric(palAS, values(r),na.color = "transparent", reverse=T)
+        pal <- colorNumeric(palAS, values(r),na.color = "transparent")
+      }else if(colorscheme=="pync_d"){
+        palrev <- colorBin(palAS, values(r),bins=20,na.color = "transparent", reverse=T)
+        pal <- colorBin(palAS, values(r),bins=20,na.color = "transparent")
+      }else{
+        palrev <- colorNumeric("viridis", values(r),na.color = "transparent", reverse=T)
+        pal <- colorNumeric("viridis", values(r),na.color = "transparent")
+      }
+
+      if(input$logscale==T){
+         scalefun = function(x){
+           sort(10^x, decreasing = TRUE)
+         }
+      }else{
+        scalefun = function(x){
+          sort(x,decreasing = TRUE)
+        }
+      }
       
       if(values$parameter %in% revList){
         lm <- lm  %>%
           addRasterImage(r, colors = palrev, opacity=0.7) %>%
           addLegend(pal=pal,values=values(r),title=plottitle(values$parameter),  
-                    labFormat = labelFormat(transform = function(x) sort(x, decreasing = TRUE))
+                    labFormat = labelFormat(transform = function(x) scalefun(x))
                     )
                     
       }else{
         lm <- lm  %>%
           addRasterImage(r, colors = pal, opacity=0.7) %>%
           addLegend(pal=palrev,values=values(r),title=plottitle(values$parameter),  
-                    labFormat = labelFormat(transform = function(x) sort(x, decreasing = TRUE))
+                    labFormat = labelFormat(transform = function(x) scalefun(x))
           ) 
       }
     }
