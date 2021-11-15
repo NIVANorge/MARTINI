@@ -23,6 +23,33 @@ plottitle<-function(parameter){
   
 }
 
+# https://github.com/r-spatial/mapview/issues/258
+labelFormatCustom = function (prefix = "", suffix = "", between = " &ndash; ", 
+                              digits = 3, big.mark = ",", transform = identity, scientific=T) 
+{
+  
+  formatNum <- function(x) {
+    format(round(transform(x), digits), trim = TRUE, scientific = scientific,#TRUE, 
+           big.mark = big.mark, digits=digits)
+  }
+  function(type, ...) {
+    switch(type, numeric = (function(cuts) {
+      paste0(prefix, formatNum(cuts), suffix)
+    })(...), bin = (function(cuts) {
+      n <- length(cuts)
+      paste0(prefix, formatNum(cuts[-n]), between, formatNum(cuts[-1]), 
+             suffix)
+    })(...), quantile = (function(cuts, p) {
+      n <- length(cuts)
+      p <- paste0(round(p * 100), "%")
+      cuts <- paste0(formatNum(cuts[-n]), between, formatNum(cuts[-1]))
+      paste0("<span title=\"", cuts, "\">", 
+             prefix, p[-n], between, p[-1], suffix, "</span>")
+    })(...), factor = (function(cuts) {
+      paste0(prefix, as.character(transform(cuts)), suffix)
+    })(...))
+  }
+}
 
 waterbodies <- shapefile("nve/CoastalWBs_WGS84_no_holes_simple.shp")
 
@@ -276,24 +303,26 @@ server <- function(input, output, session) {
          scalefun = function(x){
            sort(10^x, decreasing = TRUE)
          }
+         useSF<-T
       }else{
         scalefun = function(x){
           sort(x,decreasing = TRUE)
         }
+        useSF<-F
       }
       
       if(values$parameter %in% revList){
         lm <- lm  %>%
           addRasterImage(r, colors = palrev, opacity=0.7) %>%
           addLegend(pal=pal,values=values(r),title=plottitle(values$parameter),  
-                    labFormat = labelFormat(transform = function(x) scalefun(x))
+                    labFormat = labelFormatCustom(transform = function(x) scalefun(x), digits=3,scientific=useSF)
                     )
                     
       }else{
         lm <- lm  %>%
           addRasterImage(r, colors = pal, opacity=0.7) %>%
           addLegend(pal=palrev,values=values(r),title=plottitle(values$parameter),  
-                    labFormat = labelFormat(transform = function(x) scalefun(x))
+                    labFormat = labelFormatCustom(transform = function(x) scalefun(x), digits=3,scientific=useSF)
           ) 
       }
     }
