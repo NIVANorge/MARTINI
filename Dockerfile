@@ -14,7 +14,7 @@ RUN apt-get update -y && \
 ENV CPLUS_INCLUDE_PATH /usr/include/gdal
 
 # Install R packages
-RUN install2.r --error --ncpus 4 --deps TRUE tidyverse shiny leaflet rgdal raster shinydashboard DT
+RUN install2.r --error --ncpus 4 --deps TRUE tidyverse shiny leaflet rgdal raster shinydashboard DT shinyjs
 RUN rm -rf /tmp/*
 
 ADD shiny.conf /etc/shiny-server/shiny-server.conf
