@@ -5,6 +5,7 @@ library(rgdal)
 library(raster)
 library(shinydashboard)
 library(DT)
+library(shinyjs)
 
 r_colors <- rgb(t(col2rgb(colors()) / 255))
 names(r_colors) <- colors()
@@ -55,6 +56,7 @@ waterbodies <- shapefile("nve/CoastalWBs_WGS84_no_holes_simple.shp")
 
 
 # ----------------- UI -------------------------------------------------------- 
+#shinyjs::
 
 ui <- dashboardPage(skin = "black",title="MARTINI Status Assessment",
                     dashboardHeader(title = "MARTINI"),
@@ -64,25 +66,23 @@ ui <- dashboardPage(skin = "black",title="MARTINI Status Assessment",
                                                  #menuItem("Status", tabName = "status", icon = icon("bar-chart")),
                                                  menuItem("About", tabName = "about", icon = icon("book"))#,
                     )),
-                    dashboardBody(tabItems(
+                    dashboardBody(useShinyjs(),
+                                  tabItems(
                       # tab content
                       tabItem(tabName = "Map",
                               fluidRow(
                                 
-                                column(6,
-                                       leafletOutput("mymap",height="600px"),""),
+                                column(9,
+                                       leafletOutput("mymap",height="550px"),""),
                                        
                                 
-                                column(3,selectInput("selParam",label="Display variable:",
+                                column(2,selectInput("selParam",label="Display variable:",
                                                      c("Ecological Status","Chl","MSMDI","NQI1","H","Secchi","DO_bot","NH4_summer","NH4_winter",
                                                        "NO3_summer","NO3_winter","PO4_summer","PO4_winter",
                                                        "TN_summer","TN_winter","TP_summer","TP_winter"
                                                        )),
-                                       radioButtons("colors", "Scale colours:",
-                                                    c("Viridis" = "virid",
-                                                      "pyncview (continuous)" = "pync_c",
-                                                      "pyncview (discrete)" = "pync_d")),
-                                       checkboxInput("logscale","Use log scale",value=FALSE),
+                                       disabled(checkboxInput("scaleDiscrete","Discrete colours",value=F)),
+                                       
                                        selectInput("selPeriod",label="Period:",
                                                    c("2017-2019","2017","2018","2019"
                                                    )),
@@ -145,6 +145,13 @@ server <- function(input, output, session) {
             "NO3_summer","NO3_winter","PO4_summer","PO4_winter",
             "TN_summer","TN_winter","TP_summer","TP_winter")
   
+  observeEvent(values$parameter, {
+    if(values$parameter!="Ecological Status"){
+      shinyjs::enable("scaleDiscrete")
+    }else{
+      shinyjs::disable("scaleDiscrete")
+    }
+  })
   
   output$WBinfo <- renderText({
     if (values$wbselected=="") {
@@ -201,7 +208,6 @@ server <- function(input, output, session) {
       tagList(actionButton("goWB", buttontext))
     }
   })
-  
   
   rs <- reactive({
     values$parameter<-input$selParam
@@ -276,9 +282,6 @@ server <- function(input, output, session) {
       addProviderTiles(providers$Esri.WorldGrayCanvas)
     
     if(!is.null(r)){
-      if(input$logscale==T){
-        r <- calc(r, fun=function(x){log10(x)})
-      }
       
       palAS<-c("#ffffff","#4ed1d1","#00ffff","#00e38c","#00c000",
                "#78de00","#ffff00","#ffa200","#ff0000","#ff1e78",
@@ -287,41 +290,40 @@ server <- function(input, output, session) {
                "#663300")
       palAS<-palAS[2:21]
       
-      colorscheme<-input$colors
-      if(colorscheme=="pync_c"){
-        palrev <- colorNumeric(palAS, values(r),na.color = "transparent", reverse=T)
-        pal <- colorNumeric(palAS, values(r),na.color = "transparent")
-      }else if(colorscheme=="pync_d"){
-        palrev <- colorBin(palAS, values(r),bins=20,na.color = "transparent", reverse=T)
-        pal <- colorBin(palAS, values(r),bins=20,na.color = "transparent")
-      }else{
-        palrev <- colorNumeric("viridis", values(r),na.color = "transparent", reverse=T)
-        pal <- colorNumeric("viridis", values(r),na.color = "transparent")
+      colorvals <- values(r)
+      if(values$parameter=="NO3_summer"){
+        colorvals <- c(0,300)
       }
-
-      if(input$logscale==T){
-         scalefun = function(x){
-           sort(10^x, decreasing = TRUE)
-         }
-         useSF<-T
+      
+      colorsdiscrete<-input$scaleDiscrete
+      if(colorsdiscrete==F){
+        palrev <- colorNumeric(palAS, colorvals,na.color = "transparent", reverse=T)
+        pal <- colorNumeric(palAS,colorvals,na.color = "transparent")
       }else{
+        palrev <- colorBin(palAS, colorvals,bins=20,na.color = "transparent", reverse=T)
+        pal <- colorBin(palAS, colorvals,bins=20,na.color = "transparent")
+      }
+        #palrev <- colorNumeric("viridis", values(r),na.color = "transparent", reverse=T)
+        #pal <- colorNumeric("viridis", values(r),na.color = "transparent")
+      
+
         scalefun = function(x){
           sort(x,decreasing = TRUE)
         }
         useSF<-F
-      }
+      
       
       if(values$parameter %in% revList){
         lm <- lm  %>%
           addRasterImage(r, colors = palrev, opacity=0.7) %>%
-          addLegend(pal=pal,values=values(r),title=plottitle(values$parameter),  
+          addLegend(pal=pal,values=colorvals,title=plottitle(values$parameter),  
                     labFormat = labelFormatCustom(transform = function(x) scalefun(x), digits=3,scientific=useSF)
                     )
                     
       }else{
         lm <- lm  %>%
           addRasterImage(r, colors = pal, opacity=0.7) %>%
-          addLegend(pal=palrev,values=values(r),title=plottitle(values$parameter),  
+          addLegend(pal=palrev,values=colorvals,title=plottitle(values$parameter),  
                     labFormat = labelFormatCustom(transform = function(x) scalefun(x), digits=3,scientific=useSF)
           ) 
       }
