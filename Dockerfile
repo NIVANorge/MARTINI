@@ -1,5 +1,5 @@
 FROM rocker/shiny
-WORKDIR /srv/shiny-server/martini_app
+
 
 RUN apt-get update -y && \
     apt-get install -y \
@@ -17,5 +17,7 @@ ENV CPLUS_INCLUDE_PATH /usr/include/gdal
 RUN install2.r --error --ncpus 4 --deps TRUE tidyverse shiny leaflet rgdal raster shinydashboard DT shinyjs
 RUN rm -rf /tmp/*
 
-ADD shiny.conf /etc/shiny-server/shiny-server.conf
-ADD app /srv/shiny-server/martini_app
+COPY /app /martini
+
+USER shiny
+CMD ["R", "-e", "shiny::runApp('/martini', host = '0.0.0.0', port = 3838)"]
