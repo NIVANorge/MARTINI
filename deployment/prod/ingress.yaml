@@ -1,0 +1,26 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: martini
+  annotations:
+    nginx.ingress.kubernetes.io/enable-global-auth: false
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    nginx.ingress.kubernetes.io/proxy-read-timeout: '3600'
+    nginx.ingress.kubernetes.io/proxy-send-timeout: '3600'
+spec:
+  ingressClassName: nginx
+  tls:
+    - secretName: martini-certificate
+      hosts:
+        - martini.p.niva.no
+  rules:
+  - host: martini.p.niva.no
+    http:
+      paths:
+      - pathType: Prefix
+        path: /
+        backend:
+          service:
+            name: martini
+            port:
+              name: http
