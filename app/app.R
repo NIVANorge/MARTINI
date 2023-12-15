@@ -1,11 +1,13 @@
 library(shiny)
 library(dplyr)
 library(leaflet)
-library(rgdal)
-library(raster)
+library(sf)
 library(shinydashboard)
 library(DT)
 library(shinyjs)
+library(sp)
+library(raster)
+library(reactable)
 
 r_colors <- rgb(t(col2rgb(colors()) / 255))
 names(r_colors) <- colors()
@@ -26,7 +28,7 @@ plottitle<-function(parameter){
 
 # https://github.com/r-spatial/mapview/issues/258
 labelFormatCustom = function (prefix = "", suffix = "", between = " &ndash; ", 
-                              digits = 3, big.mark = ",", transform = identity, scientific=T) 
+                              digits = 2, big.mark = ",", transform = identity, scientific=T) 
 {
   
   formatNum <- function(x) {
@@ -52,18 +54,14 @@ labelFormatCustom = function (prefix = "", suffix = "", between = " &ndash; ",
   }
 }
 
-waterbodies <- shapefile("nve/CoastalWBs_WGS84_no_holes_simple.shp")
-
 
 # ----------------- UI -------------------------------------------------------- 
 #shinyjs::
 
 ui <- dashboardPage(skin = "black",title="MARTINI Status Assessment",
-                    dashboardHeader(title = "MARTINI"),
+                    dashboardHeader(title = "MARTINI\nOslofjord"),
                     dashboardSidebar(sidebarMenu(id="tabs",
                                                  menuItem("Map", tabName = "Map", icon = icon("map-marker")),
-                                                 menuItem("Indicators", tabName = "indicators", icon=icon("chart-bar")),
-                                                 #menuItem("Status", tabName = "status", icon = icon("bar-chart")),
                                                  menuItem("About", tabName = "about", icon = icon("book"))#,
                     )),
                     dashboardBody(useShinyjs(),
@@ -71,43 +69,46 @@ ui <- dashboardPage(skin = "black",title="MARTINI Status Assessment",
                       # tab content
                       tabItem(tabName = "Map",
                               fluidRow(
+                                column(1, HTML("<br>"),p(actionButton("resetzoom", "Reset zoom"))),
                                 
-                                column(9,
-                                       leafletOutput("mymap",height="550px"),""),
+                                column(2,
+                                       # selectInput("selPeriod",label="Period:",
+                                       #               c("2017-2019","2017","2018","2019"
+                                       #               )),
                                        
-                                
-                                column(2,selectInput("selParam",label="Display variable:",
-                                                     c("Ecological Status","Chl","MSMDI","NQI1","H","Secchi","DO_bot","NH4_summer","NH4_winter",
-                                                       "NO3_summer","NO3_winter","PO4_summer","PO4_winter",
-                                                       "TN_summer","TN_winter","TP_summer","TP_winter"
-                                                       )),
-                                       disabled(checkboxInput("scaleDiscrete","Discrete colours",value=F)),
-                                       
-                                       selectInput("selPeriod",label="Period:",
-                                                   c("2017-2019","2017","2018","2019"
-                                                   )),
-                                       
-                                       checkboxInput("showStatus","Show WB status",value=TRUE),
-                                       
-                                       actionButton("resetzoom", "Reset zoom"),
-                                       
+                                       selectInput("selScenario", label="Scenario:",
+                                                   c("Observations",
+                                                     "Baseline",
+                                                     "N -20% P -20%",
+                                                     "N -40% P -40%",
+                                                     "N -60% P -60%"
+                                                   ))
+                              ),
+                              column(2,selectInput("selParam",label="Display variable:",
+                                                            c("Ecological Status","Chl","MSMDI","NQI1","H","Secchi","DO_bot","NH4_summer","NH4_winter",
+                                                              "NO3_summer","NO3_winter","PO4_summer","PO4_winter",
+                                                              "TN_summer","TN_winter","TP_summer","TP_winter"
+                                                            ))),
+                              column(2,
+                                     p(disabled(checkboxInput("scaleDiscrete","Discrete colours",value=F))),
+                                     p(checkboxInput("showStatus","Show status",value=TRUE))
+                              ),
+                              ),
+                              fluidRow(                                
+                                column(6,
+                                       leafletOutput("mymap",height="800px"),""),
+                                column(5,
                                        h3(htmlOutput("WBinfo")),
-                                       uiOutput("WBbutton")        
-                                       #actionButton("recalc", "New points")
+                                       textOutput("titleTblInd"),
+                                       reactableOutput("tblind"),
+                                       HTML("<BR>"),
+                                       textOutput("titleTblAgg"),
+                                       reactableOutput("tblagg")  
+                                       
+                                       #DT::dataTableOutput("dtind")
                                        )
-                              )),
-                      tabItem(tabName = "indicators",
-                              fluidRow( column(10,
-                                               h3(htmlOutput("SelectedWB")),
-                                               DT::dataTableOutput("dtind")
-                                               
-                                               #selectInput("selInd",label="",c("Chlorophyll a ","Total phosphorous","Phosphate P","Total nitrogen","Nitrate N","Ammonium N","Secchi depth","Oxygen","What else?"),multiple=T)
-                                               )),
-                              fluidRow( column(7,
-                                               h3(htmlOutput("SelectedWBStatus")),
-                                               DT::dataTableOutput("dtWB")
-                                               
-                              ))),
+                              )
+                              ),
                       tabItem(tabName = "status",
                               fluidRow( column(6,""))),
                       tabItem(tabName = "about",
@@ -131,13 +132,17 @@ server <- function(input, output, session) {
   #values$parameter <- "DO_bot"
   values$period<-"2017-2019"
   values$run <- FALSE
-  values$lng=9.208247
-  values$lat=58.273135
-  values$zoom=7
+  #values$lng=9.208247
+  #values$lat=58.273135
+  #values$zoom=7
+  values$lng=10.3
+  values$lat=59.4
+  values$zoom=9
   
   revList<-c("DO_bot","Secchi")
   
-
+  waterbodies <- sf::st_read("nve/oslofjord_wbs.shp")
+  
   df_WB<-read.table(file="nve/WBlist.txt",header=T,stringsAsFactors=F,sep=";")
   #df_ind <- read.table(file="indicator_results.txt",sep="\t",header=T)
   df_ind <- read.table(file="indicator_results_v8.csv",sep=";",header=T)
@@ -146,6 +151,12 @@ server <- function(input, output, session) {
   params<-c("Ecological Status","Chl","MSMDI","NQI1","H","Secchi","DO_bot","NH4_summer","NH4_winter",
             "NO3_summer","NO3_winter","PO4_summer","PO4_winter",
             "TN_summer","TN_winter","TP_summer","TP_winter")
+  
+  labs <- lapply(seq(nrow(waterbodies)), function(i) {
+    paste0(waterbodies$Vannfore_1[i], '<br>', 
+           waterbodies$Vannforeko[i] ) 
+  })
+  
   
   observeEvent(values$parameter, {
     if(values$parameter!="Ecological Status"){
@@ -161,9 +172,7 @@ server <- function(input, output, session) {
     }else{
       WB_name<-df_WB[df_WB$VANNFOREKOMSTID==values$wbselected,"VANNFOREKOMSTNAVN"]
       #browser()
-     paste0("<b>Selected Waterbody:</b><br>",
-            WB_name,"<br>",
-            values$wbselected)
+     paste0(WB_name," ",  values$wbselected)
       
     }
   })
@@ -213,10 +222,11 @@ server <- function(input, output, session) {
   
   rs <- reactive({
     values$parameter<-input$selParam
-    values$period<-input$selPeriod
+    values$period<-  "2017-2019"  #input$selPeriod
     if(values$parameter=="Ecological Status"){
       return(NULL)
     }else{
+  
       rfile<-values$period
       rfile<-ifelse(rfile=="2017-2019","",paste0("_",rfile))
       rfile<-paste0("raster/",values$parameter,rfile,".tif")
@@ -225,11 +235,7 @@ server <- function(input, output, session) {
   })
   
 
-  labs <- lapply(seq(nrow(waterbodies@data)), function(i) {
-    paste0(waterbodies@data[i, "Vannfore_1"], '<br>', 
-           waterbodies@data[i, "Vannforeko"] ) 
-  })
-  
+ 
   
   wbstatus <- reactive({
     if(values$parameter=="Ecological Status"){
@@ -243,13 +249,17 @@ server <- function(input, output, session) {
       dplyr::select(WB,Status)
     }
     df$Status <- factor(df$Status,levels=c("Bad","Poor","Moderate","Good","High"))
-    dat <- waterbodies@data
+
+    dat <- waterbodies  %>%
+      as.data.frame()
+    
     dat <- dat %>%
       left_join(df,by=c("Vannforeko"="WB")) %>%
       mutate(ShapeLabel = paste0(Vannfore_1,"<br>",Vannforeko)) %>%
       mutate(ShapeLabel=ifelse(is.na(Status),ShapeLabel,paste0(ShapeLabel,"<br>Status: ",Status)))
+    waterbodies$ShapeLabel <- dat$ShapeLabel
+    waterbodies$Status <- dat$Status
     
-    waterbodies@data <- dat
     waterbodies
   }) 
   
@@ -266,6 +276,7 @@ server <- function(input, output, session) {
   
   
   output$mymap <- renderLeaflet({
+   
     values$rezoom
     values$rezoom<-FALSE
     r <- rs()
@@ -296,6 +307,7 @@ server <- function(input, output, session) {
       if(values$parameter=="NO3_summer"){
         colorvals <- c(0,300)
       }
+    
       
       colorsdiscrete<-input$scaleDiscrete
       if(colorsdiscrete==F){
@@ -330,7 +342,6 @@ server <- function(input, output, session) {
           ) 
       }
     }
-      
 
       lm <- lm %>%
       addPolygons(data = shape_wb, 
@@ -340,7 +351,7 @@ server <- function(input, output, session) {
                opacity = 0.5,
                 fillOpacity = statusopacity,
                 weight = 1,
-                layerId = shape_wb@data$Vannforeko,
+                layerId = shape_wb$Vannforeko,
                 
                 # Highlight WBs upon mouseover
                 highlight = highlightOptions(
@@ -402,9 +413,12 @@ server <- function(input, output, session) {
   })
   
   observeEvent(input$resetzoom,{
-    values$lng=9.208247
-    values$lat=58.273135
-    values$zoom=7
+    #values$lng=9.208247
+    #values$lat=58.273135
+    #values$zoom=7
+    values$lng=10.3
+    values$lat=59.4
+    values$zoom=9
     values$rezoom=TRUE
   }
   )
@@ -430,12 +444,10 @@ server <- function(input, output, session) {
     coords <- as.data.frame(cbind(lon, lat))
     
     #converts click point coordinate data frame into SP object, sets CRS
-    point <- SpatialPoints(coords)
-    proj4string(point) <- CRS("+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs")
+    point <- sf::st_as_sf(coords, coords = c("lon","lat"), crs=4326)
     
     #retrieves country in which the click point resides, set CRS for country
     selected <- waterbodies[point,]
-    proj4string(selected) <- CRS("+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs")
     
     proxy <- leafletProxy("mymap")
     if(click$id == "Selected"){
@@ -464,8 +476,42 @@ server <- function(input, output, session) {
   
   # table of indicator results
   #dtind
-  output$dtind <- DT::renderDataTable({
-
+  # output$dtind <- DT::renderDataTable({
+  #   shiny::req(values$wbselected)
+  # 
+  # 
+  #   df<-df_ind %>%
+  #     dplyr::select(WB,Indicator,Period,Kvalitetselement,Value,EQR,
+  #                   Ref,HG,GM,MP,PB,Worst,Status)
+  #   if(values$wbselected==""){
+  #     df<-data.frame()
+  #   }else{
+  #     cat(file=stderr(),"values$wbselected=",values$wbselected,"\n")
+  # 
+  #     df<-df %>% 
+  #       filter(WB==values$wbselected) %>%
+  #       filter(Period==values$period)
+  #     
+  #     df$Indicator <- factor(df$Indicator,levels=params)
+  #     
+  #     df<-df %>%
+  #       arrange(Indicator) %>%
+  #       mutate(Value=round(Value,3),EQR=round(EQR,3)) %>%
+  #       dplyr::select(-c(WB,Period))
+  #     
+  #     
+  #     
+  #   }
+  #   
+  #   return(df)
+  #   
+  # },options=list(dom='t',pageLength = 99,autoWidth=TRUE))
+  
+  
+  
+  output$tblind <- reactable::renderReactable({
+    shiny::req(values$wbselected)
+    
     df<-df_ind %>%
       dplyr::select(WB,Indicator,Period,Kvalitetselement,Value,EQR,
                     Ref,HG,GM,MP,PB,Worst,Status)
@@ -473,7 +519,7 @@ server <- function(input, output, session) {
       df<-data.frame()
     }else{
       cat(file=stderr(),"values$wbselected=",values$wbselected,"\n")
-
+      
       df<-df %>% 
         filter(WB==values$wbselected) %>%
         filter(Period==values$period)
@@ -482,16 +528,152 @@ server <- function(input, output, session) {
       
       df<-df %>%
         arrange(Indicator) %>%
-        mutate(Value=round(Value,3),EQR=round(EQR,3)) %>%
-        dplyr::select(-c(WB,Period))
-      
-      
+        mutate(Value=round(Value,2),EQR=round(EQR,2)) %>%
+        dplyr::select(-c(WB,Period)) %>%
+        relocate(Kvalitetselement)
       
     }
+    #browser()
+    colw=35
+    mypal <- c("#ff000030","#ff8c2b30","#ffff0030","#00d60030","#007eff30")
+    reactable(df, class = "noParenthesis",
+              highlight =TRUE,
+              compact=TRUE,
+              resizable = TRUE,
+              defaultPageSize = 20,
+              style = "white-space: nowrap;",
+              sortable = FALSE,
+              #groupBy = "Kvalitetselement",
+              columns = list(
+                Indicator = colDef(width=100), #show = F,name="WB [Period]"),
+                Kvalitetselement=colDef(width=120),
+                Value=colDef(width=40),
+                EQR=colDef(width=colw, aggregate = "min"),
+                Ref=colDef(width=colw),
+                HG=colDef(width=colw),
+                GM=colDef(width=colw),
+                MP=colDef(width=colw),
+                PB=colDef(width=colw),
+                Worst=colDef(width=50),
+                Status=colDef(
+                  width=60,
+                  style = function(value) {
+                    if (value == "High") {
+                      color <- mypal[5]
+                    } else if (value == "Good") {
+                      color <- mypal[4]
+                    } else if (value == "Moderate") {
+                      color <- mypal[3]
+                    } else if (value == "Poor") {
+                      color <- mypal[2]
+                    } else if (value == "Bad") {
+                      color <- mypal[1]
+                    } else {
+                      color <- "#BBBBBB"
+                    }
+                    list( backgroundColor = color)
+                  }
+                ))
+              )
     
-    return(df)
+  })
+  
+  output$titleTblAgg<- renderText({
+    shiny::req(values$wbselected)
+    if(values$wbselected==""){
+      s<-NULL
+    }else{
+      s <- "Aggregated WB status"
+    }
+    return(s)
+  })
+  
+  output$titleTblInd<- renderText({
+    shiny::req(values$wbselected)
+    if(values$wbselected==""){
+      s<-NULL
+    }else{
+      s <- "Indicator status"
+    }
+    return(s)
+  })
+  
+  
+  output$tblagg <- reactable::renderReactable({
+    shiny::req(values$wbselected)
+    ClassList<-c("Bad","Poor","Moderate","Good","High")
+    df<-df_wb %>%
+      dplyr::select(WB,Period,Worst_Biological,Biological,Worst_Supporting,Supporting,EQR,Status) 
     
-  },options=list(dom='t',pageLength = 99,autoWidth=TRUE))
+    if(values$wbselected==""){
+      df<-data.frame()
+    }else{
+      cat(file=stderr(),"values$wbselected=",values$wbselected,"\n")
+      
+      df<-df %>% 
+        filter(WB==values$wbselected) %>%
+        filter(Period==values$period) %>%
+        mutate(EQR_Biological=round(Biological,3),
+               EQR_Supporting=round(Supporting,3),
+               EQR=round(EQR,3)) %>%
+        dplyr::select(WorstBio=Worst_Biological,EQRbio=EQR_Biological,
+                    WorstSup=Worst_Supporting,EQRsup=EQR_Supporting,
+                    EQR,Status)  
+      #%>%
+      #dplyr::select(`Worst Biological QE`=Worst_Biological,`EQR Biological`=EQR_Biological,
+      #              `Worst Supporting QE`=Worst_Supporting,`EQR Supporting`=EQR_Supporting,
+      #              `EQR Overall`=EQR,Status)  
+    }
+    
+    mypal <- c("#ff000030","#ff8c2b30","#ffff0030","#00d60030","#007eff30")
+    colw=125
+    reactable(df, class = "noParenthesis",
+              highlight =TRUE,
+              compact=TRUE,
+              defaultPageSize = 20,
+              style = "white-space: nowrap;",
+              #groupBy = "Kvalitetselement",
+              columns = list(
+                WorstBio=colDef(width=colw, name="Worst Biological"),
+                EQRbio=colDef(width=80, name="EQR",
+                              style = list(borderRight = "1px solid #ddd")),
+                WorstSup=colDef(width=colw, name="Worst Supporting"),
+                EQRsup=colDef(width=80, name="EQR",
+                              style = list(borderRight = "1px solid #ddd")),
+                EQR=colDef(width=110, name="EQR overall"),
+                #Indicator = colDef(width=100), #show = F,name="WB [Period]"),
+                #Kvalitetselement=colDef(width=120),
+                #Value=colDef(width=colw),
+                #EQR=colDef(width=colw, aggregate = "min"),
+                #Ref=colDef(width=colw),
+                #HG=colDef(width=colw),
+                #GM=colDef(width=colw),
+                #MP=colDef(width=colw),
+                #PB=colDef(width=colw),
+                #Worst=colDef(width=50),
+                Status=colDef(
+                  width=60,
+                  style = function(value) {
+                    if (value == "High") {
+                      color <- mypal[5]
+                    } else if (value == "Good") {
+                      color <- mypal[4]
+                    } else if (value == "Moderate") {
+                      color <- mypal[3]
+                    } else if (value == "Poor") {
+                      color <- mypal[2]
+                    } else if (value == "Bad") {
+                      color <- mypal[1]
+                    } else {
+                      color <- "#BBBBBB"
+                    }
+                    list( backgroundColor = color)
+                  }
+                ))
+    )
+    
+    
+  })
   
   output$dtWB <- DT::renderDataTable({
     ClassList<-c("Bad","Poor","Moderate","Good","High")
