@@ -53,6 +53,10 @@ labelFormatCustom = function (prefix = "", suffix = "", between = " &ndash; ",
 }
 
 waterbodies <- read_sf("nve/CoastalWBs_WGS84_no_holes_simple.shp")
+df_WB<-read.table(file="nve/WBlist.txt",header=T,stringsAsFactors=F,sep=";")
+#df_ind <- read.table(file="indicator_results.txt",sep="\t",header=T)
+df_ind <- read.table(file="indicator_results_v8.csv",sep=";",header=T)
+df_wb <- read.table(file="WB_results_v8.csv",sep=";",header=T)
 
 # ----------------- UI -------------------------------------------------------- 
 #shinyjs::
@@ -136,11 +140,6 @@ server <- function(input, output, session) {
   
   revList<-c("DO_bot","Secchi")
   
-
-  df_WB<-read.table(file="nve/WBlist.txt",header=T,stringsAsFactors=F,sep=";")
-  #df_ind <- read.table(file="indicator_results.txt",sep="\t",header=T)
-  df_ind <- read.table(file="indicator_results_v8.csv",sep=";",header=T)
-  df_wb <- read.table(file="WB_results_v8.csv",sep=";",header=T)
   
   params<-c("Ecological Status","Chl","MSMDI","NQI1","H","Secchi","DO_bot","NH4_summer","NH4_winter",
             "NO3_summer","NO3_winter","PO4_summer","PO4_winter",
