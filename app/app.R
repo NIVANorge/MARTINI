@@ -1,11 +1,11 @@
 library(shiny)
 library(dplyr)
 library(leaflet)
-library(rgdal)
 library(raster)
 library(shinydashboard)
 library(DT)
 library(shinyjs)
+library(sf)
 
 r_colors <- rgb(t(col2rgb(colors()) / 255))
 names(r_colors) <- colors()
@@ -52,8 +52,7 @@ labelFormatCustom = function (prefix = "", suffix = "", between = " &ndash; ",
   }
 }
 
-waterbodies <- shapefile("nve/CoastalWBs_WGS84_no_holes_simple.shp")
-
+waterbodies <- read_sf("nve/CoastalWBs_WGS84_no_holes_simple.shp")
 
 # ----------------- UI -------------------------------------------------------- 
 #shinyjs::
@@ -225,9 +224,9 @@ server <- function(input, output, session) {
   })
   
 
-  labs <- lapply(seq(nrow(waterbodies@data)), function(i) {
-    paste0(waterbodies@data[i, "Vannfore_1"], '<br>', 
-           waterbodies@data[i, "Vannforeko"] ) 
+  labs <- lapply(seq(nrow(waterbodies)), function(i) {
+    paste0(waterbodies$Vannfore_1[i ], '<br>', 
+           waterbodies$Vannforeko[i ] ) 
   })
   
   
@@ -243,13 +242,13 @@ server <- function(input, output, session) {
       dplyr::select(WB,Status)
     }
     df$Status <- factor(df$Status,levels=c("Bad","Poor","Moderate","Good","High"))
-    dat <- waterbodies@data
+    dat <- waterbodies
     dat <- dat %>%
       left_join(df,by=c("Vannforeko"="WB")) %>%
       mutate(ShapeLabel = paste0(Vannfore_1,"<br>",Vannforeko)) %>%
       mutate(ShapeLabel=ifelse(is.na(Status),ShapeLabel,paste0(ShapeLabel,"<br>Status: ",Status)))
     
-    waterbodies@data <- dat
+    waterbodies <- dat
     waterbodies
   }) 
   
@@ -340,8 +339,7 @@ server <- function(input, output, session) {
                opacity = 0.5,
                 fillOpacity = statusopacity,
                 weight = 1,
-                layerId = shape_wb@data$Vannforeko,
-                
+                layerId = shape_wb$Vannforeko,
                 # Highlight WBs upon mouseover
                 highlight = highlightOptions(
                   weight = 3,
@@ -360,7 +358,6 @@ server <- function(input, output, session) {
                   style = list("font-weight" = "normal", padding = "3px 8px"),
                   textsize = "15px",
                   direction = "auto")#,
-
       )
     
     if(input$showStatus){
@@ -384,7 +381,7 @@ server <- function(input, output, session) {
                     weight = 3, 
                     opacity = 1.0,
                     stroke = T,
-                    layerId = "Selected")
+                    layerId = selected)
     }  
     lm
     
@@ -426,17 +423,12 @@ server <- function(input, output, session) {
     lat <- click$lat
     lon <- click$lng
     
-    #puts lat and lon for click point into its own data frame
-    coords <- as.data.frame(cbind(lon, lat))
-    
-    #converts click point coordinate data frame into SP object, sets CRS
-    point <- SpatialPoints(coords)
-    proj4string(point) <- CRS("+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs")
-    
     #retrieves country in which the click point resides, set CRS for country
-    selected <- waterbodies[point,]
-    proj4string(selected) <- CRS("+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs")
-    
+    selected <-  waterbodies %>% dplyr::filter(Vannforeko  == click$id)
+    selected <- st_as_sf(selected, coords = c("geometry"))
+    selected <- st_set_crs(selected, "+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs")
+    # proj4string(waterbodies) <- CRS("+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs")
+    # print(proj4string(waterbodies))
     proxy <- leafletProxy("mymap")
     if(click$id == "Selected"){
       proxy %>% removeShape(layerId = "Selected")
