@@ -232,14 +232,15 @@ server <- function(input, output, session) {
   wbstatus <- reactive({
     if(values$parameter=="Ecological Status"){
       df<-df_wb %>% 
-        filter(Period==values$period) %>%
+        dplyr::filter(Period==values$period) %>%
         dplyr::select(WB,Status)
     }else{
-    df<-df_ind %>% 
-      filter(Indicator==values$parameter) %>%
-      filter(Period==values$period) %>%
-      dplyr::select(WB,Status)
+      df<-df_ind %>% 
+        dplyr::  filter(Indicator==values$parameter) %>%
+        filter(Period==values$period) %>%
+        dplyr::select(WB,Status)
     }
+    
     df$Status <- factor(df$Status,levels=c("Bad","Poor","Moderate","Good","High"))
     dat <- waterbodies
     dat <- dat %>%
@@ -466,13 +467,13 @@ server <- function(input, output, session) {
       cat(file=stderr(),"values$wbselected=",values$wbselected,"\n")
 
       df<-df %>% 
-        filter(WB==values$wbselected) %>%
+        dplyr:: filter(WB==values$wbselected) %>%
         filter(Period==values$period)
       
       df$Indicator <- factor(df$Indicator,levels=params)
       
       df<-df %>%
-        arrange(Indicator) %>%
+        dplyr:: arrange(Indicator) %>%
         mutate(Value=round(Value,3),EQR=round(EQR,3)) %>%
         dplyr::select(-c(WB,Period))
       
@@ -494,8 +495,8 @@ server <- function(input, output, session) {
     }else{
       cat(file=stderr(),"values$wbselected=",values$wbselected,"\n")
       
-      df<-df %>% 
-        filter(WB==values$wbselected) %>%
+      df<- df %>% 
+        dplyr::filter(WB==values$wbselected) %>%
         filter(Period==values$period) %>%
         mutate(EQR_Biological=round(Biological,3),
                EQR_Supporting=round(Supporting,3),
