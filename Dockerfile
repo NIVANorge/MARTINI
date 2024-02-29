@@ -1,4 +1,4 @@
-FROM rocker/shiny:4.0.0
+FROM rocker/shiny:latest
 
 
 RUN apt-get update -y && \
@@ -8,13 +8,14 @@ RUN apt-get update -y && \
     libgeos-dev \
     libproj-dev \
     libspatialindex-dev \
+    libudunits2-dev \
     proj-bin \
     proj-data
 
 ENV CPLUS_INCLUDE_PATH /usr/include/gdal
 
 # Install R packages
-RUN install2.r --error --ncpus 4 --deps TRUE tidyverse shiny leaflet rgdal raster shinydashboard DT shinyjs
+RUN install2.r --error --ncpus 4 --deps TRUE dplyr shiny leaflet raster shinydashboard DT shinyjs sf
 RUN rm -rf /tmp/*
 
 COPY /app /martini
