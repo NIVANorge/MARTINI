@@ -1,4 +1,4 @@
-FROM rocker/shiny:latest
+FROM rocker/shiny:4.3.3
 
 
 RUN apt-get update -y && \
@@ -15,7 +15,10 @@ RUN apt-get update -y && \
 ENV CPLUS_INCLUDE_PATH /usr/include/gdal
 
 # Install R packages
-RUN install2.r --error --ncpus 4 --deps TRUE dplyr shiny leaflet raster shinydashboard DT shinyjs sf
+COPY dependencies.R .
+
+RUN R --slave --no-restore -e 'source("dependencies.R")'
+
 RUN rm -rf /tmp/*
 
 COPY /app /martini
