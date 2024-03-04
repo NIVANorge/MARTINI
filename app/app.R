@@ -1,11 +1,11 @@
 library(shiny)
 library(dplyr)
 library(leaflet)
-library(rgdal)
 library(raster)
 library(shinydashboard)
 library(DT)
 library(shinyjs)
+library(sf)
 
 r_colors <- rgb(t(col2rgb(colors()) / 255))
 names(r_colors) <- colors()
@@ -52,8 +52,11 @@ labelFormatCustom = function (prefix = "", suffix = "", between = " &ndash; ",
   }
 }
 
-waterbodies <- shapefile("nve/CoastalWBs_WGS84_no_holes_simple.shp")
-
+waterbodies <- read_sf("nve/CoastalWBs_WGS84_no_holes_simple.shp")
+df_WB<-read.table(file="nve/WBlist.txt",header=T,stringsAsFactors=F,sep=";")
+#df_ind <- read.table(file="indicator_results.txt",sep="\t",header=T)
+df_ind <- read.table(file="indicator_results_v8.csv",sep=";",header=T)
+df_wb <- read.table(file="WB_results_v8.csv",sep=";",header=T)
 
 # ----------------- UI -------------------------------------------------------- 
 #shinyjs::
@@ -137,11 +140,6 @@ server <- function(input, output, session) {
   
   revList<-c("DO_bot","Secchi")
   
-
-  df_WB<-read.table(file="nve/WBlist.txt",header=T,stringsAsFactors=F,sep=";")
-  #df_ind <- read.table(file="indicator_results.txt",sep="\t",header=T)
-  df_ind <- read.table(file="indicator_results_v8.csv",sep=";",header=T)
-  df_wb <- read.table(file="WB_results_v8.csv",sep=";",header=T)
   
   params<-c("Ecological Status","Chl","MSMDI","NQI1","H","Secchi","DO_bot","NH4_summer","NH4_winter",
             "NO3_summer","NO3_winter","PO4_summer","PO4_winter",
@@ -225,31 +223,32 @@ server <- function(input, output, session) {
   })
   
 
-  labs <- lapply(seq(nrow(waterbodies@data)), function(i) {
-    paste0(waterbodies@data[i, "Vannfore_1"], '<br>', 
-           waterbodies@data[i, "Vannforeko"] ) 
+  labs <- lapply(seq(nrow(waterbodies)), function(i) {
+    paste0(waterbodies$Vannfore_1[i ], '<br>', 
+           waterbodies$Vannforeko[i ] ) 
   })
   
   
   wbstatus <- reactive({
     if(values$parameter=="Ecological Status"){
       df<-df_wb %>% 
-        filter(Period==values$period) %>%
+        dplyr::filter(Period==values$period) %>%
         dplyr::select(WB,Status)
     }else{
-    df<-df_ind %>% 
-      filter(Indicator==values$parameter) %>%
-      filter(Period==values$period) %>%
-      dplyr::select(WB,Status)
+      df<-df_ind %>% 
+        dplyr::  filter(Indicator==values$parameter) %>%
+        filter(Period==values$period) %>%
+        dplyr::select(WB,Status)
     }
+    
     df$Status <- factor(df$Status,levels=c("Bad","Poor","Moderate","Good","High"))
-    dat <- waterbodies@data
+    dat <- waterbodies
     dat <- dat %>%
       left_join(df,by=c("Vannforeko"="WB")) %>%
       mutate(ShapeLabel = paste0(Vannfore_1,"<br>",Vannforeko)) %>%
       mutate(ShapeLabel=ifelse(is.na(Status),ShapeLabel,paste0(ShapeLabel,"<br>Status: ",Status)))
     
-    waterbodies@data <- dat
+    waterbodies <- dat
     waterbodies
   }) 
   
@@ -340,8 +339,7 @@ server <- function(input, output, session) {
                opacity = 0.5,
                 fillOpacity = statusopacity,
                 weight = 1,
-                layerId = shape_wb@data$Vannforeko,
-                
+                layerId = shape_wb$Vannforeko,
                 # Highlight WBs upon mouseover
                 highlight = highlightOptions(
                   weight = 3,
@@ -360,7 +358,6 @@ server <- function(input, output, session) {
                   style = list("font-weight" = "normal", padding = "3px 8px"),
                   textsize = "15px",
                   direction = "auto")#,
-
       )
     
     if(input$showStatus){
@@ -384,7 +381,7 @@ server <- function(input, output, session) {
                     weight = 3, 
                     opacity = 1.0,
                     stroke = T,
-                    layerId = "Selected")
+                    layerId = selected)
     }  
     lm
     
@@ -426,17 +423,12 @@ server <- function(input, output, session) {
     lat <- click$lat
     lon <- click$lng
     
-    #puts lat and lon for click point into its own data frame
-    coords <- as.data.frame(cbind(lon, lat))
-    
-    #converts click point coordinate data frame into SP object, sets CRS
-    point <- SpatialPoints(coords)
-    proj4string(point) <- CRS("+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs")
-    
     #retrieves country in which the click point resides, set CRS for country
-    selected <- waterbodies[point,]
-    proj4string(selected) <- CRS("+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs")
-    
+    selected <-  waterbodies %>% dplyr::filter(Vannforeko  == click$id)
+    selected <- st_as_sf(selected, coords = c("geometry"))
+    selected <- st_set_crs(selected, "+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs")
+    # proj4string(waterbodies) <- CRS("+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs")
+    # print(proj4string(waterbodies))
     proxy <- leafletProxy("mymap")
     if(click$id == "Selected"){
       proxy %>% removeShape(layerId = "Selected")
@@ -475,13 +467,13 @@ server <- function(input, output, session) {
       cat(file=stderr(),"values$wbselected=",values$wbselected,"\n")
 
       df<-df %>% 
-        filter(WB==values$wbselected) %>%
+        dplyr:: filter(WB==values$wbselected) %>%
         filter(Period==values$period)
       
       df$Indicator <- factor(df$Indicator,levels=params)
       
       df<-df %>%
-        arrange(Indicator) %>%
+        dplyr:: arrange(Indicator) %>%
         mutate(Value=round(Value,3),EQR=round(EQR,3)) %>%
         dplyr::select(-c(WB,Period))
       
@@ -503,8 +495,8 @@ server <- function(input, output, session) {
     }else{
       cat(file=stderr(),"values$wbselected=",values$wbselected,"\n")
       
-      df<-df %>% 
-        filter(WB==values$wbselected) %>%
+      df<- df %>% 
+        dplyr::filter(WB==values$wbselected) %>%
         filter(Period==values$period) %>%
         mutate(EQR_Biological=round(Biological,3),
                EQR_Supporting=round(Supporting,3),
