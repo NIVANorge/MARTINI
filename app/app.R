@@ -129,9 +129,7 @@ ui <- dashboardPage(skin = "black",title="MARTINI Status Assessment",
 server <- function(input, output, session) {
   values <- reactiveValues()
   values$wbselected <- ""
-  #values$parameter <- "Chl"
   values$parameter <- "Ecological Status"
-  #values$parameter <- "DO_bot"
   values$period<-"2017-2019"
   values$run <- FALSE
   values$lng=10.7
