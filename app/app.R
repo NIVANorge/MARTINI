@@ -246,7 +246,7 @@ server <- function(input, output, session) {
       rfile<-ifelse(rfile=="2017-2019","",paste0("_",rfile))
       rfile<-paste0("raster/",values$parameter,rfile,".tif")
       
-      rfile<- paste0("../OF800/tif/", scenario, "_", values$parameter,".tif")
+      rfile<- paste0("raster_OF800/", scenario, "_", values$parameter,".tif")
       #cat(paste0(rfile,"\n"))
       return(terra::rast(rfile))
     }
