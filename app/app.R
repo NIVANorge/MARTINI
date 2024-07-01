@@ -134,9 +134,6 @@ server <- function(input, output, session) {
   #values$parameter <- "DO_bot"
   values$period<-"2017-2019"
   values$run <- FALSE
-  #values$lng=9.208247
-  #values$lat=58.273135
-  #values$zoom=7
   values$lng=10.7
   values$lat=59.4
   values$zoom=9
