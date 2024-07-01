@@ -54,6 +54,7 @@ labelFormatCustom = function (prefix = "", suffix = "", between = " &ndash; ",
 }
 
 
+
 # ----------------- UI -------------------------------------------------------- 
 #shinyjs::
 
@@ -142,15 +143,16 @@ server <- function(input, output, session) {
   
   revList<-c("DO_bot","Secchi")
   
+
  # waterbodies <- sf::st_read("nve/oslofjord_wbs.shp", quiet=T)
   waterbodies <- sf::st_read("shp/oslofjord/oslofjord_waterbodies.shp",
                         quiet=T, check_ring_dir=T, promote_to_multi=F)
 
   df_WB<-read.table(file="nve/WBlist.txt",header=T,stringsAsFactors=F,sep=";")
-  #df_ind <- read.table(file="indicator_results.txt",sep="\t",header=T)
   df_ind <- read.table(file="indicator_results_OF.csv",sep=";",header=T)
   df_wb <- read.table(file="WB_results_OF.csv",sep=";",header=T)
   df_wb_obs <- read.table(file="EQR_status.txt",sep=";",header=T)
+
   
   # obs_stns <- sf::st_read("shp/obs_stns.shp", quiet=T)
   obs_stns <-  read.table("obs_stations.csv", sep=";", header=T)
@@ -255,6 +257,7 @@ server <- function(input, output, session) {
     }
   })
   
+
   scenario_sel <-  reactive({
     scenario <- switch(input$selScenario,
                          'Baseline' = 'baseline',
@@ -263,7 +266,7 @@ server <- function(input, output, session) {
                          'N -100% P -100%' =  'DINP100pc'
   )
     return(scenario)
-  })
+
   
   wbstatus <- reactive({
     
@@ -279,6 +282,7 @@ server <- function(input, output, session) {
         dplyr::select(WB,Status)
       }
     }else{
+
     df<-df_ind %>% 
       dplyr::filter(Indicator==values$parameter) %>%
       dplyr::filter(Period==values$period) %>%
@@ -290,13 +294,14 @@ server <- function(input, output, session) {
     dat <- waterbodies  %>%
       as.data.frame()
     
+
     dat <- dat %>%
       left_join(df,by=c("Vannforeko"="WB")) %>%
       mutate(ShapeLabel = paste0(Vannfore_1,"<br>",Vannforeko)) %>%
       mutate(ShapeLabel=ifelse(is.na(Status),ShapeLabel,paste0(ShapeLabel,"<br>Status: ",Status)))
     waterbodies$ShapeLabel <- dat$ShapeLabel
     waterbodies$Status <- dat$Status
-    
+
     waterbodies
   }) 
   
@@ -389,7 +394,7 @@ server <- function(input, output, session) {
                 fillOpacity = statusopacity,
                 weight = 1,
                 layerId = shape_wb$Vannforeko,
-                
+                  
                 # Highlight WBs upon mouseover
                 highlight = highlightOptions(
                   weight = 3,
@@ -408,7 +413,6 @@ server <- function(input, output, session) {
                   style = list("font-weight" = "normal", padding = "3px 8px"),
                   textsize = "15px",
                   direction = "auto")#,
-
       )
     
     if(input$showStatus){
@@ -454,6 +458,7 @@ server <- function(input, output, session) {
      }
      
      
+
     lm
     
   })
@@ -497,6 +502,7 @@ server <- function(input, output, session) {
     lat <- click$lat
     lon <- click$lng
     
+
     #puts lat and lon for click point into its own data frame
     coords <- as.data.frame(cbind(lon, lat))
     
@@ -506,6 +512,7 @@ server <- function(input, output, session) {
     #retrieves country in which the click point resides, set CRS for country
     selected <- waterbodies[point,]
     
+
     proxy <- leafletProxy("mymap")
     if(click$id == "Selected"){
       proxy %>% removeShape(layerId = "Selected")
@@ -544,9 +551,11 @@ server <- function(input, output, session) {
       cat(file=stderr(),"values$wbselected=",values$wbselected,"\n")
       
       df<-df %>% 
+
         dplyr::filter(WB==values$wbselected) %>%
         dplyr::filter(Period==values$period) %>%
         dplyr::filter(scenario==scenario_sel())
+
       
       df$Indicator <- factor(df$Indicator,levels=params)
       
@@ -555,6 +564,7 @@ server <- function(input, output, session) {
         mutate(Value=round(Value,2),EQR=round(EQR,2)) %>%
         dplyr::select(-c(WB,Period)) %>%
         relocate(Kvalitetselement)
+
       
     }
     
@@ -693,32 +703,7 @@ server <- function(input, output, session) {
     
   })
   
-  output$dtWB <- DT::renderDataTable({
-    ClassList<-c("Bad","Poor","Mod","Good","High")
-    df<-df_wb %>%
-      dplyr::select(WB,Period,Worst_Biological,Biological,Worst_Supporting,Supporting,EQR,Status) 
-
-    if(values$wbselected==""){
-      df<-data.frame()
-    }else{
-      cat(file=stderr(),"values$wbselected=",values$wbselected,"\n")
-      
-      df<-df %>% 
-        dplyr::filter(WB==values$wbselected) %>%
-        dplyr::filter(Period==values$period) %>%
-        mutate(EQR_Biological=round(Biological,3),
-               EQR_Supporting=round(Supporting,3),
-               EQR=round(EQR,3)) %>%
-        dplyr::select(`Worst Biological QE`=Worst_Biological,`EQR Biological`=EQR_Biological,
-                      `Worst Supporting QE`=Worst_Supporting,`EQR Supporting`=EQR_Supporting,
-                      `EQR Overall`=EQR,Status)  
-    }
-    
-    return(df)
-    
-  },options=list(dom='t',pageLength = 99,autoWidth=TRUE),rownames= FALSE)
-  
-  
+ 
    
 }
 
