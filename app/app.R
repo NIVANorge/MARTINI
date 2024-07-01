@@ -266,7 +266,7 @@ server <- function(input, output, session) {
                          'N -100% P -100%' =  'DINP100pc'
   )
     return(scenario)
-
+  }) 
   
   wbstatus <- reactive({
     
