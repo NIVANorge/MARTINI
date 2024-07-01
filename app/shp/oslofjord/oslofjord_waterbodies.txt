@@ -1,0 +1,293 @@
+"EUVannfore";"Vannforeko";"Vannfore_1";"Vannregion";"Vannregi_1";"Salinity";"Type"
+"NO0101020702-1-C";"0101020702-1-C";"Oslo havn og by";"Østfold";"Glomma";"Skagerak (> 25)";"S3"
+"NO0101020702-2-C";"0101020702-2-C";"Bekkelagsbassenget";"Østfold";"Glomma";"Skagerak (> 25)";"S3"
+"NO0110000037-C";"0110000037-1-C";"Rødskjærgapet - Vest";"Agder";"Agder";"Skagerak (> 25)";"S1"
+"NO0110000037-C";"0110000037-2-C";"Rødskjærgapet - Øst";"Buskerud";"Vest-Viken";"Skagerak (> 25)";"S1"
+"NO0110000032-C";"0110000032-1-C";"Jomfruland-sørvest";"Buskerud";"Vest-Viken";"Skagerak (> 25)";"S1"
+"NO0110000032-C";"0110000032-2-C";"Stanggapet";"Agder";"Agder";"Skagerak (> 25)";"S1"
+"NO0101000030-C";"0101000030-2-C";"Færder";"Buskerud";"Vest-Viken";"Skagerak (> 25)";"S1"
+"NO0101000030-C";"0101000030-1-C";"Torbjørnskjær";"Østfold";"Glomma";"Skagerak (> 25)";"S1"
+"NO0101000032-1-C";"0101000032-3-C";"Tjøme";"Buskerud";"Vest-Viken";"Skagerak (> 25)";"S1"
+"NO0101000032-1-C";"0101000032-4-C";"Nordre og Søndre Søster";"Østfold";"Glomma";"Skagerak (> 25)";"S1"
+"NO0101020101-C";"0101020101-1-C";"Ytre Oslofjord - Vest";"Buskerud";"Vest-Viken";"Skagerak (> 25)";"S2"
+"NO0101020101-C";"0101020101-2-C";"Ytre Oslofjord - Øst";"Østfold";"Glomma";"Skagerak (> 25)";"S2"
+"NO0101020200-C";"0101020200-1-C";"Midtre Oslofjord - Øst";"Østfold";"Glomma";"Skagerak (> 25)";"S2"
+"NO0101020200-C";"0101020200-2-C";"Midtre Oslofjord - Vest";"Buskerud";"Vest-Viken";"Skagerak (> 25)";"S2"
+"NO0101020300-C";"0101020300-1-C";"Hårfagrebåen - Hortenskrakken";"Buskerud";"Vest-Viken";"Skagerak (> 25)";"S2"
+"NO0101020300-C";"0101020300-2-C";"Breiangen-øst";"Østfold";"Glomma";"Skagerak (> 25)";"S2"
+"NO0120020502-C";"0120020502-C";"Kvåstadkilen";"Agder";"Agder";NA;NA
+"NO0201000030-2-C";"0201000030-2-C";"Lindesnes - Lista";"Agder";"Agder";"Euhalin (> 30)";"N2"
+"NO0201000030-3-C";"0201000030-3-C";"Lindesnes - Lista";"Agder";"Agder";"Euhalin (> 30)";"N1"
+"NO0201020500-2-C";"0201020500-2-C";"Tjørsvågbukta";"Agder";"Agder";NA;NA
+"NO0201020500-1-C";"0201020500-1-C";"Lafjord";"Agder";"Agder";NA;NA
+"NO0120000032-3-C";"0120000032-3-C";"Arendal - Tromøy";"Agder";"Agder";"Skagerak (> 25)";"S1"
+"NO0120000032-4-C";"0120000032-4-C";"Arendal - Tromøy";"Agder";"Agder";"Skagerak (> 25)";"S1"
+"NO0120000032-2-C";"0120000032-2-C";"Klove-Arendal - Tromøy";"Agder";"Agder";NA;NA
+"NO0201020700-1-C";"0201020700-1-C";"Logakanalen";"Agder";"Agder";NA;NA
+"NO0121000100-1-C";"0121000100-1-C";"Fevikkilen, indre";"Agder";"Agder";NA;NA
+"NO0121000100-2-C";"0121000100-2-C";"Fevikkilen, ytre";"Agder";"Agder";NA;NA
+"NO0130000200-1-C";"0130000200-1-C";"Ytre Sandvikdalsfjorden";"Agder";"Agder";"Skagerak (> 25)";"S3"
+"NO0130000031-3-C";"0130000031-3-C";"Kilen";"Agder";"Agder";NA;NA
+"NO0130000031-4-C";"0130000031-4-C";"Herøyfjorden - Sandvikdalsfjorden";"Agder";"Agder";"Skagerak (> 25)";"S2"
+"NO0130000200-2-C";"0130000200-2-C";"Indre Sandvikdalsfjorden";"Agder";"Agder";NA;NA
+"NO0101040300-3-C";"0101040300-3-C";"Larviksfjorden";"Buskerud";"Vest-Viken";"Skagerak (> 25)";"S2"
+"NO0101040300-4-C";"0101040300-4-C";"Stavern";"Buskerud";"Vest-Viken";"Skagerak (> 25)";"S3"
+"NO0101030101-5-C";"0101030101-5-C";"Vestfjorden-nordre";"Buskerud";"Vest-Viken";"Skagerak (5 - 25)";"S5"
+"NO0101030101-6-C";"0101030101-6-C";"Vestfjorden-søndre";"Buskerud";"Vest-Viken";"Skagerak (> 25)";"S3"
+"NO0101020701-6-C";"0101020701-6-C";"Bunnebotn";"Østfold";"Glomma";"Skagerak (5 - 25)";"S5"
+"NO0101010202-1-C";"0101010202-1-C";"Iddefjorden hovedbasseng";"Østfold";"Glomma";"Skagerak (5 - 25)";"S5"
+"NO0101010202-2-C";"0101010202-2-C";"Halden havnebasseng";"Østfold";"Glomma";"Skagerak (5 - 25)";"S5"
+"NO0120020202-C";"0120020202-C";"Kobbervika";"Agder";"Agder";NA;NA
+"NO0110000300-C";"0110000300-C";"Rognsfjorden";"Buskerud";"Vest-Viken";"Skagerak (> 25)";"S2"
+"NO0131010100-2-C";"0131010100-2-C";"Hundsøyfjorden-ytre";"Agder";"Agder";"Skagerak (> 25)";"S2"
+"NO0120000033-C";"0120000033-C";"Alvekilen";"Agder";"Agder";"Skagerak (> 25)";"S3"
+"NO0101030500-C";"0101030500-C";"Sandøsund";"Buskerud";"Vest-Viken";"Skagerak (> 25)";"S3"
+"NO0120020100-3-C";"0120020100-3-C";"Breiungen";"Agder";"Agder";NA;NA
+"NO0130010302-2-C";"0130010302-2-C";"Kristiansandsfjorden-indre havn";"Agder";"Agder";"Skagerak (> 25)";"S3"
+"NO0130010302-3-C";"0130010302-3-C";"Kristiansandsfjorden-indre";"Agder";"Agder";NA;NA
+"NO0201021100-C";"0201021100-C";"Ånafjorden";"Agder";"Agder";NA;NA
+"NO0120020100-2-C";"0120020100-2-C";"Lyngørfjorden-vestre";"Agder";"Agder";"Polyhalin (18 - 30)";NA
+"NO0120010202-C";"0120010202-C";"Sørfjorden-østre";"Agder";"Agder";NA;NA
+"NO0110020800-1-C";"0110020800-1-C";"Bærøyfjorden - Skarholmane";"Buskerud";"Vest-Viken";"Skagerak (> 25)";"S3"
+"NO0110010100-C";"0110010100-C";"Helgeroafjorden";"Buskerud";"Vest-Viken";"Skagerak (> 25)";"S2"
+"NO0110020700-C";"0110020700-C";"Skåtøysund";"Buskerud";"Vest-Viken";NA;NA
+"NO0101020105-C";"0101020105-C";"Kurefjorden";"Østfold";"Glomma";"Skagerak (> 25)";"S3"
+"NO0101000032-2-C";"0101000032-2-C";"Vauerkilen";"Østfold";"Glomma";"Skagerak (> 25)";"S3"
+"NO0131020400-C";"0131020400-C";"Skjernøysundet";"Agder";"Agder";"Polyhalin (18 - 30)";NA
+"NO0101030300-C";"0101030300-C";"Huikjæla";"Buskerud";"Vest-Viken";"Skagerak (> 25)";"S2"
+"NO0121000800-C";"0121000800-C";"Engekilen";"Agder";"Agder";NA;NA
+"NO0110010801-C";"0110010801-C";"Langesundsfjorden";"Buskerud";"Vest-Viken";"Skagerak (> 25)";"S3"
+"NO0201020900-C";"0201020900-C";"Rasvågen";"Agder";"Agder";NA;NA
+"NO0121010500-1-C";"0121010500-1-C";"Lillesandsfjorden";"Agder";"Agder";NA;NA
+"NO0120030203-2-C";"0120030203-2-C";"Tromøysund - Arendal";"Agder";"Agder";"Skagerak (> 25)";"S3"
+"NO0240000300-C";"0240000300-C";"Sogndalsstranda";"Rogaland";"Rogaland";NA;NA
+"NO0131010500-C";"0131010500-C";"Dalskilen";"Agder";"Agder";NA;NA
+"NO0120020100-1-C";"0120020100-1-C";"Lyngørfjorden-østre";"Agder";"Agder";"Skagerak (> 25)";"S3"
+"NO0120030203-1-C";"0120030203-1-C";"Galtesund";"Agder";"Agder";"Skagerak (> 25)";"S3"
+"NO0120010102-C";"0120010102-C";"Østre Nordfjorden";"Agder";"Agder";"Polyhalin (18 - 30)";NA
+"NO0121020700-C";"0121020700-C";"Heslevigen";"Agder";"Agder";NA;NA
+"NO0101020400-3-C";"0101020400-3-C";"Mossesundet-ytre";"Østfold";"Glomma";"Skagerak (> 25)";"S3"
+"NO0120010502-2-C";"0120010502-2-C";"Avreidkilen";"Agder";"Agder";NA;NA
+"NO0110021102-C";"0110021102-C";"Kjølebrønnskilen";"Buskerud";"Vest-Viken";NA;NA
+"NO0121020100-C";"0121020100-C";"Blindleia - Nesefjorden";"Agder";"Agder";NA;NA
+"NO0110010703-C";"0110010703-C";"Voldsfjorden";"Buskerud";"Vest-Viken";"Skagerak (5 - 25)";"S5"
+"NO0110010401-C";"0110010401-C";"Ønna";"Buskerud";"Vest-Viken";"Skagerak (5 - 25)";"S5"
+"NO0120010101-1-C";"0120010101-1-C";"Søndeledfjorden";"Agder";"Agder";"Mesohalin (5 - 18)";NA
+"NO0121010300-C";"0121010300-C";"Kaldvellfjorden";"Agder";"Agder";"Polyhalin (18 - 30)";NA
+"NO0110010600-C";"0110010600-C";"Eidangerfjorden";"Buskerud";"Vest-Viken";"Skagerak (> 25)";"S3"
+"NO0101020400-2-C";"0101020400-2-C";"Mossesundet- indre";"Østfold";"Glomma";"Skagerak (> 25)";"S3"
+"NO0240000600-C";"0240000600-C";"Nesvågen";"Rogaland";"Rogaland";NA;NA
+"NO0130000102-2-C";"0130000102-2-C";"Kvåsefjorden-ytre";"Agder";"Agder";"Skagerak (> 25)";"S2"
+"NO0101030101-2-C";"0101030101-2-C";"Kanalen";"Buskerud";"Vest-Viken";"Skagerak (5 - 25)";"S5"
+"NO0101010405-C";"0101010405-C";"Østerelva";"Østfold";"Glomma";"Skagerak (5 - 25)";"S5"
+"NO0110000035-C";"0110000035-C";"Skrurenna";"Buskerud";"Vest-Viken";"Skagerak (> 25)";"S1"
+"NO0110020600-C";"0110020600-C";"Oterøyfjorden";"Buskerud";"Vest-Viken";"Skagerak (> 25)";"S3"
+"NO0240000400-C";"0240000400-C";"Rekefjord";"Rogaland";"Rogaland";NA;NA
+"NO0121000033-C";"0121000033-C";"Ramsøysund";"Agder";"Agder";"Skagerak (> 25)";"S2"
+"NO0132010100-C";"0132010100-C";"Mannefjorden";"Agder";"Agder";"Skagerak (> 25)";"S3"
+"NO0110000034-1-C";"0110000034-1-C";"Såsteinflaket - Steinrenna";"Buskerud";"Vest-Viken";"Skagerak (> 25)";"S1"
+"NO0110000033-2-C";"0110000033-2-C";"Langesundsbukta - Rognsfjorden";"Buskerud";"Vest-Viken";"Skagerak (> 25)";"S1"
+"NO0101010203-C";"0101010203-C";"Iddefjorden-ytre";"Østfold";"Glomma";"Mesohalin (5 - 18)";NA
+"NO0110021300-C";"0110021300-C";"Kalstadkilen";"Buskerud";"Vest-Viken";NA;NA
+"NO0110000702-C";"0110000702-C";"Haslumkilen";"Agder";"Agder";NA;NA
+"NO0110010701-C";"0110010701-C";"Frierfjorden";"Buskerud";"Vest-Viken";"Skagerak (5 - 25)";"S5"
+"NO0132010201-C";"0132010201-C";"Skogsfjord-indre";"Agder";"Agder";NA;NA
+"NO0121010500-2-C";"0121010500-2-C";"Skallefjorden";"Agder";"Agder";NA;NA
+"NO0132030300-C";"0132030300-C";"Syrdalsfjorden";"Agder";"Agder";"Skagerak (> 25)";"S3"
+"NO0240000500-C";"0240000500-C";"Nordfjorden";"Rogaland";"Rogaland";NA;NA
+"NO0131010200-C";"0131010200-C";"Høllefjorden";"Agder";"Agder";"Skagerak (> 25)";"S3"
+"NO0120010101-2-C";"0120010101-2-C";"Østre Nordfjorden";"Agder";"Agder";"Polyhalin (18 - 30)";NA
+"NO0201011200-C";"0201011200-C";"Helvikfjorden";"Agder";"Agder";NA;NA
+"NO0120000031-2-C";"0120000031-2-C";"Gåsholmen - Kalvøya";"Agder";"Agder";"Skagerak (> 25)";"S2"
+"NO0120030100-C";"0120030100-C";"Flosterfjorden";"Agder";"Agder";"Polyhalin (18 - 30)";NA
+"NO0120000031-3-C";"0120000031-3-C";"Sandøyfjorden";"Agder";"Agder";"Polyhalin (18 - 30)";NA
+"NO0132030100-C";"0132030100-C";"Tjømsvågen";"Agder";"Agder";NA;NA
+"NO0101010402-C";"0101010402-C";"Tosekilen";"Østfold";"Glomma";"Skagerak (> 25)";"S3"
+"NO0131010100-1-C";"0131010100-1-C";"Hundsøyfjorden";"Agder";"Agder";"Skagerak (> 25)";"S3"
+"NO0110000701-C";"0110000701-C";"Stølefjorden";"Agder";"Agder";"Skagerak (> 25)";"S3"
+"NO0120000031-1-C";"0120000031-1-C";"Sildodden - Flostaøya";"Agder";"Agder";"Skagerak (> 25)";"S1"
+"NO0101020102-2-C";"0101020102-2-C";"Risholmsundet";"Østfold";"Glomma";"Skagerak (> 25)";"S3"
+"NO0121000200-C";"0121000200-C";"Vikkilen";"Agder";"Agder";NA;NA
+"NO0121000300-3-C";"0121000300-3-C";"Grimstad";"Agder";"Agder";NA;NA
+"NO0110021000-1-C";"0110021000-1-C";"Kragerøfjorden-ytre";"Buskerud";"Vest-Viken";"Skagerak (> 25)";"S3"
+"NO0130010500-C";"0130010500-C";"Ålefjærfjorden";"Agder";"Agder";"Polyhalin (18 - 30)";NA
+"NO0132010300-C";"0132010300-C";"Hillevågen";"Agder";"Agder";"Skagerak (> 25)";"S3"
+"NO0110000200-C";"0110000200-C";"Nevlunghavn - Havnebukta";"Buskerud";"Vest-Viken";"Skagerak (> 25)";"S2"
+"NO0130010400-1-C";"0130010400-1-C";"Topdalsfjorden-indre";"Agder";"Agder";"Polyhalin (18 - 30)";NA
+"NO0110010402-C";"0110010402-C";"Langangsfjorden";"Buskerud";"Vest-Viken";"Skagerak (> 25)";"S3"
+"NO0132030400-C";"0132030400-C";"Remefjorden";"Agder";"Agder";"Polyhalin (18 - 30)";NA
+"NO0101010407-C";"0101010407-C";"Asmalsundet";"Østfold";"Glomma";"Skagerak (> 25)";"S3"
+"NO0201011300-C";"0201011300-C";"Framvaren";"Agder";"Agder";NA;NA
+"NO0120030600-1-C";"0120030600-1-C";"Hovekilen-ytre";"Agder";"Agder";"Skagerak (> 25)";"S3"
+"NO0110000600-C";"0110000600-C";"Trosbyfjorden";"Buskerud";"Vest-Viken";NA;NA
+"NO0121020400-C";"0121020400-C";"Røynevardsfjorden";"Agder";"Agder";"Skagerak (> 25)";"S3"
+"NO0101021000-C";"0101021000-1-C";"Breiangen-vest";"Østfold";"Glomma";"Skagerak (> 25)";"S3"
+"NO0101021000-C";"0101021000-2-C";"Langøya";"Buskerud";"Vest-Viken";"Skagerak (> 25)";"S3"
+"NO0120030300-C";"0120030300-C";"Hølen";"Agder";"Agder";NA;NA
+"NO0110021000-2-C";"0110021000-2-C";"Kragerøfjorden-indre";"Buskerud";"Vest-Viken";"Skagerak (> 25)";"S3"
+"NO0120010502-1-C";"0120010502-1-C";"Sandesfjorden";"Agder";"Agder";"Mesohalin (5 - 18)";NA
+"NO0120020400-1-C";"0120020400-1-C";"Oksefjorden-ytre";"Agder";"Agder";"Polyhalin (18 - 30)";NA
+"NO0120000034-C";"0120000034-C";"Merdø - Hasseltangen";"Agder";"Agder";"Skagerak (> 25)";"S2"
+"NO0101030101-3-C";"0101030101-3-C";"Byfjorden";"Buskerud";"Vest-Viken";"Skagerak (5 - 25)";"S5"
+"NO0110010300-C";"0110010300-C";"Håøyafjorden";"Buskerud";"Vest-Viken";"Skagerak (> 25)";"S3"
+"NO0110020900-C";"0110020900-C";"Hellefjorden";"Buskerud";"Vest-Viken";NA;NA
+"NO0101010303-C";"0101010303-C";"Røsneskilen";"Østfold";"Glomma";"Skagerak (> 25)";"S3"
+"NO0101010301-C";"0101010301-C";"Singlefjorden";"Østfold";"Glomma";"Skagerak (> 25)";"S3"
+"NO0240000100-C";"0240000100-C";"Jøssingfjord";"Rogaland";"Rogaland";NA;NA
+"NO0130010400-3-C";"0130010400-3-C";"Kongsgårdbukta - Marviksbukta";"Agder";"Agder";NA;NA
+"NO0130010400-2-C";"0130010400-2-C";"Topdalsfjorden-ytre";"Agder";"Agder";"Polyhalin (18 - 30)";NA
+"NO0130000030-1-C";"0130000030-1-C";"Kristiansandsfjorden-ytre";"Agder";"Agder";"Skagerak (> 25)";"S1"
+"NO0120020501-C";"0120020501-C";"Tvedestrandsfjorden";"Agder";"Agder";NA;NA
+"NO0130000030-2-C";"0130000030-2-C";"Kristiansandsfjorden - Mebø";"Agder";"Agder";NA;NA
+"NO0240000200-C";"0240000200-C";"Dyngadypet";"Rogaland";"Rogaland";NA;NA
+"NO0132030500-C";"0132030500-C";"Njervefjorden";"Agder";"Agder";"Skagerak (> 25)";"S3"
+"NO0201010200-C";"0201010200-C";"Grønsfjorden";"Agder";"Agder";"Polyhalin (18 - 30)";"N4"
+"NO0101040100-C";"0101040100-C";"Mefjorden";"Buskerud";"Vest-Viken";"Skagerak (> 25)";"S3"
+"NO0110020500-C";"0110020500-C";"Langårdssund";"Buskerud";"Vest-Viken";NA;NA
+"NO0240000030-C";"0240000030-C";"Dyngjadypet - Sirevåg";"Rogaland";"Rogaland";NA;NA
+"NO0110000400-C";"0110000400-C";"Åbyfjorden";"Buskerud";"Vest-Viken";"Skagerak (> 25)";"S3"
+"NO0130010600-C";"0130010600-C";"Drangsvatna";"Agder";"Agder";NA;NA
+"NO0130000101-C";"0130000101-C";"Kvåsefjorden-indre";"Agder";"Agder";NA;NA
+"NO0121000300-2-C";"0121000300-2-C";"Grosfjord-ytre";"Agder";"Agder";"Skagerak (> 25)";NA
+"NO0110021101-1-C";"0110021101-1-C";"Kilsfjorden";"Buskerud";"Vest-Viken";"Mesohalin (5 - 18)";NA
+"NO0120010201-C";"0120010201-C";"Sørfjorden-vestre";"Agder";"Agder";"Mesohalin (5 - 18)";NA
+"NO0201020600-C";"0201020600-C";"Grisefjorden";"Agder";"Agder";NA;NA
+"NO0101010408-C";"0101010408-C";"Løperen";"Østfold";"Glomma";"Skagerak (> 25)";"S3"
+"NO0101000031-C";"0101000031-C";"Svenner - Rauer";"Buskerud";"Vest-Viken";"Skagerak (> 25)";"S1"
+"NO0101040500-C";"0101040500-C";"Naverfjorden";"Buskerud";"Vest-Viken";"Skagerak (> 25)";"S2"
+"NO0121010100-C";"0121010100-C";"Homborsund";"Agder";"Agder";"Skagerak (> 25)";"S3"
+"NO0101030700-C";"0101030700-C";"Vrengen";"Buskerud";"Vest-Viken";"Skagerak (> 25)";"S3"
+"NO0101010302-C";"0101010302-C";"Svalerødkilen";"Østfold";"Glomma";"Skagerak (> 25)";"S3"
+"NO0110010802-C";"0110010802-C";"Langesundsfjorden - Dypingen";"Buskerud";"Vest-Viken";"Skagerak (> 25)";NA
+"NO0132010400-C";"0132010400-C";"Kåfjorden";"Agder";"Agder";"Polyhalin (18 - 30)";NA
+"NO0110021101-2-C";"0110021101-2-C";"Kilsfjorden - Høyåsen";"Buskerud";"Vest-Viken";"Skagerak (> 25)";"S3"
+"NO0101030400-C";"0101030400-C";"Årøysund - Hvasser";"Buskerud";"Vest-Viken";"Skagerak (> 25)";"S2"
+"NO0101030800-C";"0101030800-C";"Røssesundet";"Buskerud";"Vest-Viken";"Skagerak (> 25)";"S3"
+"NO0120030600-2-C";"0120030600-2-C";"Hovekilen-indre";"Agder";"Agder";NA;NA
+"NO0131000030-C";"0131000030-C";"Songvårfjorden - Hellefjorden";"Agder";"Agder";"Skagerak (> 25)";"S1"
+"NO0110021103-C";"0110021103-C";"Barlandkilen";"Buskerud";"Vest-Viken";NA;NA
+"NO0121020500-1-C";"0121020500-1-C";"Bliksfjorden";"Agder";"Agder";"Skagerak (> 25)";"S3"
+"NO0201010600-C";"0201010600-C";"Indre Spindsfjorden";"Agder";"Agder";"Polyhalin (18 - 30)";"N4"
+"NO0131010400-C";"0131010400-C";"Kumlefjorden";"Agder";"Agder";NA;NA
+"NO0130010700-C";"0130010700-C";"Vestergapet-indre";"Agder";"Agder";"Skagerak (> 25)";"S3"
+"NO0131010300-C";"0131010300-C";"Trysfjorden";"Agder";"Agder";NA;NA
+"NO0201021000-C";"0201021000-C";"Berrefjord";"Agder";"Agder";NA;NA
+"NO0131020300-C";"0131020300-C";"Hellefjorden";"Agder";"Agder";"Skagerak (> 25)";"S3"
+"NO0110000031-C";"0110000031-C";"Jomfruland-nordøst";"Buskerud";"Vest-Viken";"Skagerak (> 25)";"S1"
+"NO0101020500-C";"0101020500-C";"Hurum";"Østfold";"Glomma";"Skagerak (> 25)";"S3"
+"NO0130010202-C";"0130010202-C";"Randøysund-indre";"Agder";"Agder";NA;NA
+"NO0120030201-2-C";"0120030201-2-C";"Tromøysundet";"Agder";"Agder";"Skagerak (> 25)";"S3"
+"NO0120020203-C";"0120020203-C";"Kåkvåg";"Agder";"Agder";"Polyhalin (18 - 30)";NA
+"NO0120020600-C";"0120020600-C";"Eikelandsfjorden";"Agder";"Agder";"Polyhalin (18 - 30)";NA
+"NO0132030600-C";"0132030600-C";"Kirkevågen";"Agder";"Agder";"Skagerak (> 25)";"S3"
+"NO0201011400-C";"0201011400-C";"Lundevågen";"Agder";"Agder";"Euhalin (> 30)";"N3"
+"NO0201020400-C";"0201020400-C";"Stolsfjorden";"Agder";"Agder";"Euhalin (> 30)";"N3"
+"NO0120030202-2-C";"0120030202-2-C";"Tromøysundet - Bekkevika";"Agder";"Agder";NA;NA
+"NO0101020801-C";"0101020801-C";"Drammensfjorden-indre";"Buskerud";"Vest-Viken";"Skagerak (5 - 25)";"S5"
+"NO0101030101-1-C";"0101030101-1-C";"Træla";"Buskerud";"Vest-Viken";"Skagerak (5 - 25)";"S5"
+"NO0120030400-C";"0120030400-C";"Nidelven";"Agder";"Agder";NA;NA
+"NO0130010301-1-C";"0130010301-1-C";"Østergapet-ytre";"Agder";"Agder";"Skagerak (> 25)";"S3"
+"NO0101030600-C";"0101030600-C";"Tjøme - Holtekjærkilen";"Buskerud";"Vest-Viken";"Skagerak (> 25)";"S3"
+"NO0132030700-C";"0132030700-C";"Ramslandsvågen";"Agder";"Agder";NA;NA
+"NO0110010200-C";"0110010200-C";"Mørjefjorden";"Buskerud";"Vest-Viken";"Skagerak (> 25)";"S3"
+"NO0201010300-C";"0201010300-C";"Rosfjorden";"Agder";"Agder";"Polyhalin (18 - 30)";"N4"
+"NO0130010203-C";"0130010203-C";"Stølekilen";"Agder";"Agder";NA;NA
+"NO0201010100-C";"0201010100-C";"Lenefjorden";"Agder";"Agder";NA;NA
+"NO0101030200-C";"0101030200-C";"Husøyflaket";"Buskerud";"Vest-Viken";"Skagerak (> 25)";"S3"
+"NO0101010305-C";"0101010305-C";"Skjebergkilen";"Østfold";"Glomma";"Skagerak (> 25)";"S3"
+"NO0101020602-C";"0101020602-C";"Sandvika";"Østfold";"Glomma";"Skagerak (5 - 25)";"S5"
+"NO0201020200-C";"0201020200-C";"Eidsfjorden";"Agder";"Agder";"Euhalin (> 30)";"N2"
+"NO0131020202-C";"0131020202-C";"Buøysund-ytre";"Agder";"Agder";"Skagerak (> 25)";"S3"
+"NO0110000100-C";"0110000100-C";"Hummerbakfjorden";"Buskerud";"Vest-Viken";"Skagerak (> 25)";"S2"
+"NO0101010500-C";"0101010500-C";"Lera";"Østfold";"Glomma";"Skagerak (> 25)";"S1"
+"NO0201010700-2-C";"0201010700-2-C";"Indre Spindsfjorden - Farsund";"Agder";"Agder";"Euhalin (> 30)";"N3"
+"NO0201010800-C";"0201010800-C";"Lyngdalsfjord-ytre";"Agder";"Agder";"Polyhalin (18 - 30)";NA
+"NO0121000031-C";"0121000031-C";"Hesneskanalen - Hasseltangen";"Agder";"Agder";"Skagerak (> 25)";"S2"
+"NO0201000031-C";"0201000031-C";"Flekkefjord-ytre";"Agder";"Agder";"Euhalin (> 30)";"N1"
+"NO0101020102-1-C";"0101020102-1-C";"Hankøsundet";"Østfold";"Glomma";"Skagerak (> 25)";"S3"
+"NO0110021200-C";"0110021200-C";"Skåtøybukta";"Buskerud";"Vest-Viken";"Skagerak (> 25)";"S2"
+"NO0101020701-5-C";"0101020701-5-C";"Bunnefjorden";"Østfold";"Glomma";"Skagerak (> 25)";"S3"
+"NO0121020300-C";"0121020300-C";"Blindleia - Kjøbmannsvig";"Agder";"Agder";NA;NA
+"NO0121020201-C";"0121020201-C";"Steindalsfjorden";"Agder";"Agder";NA;NA
+"NO0121020202-C";"0121020202-C";"Steindalsfjord-ytre";"Agder";"Agder";"Polyhalin (18 - 30)";NA
+"NO0120020300-C";"0120020300-C";"Hagefjorden";"Agder";"Agder";"Skagerak (> 25)";"S3"
+"NO0121020600-2-C";"0121020600-2-C";"Isefjærfjorden - Knabesund";"Agder";"Agder";NA;NA
+"NO0110000030-C";"0110000030-C";"Langesundsbukta-ytre";"Buskerud";"Vest-Viken";"Skagerak (> 25)";"S1"
+"NO0131020100-C";"0131020100-C";"Harkmarkfjorden";"Agder";"Agder";NA;NA
+"NO0201010500-C";"0201010500-C";"Spindfjorden";"Agder";"Agder";"Polyhalin (18 - 30)";NA
+"NO0120000030-C";"0120000030-C";"Ellingsvikskjer - Sildodden";"Agder";"Agder";"Skagerak (> 25)";"S1"
+"NO0201020100-2-C";"0201020100-2-C";"Listafjord - Kinna";"Agder";"Agder";NA;NA
+"NO0121000700-C";"0121000700-C";"Bufjorden";"Agder";"Agder";"Skagerak (> 25)";"S3"
+"NO0121020600-1-C";"0121020600-1-C";"Isefjærfjorden";"Agder";"Agder";NA;NA
+"NO0201020800-C";"0201020800-C";"Hidrasundet";"Agder";"Agder";"Euhalin (> 30)";"N2"
+"NO0120030201-1-C";"0120030201-1-C";"Hasteinsundet";"Agder";"Agder";"Skagerak (> 25)";"S3"
+"NO0201020302-C";"0201020302-C";"Fedafjord-ytre";"Agder";"Agder";"Mesohalin (5 - 18)";"N5"
+"NO0120010400-C";"0120010400-C";"Risørleia";"Agder";"Agder";"Skagerak (> 25)";"S2"
+"NO0101020900-C";"0101020900-C";"Sandebukta";"Buskerud";"Vest-Viken";"Skagerak (> 25)";"S3"
+"NO0130000102-1-C";"0130000102-1-C";"Kvåsefjorden - Kvarenesfjorden";"Agder";"Agder";"Skagerak (> 25)";"S3"
+"NO0201010400-C";"0201010400-C";"Skarvøy";"Agder";"Agder";"Euhalin (> 30)";"N2"
+"NO0120020201-C";"0120020201-C";"Sandøyfjorden";"Agder";"Agder";"Polyhalin (18 - 30)";NA
+"NO0121000030-C";"0121000030-C";"Grimstad-ytre";"Agder";"Agder";"Skagerak (> 25)";"S1"
+"NO0121000400-C";"0121000400-C";"Morvigkilen";"Agder";"Agder";NA;NA
+"NO0130000300-C";"0130000300-C";"Hellesundfjorden";"Agder";"Agder";"Skagerak (> 25)";"S3"
+"NO0101020802-C";"0101020802-C";"Drammensfjorden-ytre";"Buskerud";"Vest-Viken";"Skagerak (> 25)";"S3"
+"NO0110020800-2-C";"0110020800-2-C";"Bærøyfjorden - Kragerø";"Buskerud";"Vest-Viken";"Skagerak (> 25)";"S3"
+"NO0101030102-1-C";"0101030102-1-C";"Tønsbergfjorden - Tjømekjæla";"Buskerud";"Vest-Viken";"Skagerak (> 25)";"S3"
+"NO0110020200-C";"0110020200-C";"Fossingfjorden";"Buskerud";"Vest-Viken";"Skagerak (> 25)";"S3"
+"NO0131010100-3-C";"0131010100-3-C";"Torvefjorden";"Agder";"Agder";NA;NA
+"NO0110000038-2-C";"0110000038-2-C";"Prisgrunnbukta";"Buskerud";"Vest-Viken";"Skagerak (> 25)";NA
+"NO0132010202-C";"0132010202-C";"Skogsfjord-ytre";"Agder";"Agder";NA;NA
+"NO0110000033-1-C";"0110000033-1-C";"Langesundsbukta-indre";"Buskerud";"Vest-Viken";"Skagerak (> 25)";"S1"
+"NO0110010702-C";"0110010702-C";"Gunnekleivfjorden";"Buskerud";"Vest-Viken";NA;NA
+"NO0101010304-C";"0101010304-C";"Grimsøykilen";"Østfold";"Glomma";"Skagerak (> 25)";"S3"
+"NO0120030202-1-C";"0120030202-1-C";"Neskilen - Rånehølen";"Agder";"Agder";NA;NA
+"NO0110010500-C";"0110010500-C";"Ormefjorden";"Buskerud";"Vest-Viken";"Skagerak (> 25)";"S3"
+"NO0101021100-C";"0101021100-C";"Horten indre havn";"Buskerud";"Vest-Viken";"Skagerak (> 25)";"S3"
+"NO0131020201-C";"0131020201-C";"Buøysund-indre";"Agder";"Agder";"Skagerak (> 25)";"S3"
+"NO0201020100-1-C";"0201020100-1-C";"Listafjorden";"Agder";"Agder";"Euhalin (> 30)";"N2"
+"NO0121000500-C";"0121000500-C";"Strandfjorden";"Agder";"Agder";NA;NA
+"NO0110000038-1-C";"0110000038-1-C";"Melbyfjorden";"Buskerud";"Vest-Viken";"Skagerak (> 25)";"S2"
+"NO0201011100-C";"0201011100-C";"Drangsfjorden";"Agder";"Agder";"Polyhalin (18 - 30)";NA
+"NO0110020400-C";"0110020400-C";"Soppekilen";"Buskerud";"Vest-Viken";NA;NA
+"NO0101010201-C";"0101010201-C";"Iddefjorden-indre";"Østfold";"Glomma";"Skagerak (5 - 25)";"S5"
+"NO0121000600-C";"0121000600-C";"Nørholmskilen";"Agder";"Agder";NA;NA
+"NO0110000034-2-C";"0110000034-2-C";"Såsteinflaket";"Buskerud";"Vest-Viken";NA;NA
+"NO0101010401-C";"0101010401-C";"Ramsøflaket - Østerelva";"Østfold";"Glomma";"Skagerak (> 25)";"S3"
+"NO0110020300-C";"0110020300-C";"Kjøpmannsfjorden";"Buskerud";"Vest-Viken";"Skagerak (> 25)";"S3"
+"NO0101030102-2-C";"0101030102-2-C";"Tønsbergfjorden-ytre";"Buskerud";"Vest-Viken";"Skagerak (> 25)";"S2"
+"NO0130000031-1-C";"0130000031-1-C";"Vestergapet-ytre";"Agder";"Agder";"Skagerak (> 25)";"S1"
+"NO0120020400-2-C";"0120020400-2-C";"Oksefjorden-indre";"Agder";"Agder";"Polyhalin (18 - 30)";NA
+"NO0132000030-C";"0132000030-C";"Mandal-Lindesnes";"Agder";"Agder";"Skagerak (> 25)";"S1"
+"NO0101010406-C";"0101010406-C";"Skjelsbusundet";"Østfold";"Glomma";"Skagerak (> 25)";"S3"
+"NO0110000036-C";"0110000036-C";"Jomfrulandsrenna";"Buskerud";"Vest-Viken";"Skagerak (> 25)";"S3"
+"NO0130010201-C";"0130010201-C";"Randøysund-ytre";"Agder";"Agder";"Skagerak (> 25)";"S3"
+"NO0121020500-2-C";"0121020500-2-C";"Blindleia - Hellesund";"Agder";"Agder";"Skagerak (> 25)";"S2"
+"NO0101040200-1-C";"0101040200-1-C";"Sandefjordsfjorden-indre";"Buskerud";"Vest-Viken";"Skagerak (> 25)";"S3"
+"NO0101020104-C";"0101020104-C";"Krokstadfjorden";"Østfold";"Glomma";"Skagerak (> 25)";"S3"
+"NO0120030204-C";"0120030204-C";"Merdøfjorden - Havsøyfjorden";"Agder";"Agder";"Skagerak (> 25)";"S3"
+"NO0130010301-2-C";"0130010301-2-C";"Østergapet-indre";"Agder";"Agder";"Skagerak (> 25)";"S2"
+"NO0101010306-C";"0101010306-C";"Sandholmene";"Østfold";"Glomma";"Skagerak (> 25)";"S3"
+"NO0101010403-C";"0101010403-C";"Hunnebotn";"Østfold";"Glomma";"Skagerak (5 - 25)";"S5"
+"NO0101020103-C";"0101020103-C";"Elingårdskilen";"Østfold";"Glomma";"Skagerak (> 25)";"S3"
+"NO0132030200-C";"0132030200-C";"Sniksfjorden";"Agder";"Agder";NA;NA
+"NO0121000032-C";"0121000032-C";"Blindleia - Skagerak";"Agder";"Agder";"Skagerak (> 25)";"S1"
+"NO0121000300-1-C";"0121000300-1-C";"Grosfjorden-indre";"Agder";"Agder";"Polyhalin (18 - 30)";NA
+"NO0201011000-C";"0201011000-C";"Åptafjorden";"Agder";"Agder";"Polyhalin (18 - 30)";NA
+"NO0201020301-C";"0201020301-C";"Fedafjord-indre";"Agder";"Agder";NA;NA
+"NO0101020601-C";"0101020601-C";"Oslofjorden";"Østfold";"Glomma";"Skagerak (> 25)";"S2"
+"NO0201010900-C";"0201010900-C";"Lyngdalsfjord-indre";"Agder";"Agder";"Mesohalin (5 - 18)";"N5"
+"NO0201010700-1-C";"0201010700-1-C";"Indre Spindsfjorden - Håøysundet";"Agder";"Agder";"Euhalin (> 30)";"N3"
+"NO0101020603-C";"0101020603-C";"Holmenfjorden";"Østfold";"Glomma";"Skagerak (> 25)";"S3"
+"NO0110020100-C";"0110020100-C";"Eksefjorden";"Buskerud";"Vest-Viken";"Skagerak (> 25)";"S2"
+"NO0110000500-C";"0110000500-C";"Brevikstrandfjorden";"Buskerud";"Vest-Viken";NA;NA
+"NO0121010200-C";"0121010200-C";"Vestre Bjørkesund - Sønningdalsu";"Agder";"Agder";NA;NA
+"NO0101040200-2-C";"0101040200-2-C";"Sandefjordsfjorden-ytre";"Buskerud";"Vest-Viken";"Skagerak (> 25)";"S3"
+"NO0120010300-4-C";"0120010300-4-C";"Østerfjorden";"Agder";"Agder";"Skagerak (> 25)";"S2"
+"NO0121010400-1-C";"0121010400-1-C";"Lillesandsfjord-Klingsundkilen";"Agder";"Agder";NA;NA
+"NO0121010400-2-C";"0121010400-2-C";"Lillesandsfjord-ytre";"Agder";"Agder";"Skagerak (> 25)";"S2"
+"NO0120010300-1-C";"0120010300-1-C";"Kranfjorden";"Agder";"Agder";"Skagerak (> 25)";"S3"
+"NO0120010300-3-C";"0120010300-3-C";"Søndeledfjord-ytre";"Agder";"Agder";NA;NA
+"NO0101040400-3-C";"0101040400-3-C";"Viksfjorden indre";"Buskerud";"Vest-Viken";"Skagerak (> 25)";"S3"
+"NO0120030500-2-C";"0120030500-2-C";"Sømskilen-Hasseltangen";"Agder";"Agder";"Skagerak (> 25)";"S3"
+"NO0120030500-1-C";"0120030500-1-C";"Nidelven-ytre";"Agder";"Agder";"Skagerak (> 25)";"S3"
+"NO0101040400-4-C";"0101040400-4-C";"Viksfjorden";"Buskerud";"Vest-Viken";"Skagerak (> 25)";"S3"
