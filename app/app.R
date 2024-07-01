@@ -3,12 +3,10 @@ library(dplyr)
 library(leaflet)
 library(sf)
 library(shinydashboard)
-#library(DT)
 library(shinyjs)
-#library(sp)
-#library(raster)
 library(terra)
 library(reactable)
+
 
 r_colors <- rgb(t(col2rgb(colors()) / 255))
 names(r_colors) <- colors()
@@ -531,42 +529,7 @@ server <- function(input, output, session) {
   })
   
 
-   
-  
-  # table of indicator results
-  #dtind
-  # output$dtind <- DT::renderDataTable({
-  #   shiny::req(values$wbselected)
-  # 
-  # 
-  #   df<-df_ind %>%
-  #     dplyr::select(WB,Indicator,Period,Kvalitetselement,Value,EQR,
-  #                   Ref,HG,GM,MP,PB,Worst,Status)
-  #   if(values$wbselected==""){
-  #     df<-data.frame()
-  #   }else{
-  #     cat(file=stderr(),"values$wbselected=",values$wbselected,"\n")
-  # 
-  #     df<-df %>% 
-  #       filter(WB==values$wbselected) %>%
-  #       filter(Period==values$period)
-  #     
-  #     df$Indicator <- factor(df$Indicator,levels=params)
-  #     
-  #     df<-df %>%
-  #       arrange(Indicator) %>%
-  #       mutate(Value=round(Value,3),EQR=round(EQR,3)) %>%
-  #       dplyr::select(-c(WB,Period))
-  #     
-  #     
-  #     
-  #   }
-  #   
-  #   return(df)
-  #   
-  # },options=list(dom='t',pageLength = 99,autoWidth=TRUE))
-  
-  
+
   
   output$tblind <- reactable::renderReactable({
     
@@ -686,10 +649,7 @@ server <- function(input, output, session) {
         dplyr::select(WorstBio=Worst_Biological,EQRbio=EQR_Biological,
                     WorstSup=Worst_Supporting,EQRsup=EQR_Supporting,
                     EQR,Status)  
-      #%>%
-      #dplyr::select(`Worst Biological QE`=Worst_Biological,`EQR Biological`=EQR_Biological,
-      #              `Worst Supporting QE`=Worst_Supporting,`EQR Supporting`=EQR_Supporting,
-      #              `EQR Overall`=EQR,Status)  
+      
     }
     
     mypal <- c("#ff000030","#ff8c2b30","#ffff0030","#00d60030","#007eff30")
