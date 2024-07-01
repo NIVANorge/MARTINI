@@ -1,0 +1,6 @@
+/model_src/
+/png/
+/res_v10f/
+*.nc
+*.Rds
+*.json
