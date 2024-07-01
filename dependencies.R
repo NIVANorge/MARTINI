@@ -8,6 +8,7 @@ packages <- c(
   'DT',
   'shinyjs',
   'sf',
+  'reactable',
   
   '')
 options(Ncpus = -1)
