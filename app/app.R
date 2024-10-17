@@ -13,12 +13,28 @@ names(r_colors) <- colors()
 
 
 plottitle<-function(parameter){
-  params<-c("Ecological Status","Chl_summer","MSMDI","NQI1","H","Secchi","DO_bot","NH4_summer","NH4_winter",
+  params<-c("Ecological Status",
+            "Chl_summer",
+            "Chl",
+            "MSMDI",
+            "NQI1","H","Secchi","DO_bot",
+            "NH4_summer","NH4_winter",
             "NO3_summer","NO3_winter","PO4_summer","PO4_winter",
             "TN_summer","TN_winter","TP_summer","TP_winter")
-  titles<-c("Ecological status","Chl a [µg/l]","MSMDI [EQR]","NQI1 [EQR]","H [EQR]","Secchi [m]","DO bottom [ml/l]","NH4 summer [µg-N/l]","NH4 winter [µg-N/l]",
-            "NO3 summer [µg-N/l]","NO3 winter [µg-N/l]","PO4 summer [µg-P/l]","PO4 winter [µg-P/l]",
-            "TN summer [µg-N/l]","TN _winter [µg-N/l]","TP summer [µg-P/l]","TP winter [µg-P/l]")
+  titles<-c("Ecological status","Chl a [µg/l]","Chl a 90. pct [µg/l]",
+            "MSMDI [EQR]","NQI1 [EQR]",
+            "H [EQR]","Secchi [m]",
+            "DO bottom [ml/l]",
+            "NH4 summer [µg-N/l]",
+            "NH4 winter [µg-N/l]",
+            "NO3 summer [µg-N/l]",
+            "NO3 winter [µg-N/l]",
+            "PO4 summer [µg-P/l]",
+            "PO4 winter [µg-P/l]",
+            "TN summer [µg-N/l]",
+            "TN _winter [µg-N/l]",
+            "TP summer [µg-P/l]",
+            "TP winter [µg-P/l]")
   
   title<-titles[params==parameter]
   return(title)
@@ -88,25 +104,32 @@ ui <- dashboardPage(skin = "black",title="MARTINI Status Assessment",
                               
                               # "NQI1","H" - currently no results for these parameters
                               
-                              column(2,selectInput("selParam",label="Display variable:",
-                                                            c("Ecological Status"="Ecological Status",
-                                                              "Chl a (summer)"="Chl_summer",
-                                                              "MSMDI"="MSMDI",
-                                                              "Secchi (summer)"="Secchi",
-                                                              "DO (bottom)"="DO_bot",
-                                                              "NH4 (summer)"="NH4_summer",
-                                                              "NH4 (winter)"="NH4_winter",
-                                                              "NO3 (summer)"="NO3_summer",
-                                                              "NO3 (winter)"="NO3_winter",
-                                                              "PO4 (summer)"="PO4_summer",
-                                                              "PO4 (winter)"="PO4_winter"
-                                                              #"TN_summer","TN_winter",
-                                                              #"TP_summer","TP_winter"
-                                                            ))), 
+                              column(2,
+                                     # selectInput("selParam",label="Display variable:",
+                                     #                        c("Ecological Status"="Ecological Status",
+                                     #                          "Chl a (summer)"="Chl_summer",
+                                     #                          "Chl a (90pct.)"="Chl",
+                                     #                          "MSMDI"="MSMDI",
+                                     #                          "Secchi (summer)"="Secchi",
+                                     #                          "DO (bottom)"="DO_bot",
+                                     #                          "NH4 (summer)"="NH4_summer",
+                                     #                          "NH4 (winter)"="NH4_winter",
+                                     #                          "NO3 (summer)"="NO3_summer",
+                                     #                          "NO3 (winter)"="NO3_winter",
+                                     #                          "PO4 (summer)"="PO4_summer",
+                                     #                          "PO4 (winter)"="PO4_winter"
+                                     #                          #"TN_summer","TN_winter",
+                                     #                          #"TP_summer","TP_winter"
+                                     #                        ))
+                                     uiOutput("selectParam", inline=T)
+                                     ), 
                               column(2,
                                      p(disabled(checkboxInput("scaleDiscrete","Discrete colours",value=F))),
                                      p(checkboxInput("showStatus","Show status",value=TRUE))
                               ),
+                              column(2, offset = 2,
+                                     p(checkboxInput("useChl90","Use Chl a 90th percentile",value=F))
+                                     )
                               ),
                               fluidRow(                                
                                 column(5,
@@ -160,8 +183,10 @@ server <- function(input, output, session) {
                         quiet=T, check_ring_dir=T, promote_to_multi=F)
 
   df_WB<-read.table(file="nve/WBlist.txt",header=T,stringsAsFactors=F,sep=";")
-  df_ind <- read.table(file="indicator_results_OF.csv",sep=";",header=T)
-  df_wb <- read.table(file="WB_results_OF.csv",sep=";",header=T)
+  df_ind1 <- read.table(file="indicator_results_OF.csv",sep=";",header=T)
+  df_wb1 <- read.table(file="WB_results_OF.csv",sep=";",header=T)
+  df_ind2 <- read.table(file="indicator_results_OF_chl90.csv",sep=";",header=T)
+  df_wb2 <- read.table(file="WB_results_OF_chl90.csv",sep=";",header=T)
   df_wb_obs <- read.table(file="EQR_status.txt",sep=";",header=T)
   
   param_lims <- read.table(file="param_limits.csv",sep=";",header=T)
@@ -170,9 +195,77 @@ server <- function(input, output, session) {
   obs_stns <-  read.table("obs_stations.csv", sep=";", header=T)
 
   # "NQI1","H" - currently no results for these parameters
-  params<-c("Ecological Status","Chl_summer","MSMDI","Secchi","DO_bot","NH4_summer","NH4_winter",
+  params<-c("Ecological Status","Chl_summer","Chl","MSMDI",
+            "Secchi","DO_bot","NH4_summer","NH4_winter",
             "NO3_summer","NO3_winter","PO4_summer","PO4_winter",
             "TN_summer","TN_winter","TP_summer","TP_winter")
+  
+  df_ind <- reactive({
+    if(input$useChl90){
+      return(df_ind2)
+    }else{
+      return(df_ind1)
+    }
+  })
+
+  df_wb <- reactive({
+    if(input$useChl90){
+      return(df_wb2)
+    }else{
+      return(df_wb1)
+    }
+  })
+  
+    
+  param_select_list <- reactive({
+    if(input$useChl90){
+      list_param_sel <- c("Ecological Status"="Ecological Status",
+                          "Chl a (90pct.)"="Chl",
+                          "MSMDI"="MSMDI",
+                          "Secchi (summer)"="Secchi",
+                          "DO (bottom)"="DO_bot",
+                          "NH4 (summer)"="NH4_summer",
+                          "NH4 (winter)"="NH4_winter",
+                          "NO3 (summer)"="NO3_summer",
+                          "NO3 (winter)"="NO3_winter",
+                          "PO4 (summer)"="PO4_summer",
+                          "PO4 (winter)"="PO4_winter"
+                          #"TN_summer","TN_winter",
+                          #"TP_summer","TP_winter"
+      )
+    }else{
+      list_param_sel <- c("Ecological Status"="Ecological Status",
+                          "Chl a (summer)"="Chl_summer",
+                          "MSMDI"="MSMDI",
+                          "Secchi (summer)"="Secchi",
+                          "DO (bottom)"="DO_bot",
+                          "NH4 (summer)"="NH4_summer",
+                          "NH4 (winter)"="NH4_winter",
+                          "NO3 (summer)"="NO3_summer",
+                          "NO3 (winter)"="NO3_winter",
+                          "PO4 (summer)"="PO4_summer",
+                          "PO4 (winter)"="PO4_winter"
+                          #"TN_summer","TN_winter",
+                          #"TP_summer","TP_winter"
+      )
+    }
+    return(list_param_sel)
+  })
+  
+  
+  output$selectParam <- renderUI({
+    list_param_sel <- param_select_list()
+    
+    tagList(selectInput(
+      "selParam",
+      "Display variable:",
+      choices = list_param_sel,
+      selected = list_param_sel[1],
+      multiple = FALSE, 
+      #width="200px",
+      selectize = T
+    ))
+  })
   
   round_sig <- function(x, n, max_dec=3){
     base <- ifelse(x==0, -2, ceiling(log10(abs(x))))
@@ -218,10 +311,11 @@ server <- function(input, output, session) {
       #load("indicators.Rda")
       
       WB_name<-df_WB[df_WB$VANNFOREKOMSTID==values$wbselected,"VANNFOREKOMSTNAVN"]
-      df_ind <- df_ind %>% dplyr::filter(WB==values$wbselected)
-      type<-df_ind$type[1]
-      Salinity<-df_ind$Salinity[1]
-      CoastType<-df_ind$Type[1]
+      df_ind_wb <- df_ind() %>% 
+        dplyr::filter(WB==values$wbselected)
+      type<-df_ind_wb$type[1]
+      Salinity<-df_ind_wb$Salinity[1]
+      CoastType<-df_ind_wb$Type[1]
       cat(file=stderr(),values$wbselected," ",WB_name,", ",type," ",CoastType,", ",Salinity,"\n")
       WB_name<-df_WB[df_WB$VANNFOREKOMSTID==values$wbselected,"VANNFOREKOMSTNAVN"]
     
@@ -299,14 +393,14 @@ server <- function(input, output, session) {
           dplyr::select(WB=Vannforeko, Status=Class)
 
       }else{
-      df<-df_wb %>% 
+      df<-df_wb() %>% 
         dplyr::filter(Period==values$period) %>%
         dplyr::filter(scenario==scenario_sel()) %>%
         dplyr::select(WB,Status)
       }
     }else{
     
-    df<-df_ind %>% 
+    df<-df_ind() %>% 
       dplyr::filter(Indicator==values$parameter) %>%
       dplyr::filter(Period==values$period) %>%
       dplyr::filter(scenario==scenario_sel()) %>%
@@ -570,7 +664,7 @@ server <- function(input, output, session) {
     
     shiny::req(values$wbselected)
     
-    df<-df_ind %>%
+    df<-df_ind() %>%
       dplyr::select(WB,Indicator,Indikator, IndikatorDesc, Period,scenario,Kvalitetselement,Value,EQR,
                     Ref,HG,GM,MP,PB,Worst,Status)
     if(values$wbselected==""){
@@ -738,7 +832,7 @@ server <- function(input, output, session) {
     # browser()
     shiny::req(values$wbselected)
     ClassList<-c("Bad","Poor","Mod","Good","High")
-    df<-df_wb %>%
+    df<-df_wb() %>%
       dplyr::select(WB,Period,scenario,Worst_Biological,Biological,Worst_Supporting,Supporting,EQR,Status) 
     show_base <- ifelse(scenario_sel()==scenario_comparison, F, T)
     
@@ -812,7 +906,7 @@ server <- function(input, output, session) {
     # browser()
     shiny::req(values$wbselected)
     ClassList<-c("Bad","Poor","Mod","Good","High")
-    df<-df_wb %>%
+    df<-df_wb() %>%
       dplyr::select(WB,Period,scenario,Worst_Biological,Biological,Worst_Supporting,Supporting,EQR,Status) 
     show_base <- ifelse(scenario_sel()==scenario_comparison, F, T)
     
