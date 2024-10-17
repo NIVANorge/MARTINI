@@ -6,4 +6,4 @@ data processing
 2 calculate_indicators
 3 IndicatorBoundaries
 
-https://martini.data.niva.no/
+https://martini.p.niva.no/
