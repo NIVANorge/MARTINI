@@ -82,20 +82,24 @@ ui <- dashboardPage(skin = "black",title="MARTINI Status Assessment",
                                                      "DIN -100%",
                                                      "DIP -100%",
                                                      "DIN -100% DIP -100%",
-                                                     "optimistic"
+                                                     "optimistic-realistic"
                                                    ))
                               ),
                               
                               # "NQI1","H" - currently no results for these parameters
                               
                               column(2,selectInput("selParam",label="Display variable:",
-                                                            c("Ecological Status",
-                                                              "Chl_summer",
-                                                              "MSMDI","Secchi",
-                                                              "DO_bot",
-                                                              "NH4_summer","NH4_winter",
-                                                              "NO3_summer","NO3_winter",
-                                                              "PO4_summer","PO4_winter"
+                                                            c("Ecological Status"="Ecological Status",
+                                                              "Chl a (summer)"="Chl_summer",
+                                                              "MSMDI"="MSMDI",
+                                                              "Secchi (summer)"="Secchi",
+                                                              "DO (bottom)"="DO_bot",
+                                                              "NH4 (summer)"="NH4_summer",
+                                                              "NH4 (winter)"="NH4_winter",
+                                                              "NO3 (summer)"="NO3_summer",
+                                                              "NO3 (winter)"="NO3_winter",
+                                                              "PO4 (summer)"="PO4_summer",
+                                                              "PO4 (winter)"="PO4_winter"
                                                               #"TN_summer","TN_winter",
                                                               #"TP_summer","TP_winter"
                                                             ))), 
@@ -159,7 +163,8 @@ server <- function(input, output, session) {
   df_ind <- read.table(file="indicator_results_OF.csv",sep=";",header=T)
   df_wb <- read.table(file="WB_results_OF.csv",sep=";",header=T)
   df_wb_obs <- read.table(file="EQR_status.txt",sep=";",header=T)
-
+  
+  param_lims <- read.table(file="param_limits.csv",sep=";",header=T)
   
   # obs_stns <- sf::st_read("shp/obs_stns.shp", quiet=T)
   obs_stns <-  read.table("obs_stations.csv", sep=";", header=T)
@@ -363,11 +368,16 @@ server <- function(input, output, session) {
                "#663300")
       palAS<-palAS[2:21]
       
-      colorvals <- values(r)
+      # colorvals <- values(r)
+      
       # if(values$parameter=="NO3_summer"){
       #   colorvals <- c(0,300)
       # }
-    
+      
+      colorvals <- param_lims %>%
+        filter(param==values$parameter)
+      colorvals <- colorvals[1,c("min","max")]
+
       
       colorsdiscrete<-input$scaleDiscrete
       if(colorsdiscrete==F){
