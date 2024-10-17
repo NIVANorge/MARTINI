@@ -106,7 +106,7 @@ ui <- dashboardPage(skin = "black",title="MARTINI Status Assessment",
                               ),
                               fluidRow(                                
                                 column(5,
-                                       leafletOutput("mymap",height="600px"),""),
+                                       leafletOutput("mymap",height="660px"),""),
                                 column(6,
                                        h3(htmlOutput("WBinfo")),
                                        htmlOutput("titleTblInd"),
@@ -144,7 +144,7 @@ server <- function(input, output, session) {
   values$period<-"2017-2019"
   values$run <- FALSE
   values$lng=10.7
-  values$lat=59.4
+  values$lat=59.46
   values$zoom=9
   
   revList<-c("DO_bot","Secchi")
