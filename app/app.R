@@ -63,7 +63,8 @@ ui <- dashboardPage(skin = "black",title="MARTINI Status Assessment",
                     dashboardSidebar(sidebarMenu(id="tabs",
                                                  menuItem("Map", tabName = "Map", icon = icon("map-marker")),
                                                  menuItem("About", tabName = "about", icon = icon("book"))#,
-                    )),
+                    ), 
+                    collapsed=T),
                     dashboardBody(useShinyjs(),
                                   tabItems(
                       # tab content
@@ -104,15 +105,18 @@ ui <- dashboardPage(skin = "black",title="MARTINI Status Assessment",
                               ),
                               ),
                               fluidRow(                                
-                                column(6,
-                                       leafletOutput("mymap",height="800px"),""),
                                 column(5,
+                                       leafletOutput("mymap",height="600px"),""),
+                                column(6,
                                        h3(htmlOutput("WBinfo")),
-                                       textOutput("titleTblInd"),
+                                       htmlOutput("titleTblInd"),
                                        reactableOutput("tblind"),
                                        HTML("<BR>"),
-                                       textOutput("titleTblAgg"),
-                                       reactableOutput("tblagg")  
+                                       htmlOutput("titleTblAgg"),
+                                       reactableOutput("tblagg"),
+                                       HTML("<BR>"),
+                                       htmlOutput("titleTblAggBase"),
+                                       reactableOutput("tblaggBase")  
                                        
                                        #DT::dataTableOutput("dtind")
                                        )
@@ -187,7 +191,7 @@ server <- function(input, output, session) {
     }
   })
   
-  output$WBinfo <- renderText({
+  output$WBinfo <-renderText({
     if (values$wbselected=="") {
       ""
     }else{
@@ -573,7 +577,9 @@ server <- function(input, output, session) {
       dfc <- dfc %>%
         arrange(Indicator) %>%
         mutate(EQR=round_sig(EQR,2)) %>%
-        select(Indicator, EQR_comp=EQR, Status_comp=Status)
+        mutate(Value=round_sig(Value,3)) %>%
+        select(Indicator, Value_comp=Value, EQR_comp=EQR, Status_comp=Status)
+      
   
       df<-df %>% 
         dplyr::filter(WB==values$wbselected) %>%
@@ -587,13 +593,16 @@ server <- function(input, output, session) {
         mutate(across(c(Value,Ref,HG,GM,MP,PB,Worst), ~ round_sig(.x, n=3))) %>%
         mutate(EQR=round_sig(EQR,2)) %>%
         dplyr::select(-c(WB,Period)) %>%
-        relocate(Kvalitetselement)
-
+        relocate(Kvalitetselement,Indikator) 
+      
 
       df<-df %>%
-        left_join(dfc, by="Indicator")
+        left_join(dfc, by="Indicator") %>%
+        relocate(Ref,HG,GM,MP,PB,Worst, .after=last_col())
   
     }
+    
+    show_base <- ifelse(scenario_sel()==scenario_comparison, F, T)
     
     colw=38
     mypal <- c("#ff000030","#ff8c2b30","#ffff0030","#00d60030","#007eff30")
@@ -608,18 +617,21 @@ server <- function(input, output, session) {
               columns = list(
                 Indicator = colDef(show = F), #colDef(width=100), #show = F,name="WB [Period]"),
                 IndikatorDesc = colDef(show=F), 
-                Indikator= colDef(name="Indikator", width=100),
-                Kvalitetselement=colDef(width=110),
-                Value=colDef(width=40),
-                scenario = colDef(show = F), 
-                EQR=colDef(width=colw, aggregate = "min"),
+                Indikator= colDef(name="Indikator", width=100, sticky = "left"),
+                Kvalitetselement=colDef(width=110, sticky = "left"),
                 Ref=colDef(width=colw),
                 HG=colDef(width=colw),
                 GM=colDef(width=colw),
                 MP=colDef(width=colw),
                 PB=colDef(width=colw),
                 Worst=colDef(width=50, format=colFormat(digits=1)),
+                Value=colDef(width=40,
+                             show=show_base),
+                scenario = colDef(show = F), 
+                EQR=colDef(width=colw, aggregate = "min",
+                           show=show_base),
                 Status=colDef(
+                  show=show_base,
                   width=50,
                   style = function(value) {
                     if (value == "High") {
@@ -638,15 +650,128 @@ server <- function(input, output, session) {
                     list( backgroundColor = color)
                   }
                 ),
+                Value_comp=colDef(width=40,
+                                show = T,
+                                name="Value"
+                ),
                 EQR_comp=colDef(width=colw, 
-                                show = F,
+                                show = T,
                                 aggregate = "min",
-                                name="EQR<BR>base"
-                                ),
+                                name="EQR"
+                ),
                 Status_comp=colDef(
-                  #name="Status",
-                  show = F,
-                  width=150,
+                  name="Status",
+                  show = T,
+                  width=50,
+                  style = function(value) {
+                    if (value == "High") {
+                      color <- mypal[5]
+                    } else if (value == "Good") {
+                      color <- mypal[4]
+                    } else if (value == "Mod") {
+                      color <- mypal[3]
+                    } else if (value == "Poor") {
+                      color <- mypal[2]
+                    } else if (value == "Bad") {
+                      color <- mypal[1]
+                    } else {
+                      color <- "#BBBBBB"
+                    }
+                    list( backgroundColor = color)
+                  }
+                )),
+              columnGroups = list(
+                colGroup(name = "Thresholds", columns = c("Ref","HG","GM","MP","PB","Worst")),
+                colGroup(name = "Scenario", columns = c("Value",
+                                                        "EQR",
+                                                        "Status")),
+                colGroup(name = "Baseline", columns = c("Value_comp", "EQR_comp", "Status_comp"))
+              )
+              )
+    
+  })
+  
+  output$titleTblAgg<-renderText({
+    shiny::req(values$wbselected)
+    if(values$wbselected==""){
+      s<-NULL
+    }else{
+      s <- "<b>Aggregated WB status</b>"
+    }
+    return(s)
+  })
+  output$titleTblAggBase<- renderText({
+    shiny::req(values$wbselected)
+    if(values$wbselected=="" | scenario_sel()==scenario_comparison){
+      s<-NULL
+    }else{
+      s <- "Aggregated WB status (Baseline)"
+    }
+    return(s)
+  })
+  
+  
+  output$titleTblInd<- renderText({
+    shiny::req(values$wbselected)
+    if(values$wbselected==""){
+      s<-NULL
+    }else{
+      s <- "<b>Indicator status</b>"
+    }
+    return(s)
+  })
+  
+  
+  output$tblaggBase <- reactable::renderReactable({
+    
+    # browser()
+    shiny::req(values$wbselected)
+    ClassList<-c("Bad","Poor","Mod","Good","High")
+    df<-df_wb %>%
+      dplyr::select(WB,Period,scenario,Worst_Biological,Biological,Worst_Supporting,Supporting,EQR,Status) 
+    show_base <- ifelse(scenario_sel()==scenario_comparison, F, T)
+    
+    if(scenario_sel()==scenario_comparison){
+      df<-data.frame()
+    }else{
+      if(values$wbselected==""){
+        df<-data.frame()
+      }else{
+        
+      cat(file=stderr(),"values$wbselected=",values$wbselected,"\n")
+      
+      df<-df %>% 
+        dplyr::filter(WB==values$wbselected) %>%
+        dplyr::filter(Period==values$period) %>%
+        dplyr::filter(scenario==scenario_comparison) %>%
+        mutate(EQR_Biological=round_sig(Biological,3),
+               EQR_Supporting=round_sig(Supporting,3),
+               EQR=round_sig(EQR,2)) %>%
+        dplyr::select(WorstBio=Worst_Biological,EQRbio=EQR_Biological,
+                      WorstSup=Worst_Supporting,EQRsup=EQR_Supporting,
+                      EQR,Status)   
+      
+    
+    
+    mypal <- c("#ff000030","#ff8c2b30","#ffff0030","#00d60030","#007eff30")
+    colw=120
+    reactable(df, class = "noParenthesis",
+              highlight =TRUE,
+              compact=TRUE,
+              defaultPageSize = 20,
+              style = "white-space: nowrap;",
+              #groupBy = "Kvalitetselement",
+              columns = list(
+                WorstBio=colDef(width=colw, name="Worst Biological"),
+                EQRbio=colDef(width=80, name="EQR",
+                              style = list(borderRight = "1px solid #ddd")),
+                WorstSup=colDef(width=colw, name="Worst Supporting"),
+                EQRsup=colDef(width=80, name="EQR",
+                              style = list(borderRight = "1px solid #ddd")),
+                EQR=colDef(width=110, name="EQR overall"),
+                
+                Status=colDef(
+                  width=60,
                   style = function(value) {
                     if (value == "High") {
                       color <- mypal[5]
@@ -664,28 +789,10 @@ server <- function(input, output, session) {
                     list( backgroundColor = color)
                   }
                 ))
-              )
+    )
     
-  })
-  
-  output$titleTblAgg<- renderText({
-    shiny::req(values$wbselected)
-    if(values$wbselected==""){
-      s<-NULL
-    }else{
-      s <- "Aggregated WB status"
-    }
-    return(s)
-  })
-  
-  output$titleTblInd<- renderText({
-    shiny::req(values$wbselected)
-    if(values$wbselected==""){
-      s<-NULL
-    }else{
-      s <- "Indicator status"
-    }
-    return(s)
+      }}
+    
   })
   
   
@@ -696,6 +803,7 @@ server <- function(input, output, session) {
     ClassList<-c("Bad","Poor","Mod","Good","High")
     df<-df_wb %>%
       dplyr::select(WB,Period,scenario,Worst_Biological,Biological,Worst_Supporting,Supporting,EQR,Status) 
+    show_base <- ifelse(scenario_sel()==scenario_comparison, F, T)
     
     if(values$wbselected==""){
       df<-data.frame()
@@ -710,13 +818,13 @@ server <- function(input, output, session) {
                EQR_Supporting=round_sig(Supporting,3),
                EQR=round_sig(EQR,2)) %>%
         dplyr::select(WorstBio=Worst_Biological,EQRbio=EQR_Biological,
-                    WorstSup=Worst_Supporting,EQRsup=EQR_Supporting,
-                    EQR,Status)  
+                      WorstSup=Worst_Supporting,EQRsup=EQR_Supporting,
+                      EQR,Status)   
       
     }
     
     mypal <- c("#ff000030","#ff8c2b30","#ffff0030","#00d60030","#007eff30")
-    colw=125
+    colw=120
     reactable(df, class = "noParenthesis",
               highlight =TRUE,
               compact=TRUE,
@@ -756,7 +864,6 @@ server <- function(input, output, session) {
     
   })
   
- 
    
 }
 
