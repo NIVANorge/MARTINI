@@ -6,7 +6,7 @@ library(shinydashboard)
 library(shinyjs)
 library(terra)
 library(reactable)
-
+library(htmltools)
 
 r_colors <- rgb(t(col2rgb(colors()) / 255))
 names(r_colors) <- colors()
@@ -78,18 +78,25 @@ ui <- dashboardPage(skin = "black",title="MARTINI Status Assessment",
                                        
                                        selectInput("selScenario", label="Scenario:",
                                                    c("Baseline",
-                                                     "N -100%",
-                                                     "P -100%",
-                                                     "N -100% P -100%"
+                                                     "DIN -100%",
+                                                     "DIP -100%",
+                                                     "DIN -100% DIP -100%",
+                                                     "optimistic"
                                                    ))
                               ),
                               
                               # "NQI1","H" - currently no results for these parameters
                               
                               column(2,selectInput("selParam",label="Display variable:",
-                                                            c("Ecological Status","Chl_summer","MSMDI","Secchi","DO_bot","NH4_summer","NH4_winter",
-                                                              "NO3_summer","NO3_winter","PO4_summer","PO4_winter",
-                                                              "TN_summer","TN_winter","TP_summer","TP_winter"
+                                                            c("Ecological Status",
+                                                              "Chl_summer",
+                                                              "MSMDI","Secchi",
+                                                              #"DO_bot",
+                                                              "NH4_summer","NH4_winter",
+                                                              "NO3_summer","NO3_winter"#,
+                                                              #"PO4_summer","PO4_winter",
+                                                              #"TN_summer","TN_winter",
+                                                              #"TP_summer","TP_winter"
                                                             ))), 
                               column(2,
                                      p(disabled(checkboxInput("scaleDiscrete","Discrete colours",value=F))),
@@ -138,7 +145,8 @@ server <- function(input, output, session) {
   
   revList<-c("DO_bot","Secchi")
   
-
+  scenario_comparison <- "baseline" 
+  
  # waterbodies <- sf::st_read("nve/oslofjord_wbs.shp", quiet=T)
   waterbodies <- sf::st_read("shp/oslofjord/oslofjord_waterbodies.shp",
                         quiet=T, check_ring_dir=T, promote_to_multi=F)
@@ -157,6 +165,14 @@ server <- function(input, output, session) {
             "NO3_summer","NO3_winter","PO4_summer","PO4_winter",
             "TN_summer","TN_winter","TP_summer","TP_winter")
   
+  round_sig <- function(x, n){
+    base <- ifelse(x==0, -2, ceiling(log10(abs(x))))
+    ndig <- n - base 
+    ndig <- ifelse(ndig<0,0,ndig)
+    return(round(x,ndig))    
+  }
+  
+ 
   labs <- lapply(seq(nrow(waterbodies)), function(i) {
     paste0(waterbodies$Vannfore_1[i], '<br>', 
            waterbodies$Vannforeko[i] ) 
@@ -237,9 +253,10 @@ server <- function(input, output, session) {
       #"
       scenario <- switch(input$selScenario,
                          'Baseline' = 'baseline',
-                         'N -100%' = 'DIN100pc',
-                         'P -100%' = 'DIP100pc',
-                         'N -100% P -100%' =  'DINP100pc'
+                         'DIN -100%' = 'DIN100pc',
+                         'DIP -100%' = 'DIP100pc',
+                         'DIN -100% DIP -100%' =  'DINP100pc',
+                         'optimistic' = 'DINRA80-J10'
                          )
       
       rfile<-values$period
@@ -247,7 +264,7 @@ server <- function(input, output, session) {
       rfile<-paste0("raster/",values$parameter,rfile,".tif")
       
       rfile<- paste0("raster_OF800/", scenario, "_", values$parameter,".tif")
-      #cat(paste0(rfile,"\n"))
+      cat(paste0(rfile,"\n"))
       return(terra::rast(rfile))
     }
   })
@@ -255,11 +272,12 @@ server <- function(input, output, session) {
 
   scenario_sel <-  reactive({
     scenario <- switch(input$selScenario,
-                         'Baseline' = 'baseline',
-                         'N -100%' = 'DIN100pc',
-                         'P -100%' = 'DIP100pc',
-                         'N -100% P -100%' =  'DINP100pc'
-  )
+                       'Baseline' = 'baseline',
+                       'DIN -100%' = 'DIN100pc',
+                       'DIP -100%' = 'DIP100pc',
+                       'DIN -100% DIP -100%' =  'DINP100pc',
+                       'optimistic' = 'DINRA80-J10'
+    )
     return(scenario)
   }) 
   
@@ -277,7 +295,7 @@ server <- function(input, output, session) {
         dplyr::select(WB,Status)
       }
     }else{
-
+    
     df<-df_ind %>% 
       dplyr::filter(Indicator==values$parameter) %>%
       dplyr::filter(Period==values$period) %>%
@@ -544,26 +562,40 @@ server <- function(input, output, session) {
       df<-data.frame()
     }else{
       cat(file=stderr(),"values$wbselected=",values$wbselected,"\n")
-      
-      df<-df %>% 
+      cat(paste0("scenario_comparison: ", scenario_comparison, "\n"))
+      cat(paste0("scenario_sel(): ", scenario_sel(), "\n"))
 
+      dfc <- df %>% 
+        dplyr::filter(WB==values$wbselected) %>%
+        dplyr::filter(Period==values$period) %>%
+        dplyr::filter(scenario==scenario_comparison) 
+      dfc$Indicator <- factor(dfc$Indicator,levels=params)
+      dfc <- dfc %>%
+        arrange(Indicator) %>%
+        mutate(EQR=round_sig(EQR,2)) %>%
+        select(Indicator, EQR_comp=EQR, Status_comp=Status)
+  
+      df<-df %>% 
         dplyr::filter(WB==values$wbselected) %>%
         dplyr::filter(Period==values$period) %>%
         dplyr::filter(scenario==scenario_sel())
 
-      
       df$Indicator <- factor(df$Indicator,levels=params)
       
       df<-df %>%
         arrange(Indicator) %>%
-        mutate(Value=round(Value,2),EQR=round(EQR,2)) %>%
+        mutate(across(c(Value,Ref,HG,GM,MP,PB,Worst), ~ round_sig(.x, n=3))) %>%
+        mutate(EQR=round_sig(EQR,2)) %>%
         dplyr::select(-c(WB,Period)) %>%
         relocate(Kvalitetselement)
 
-      
+
+      df<-df %>%
+        left_join(dfc, by="Indicator")
+  
     }
     
-    colw=35
+    colw=38
     mypal <- c("#ff000030","#ff8c2b30","#ffff0030","#00d60030","#007eff30")
     reactable(df, class = "noParenthesis",
               highlight =TRUE,
@@ -576,7 +608,7 @@ server <- function(input, output, session) {
               columns = list(
                 Indicator = colDef(show = F), #colDef(width=100), #show = F,name="WB [Period]"),
                 IndikatorDesc = colDef(show=F), 
-                Indikator= colDef(name="Indikator", width=180),
+                Indikator= colDef(name="Indikator", width=100),
                 Kvalitetselement=colDef(width=110),
                 Value=colDef(width=40),
                 scenario = colDef(show = F), 
@@ -588,7 +620,33 @@ server <- function(input, output, session) {
                 PB=colDef(width=colw),
                 Worst=colDef(width=50, format=colFormat(digits=1)),
                 Status=colDef(
-                  width=60,
+                  width=50,
+                  style = function(value) {
+                    if (value == "High") {
+                      color <- mypal[5]
+                    } else if (value == "Good") {
+                      color <- mypal[4]
+                    } else if (value == "Mod") {
+                      color <- mypal[3]
+                    } else if (value == "Poor") {
+                      color <- mypal[2]
+                    } else if (value == "Bad") {
+                      color <- mypal[1]
+                    } else {
+                      color <- "#BBBBBB"
+                    }
+                    list( backgroundColor = color)
+                  }
+                ),
+                EQR_comp=colDef(width=colw, 
+                                show = F,
+                                aggregate = "min",
+                                name="EQR<BR>base"
+                                ),
+                Status_comp=colDef(
+                  #name="Status",
+                  show = F,
+                  width=150,
                   style = function(value) {
                     if (value == "High") {
                       color <- mypal[5]
@@ -648,9 +706,9 @@ server <- function(input, output, session) {
         dplyr::filter(WB==values$wbselected) %>%
         dplyr::filter(Period==values$period) %>%
         dplyr::filter(scenario==scenario_sel()) %>%
-        mutate(EQR_Biological=round(Biological,3),
-               EQR_Supporting=round(Supporting,3),
-               EQR=round(EQR,3)) %>%
+        mutate(EQR_Biological=round_sig(Biological,3),
+               EQR_Supporting=round_sig(Supporting,3),
+               EQR=round_sig(EQR,2)) %>%
         dplyr::select(WorstBio=Worst_Biological,EQRbio=EQR_Biological,
                     WorstSup=Worst_Supporting,EQRsup=EQR_Supporting,
                     EQR,Status)  
