@@ -266,7 +266,7 @@ server <- function(input, output, session) {
                          'DIN -100%' = 'DIN100pc',
                          'DIP -100%' = 'DIP100pc',
                          'DIN -100% DIP -100%' =  'DINP100pc',
-                         'optimistic' = 'DINRA80-J10'
+                         'optimistic-realistic' = 'DINRA80-J10'
                          )
       
       rfile<-values$period
@@ -286,7 +286,7 @@ server <- function(input, output, session) {
                        'DIN -100%' = 'DIN100pc',
                        'DIP -100%' = 'DIP100pc',
                        'DIN -100% DIP -100%' =  'DINP100pc',
-                       'optimistic' = 'DINRA80-J10'
+                       'optimistic-realistic' = 'DINRA80-J10'
     )
     return(scenario)
   }) 
