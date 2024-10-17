@@ -92,10 +92,10 @@ ui <- dashboardPage(skin = "black",title="MARTINI Status Assessment",
                                                             c("Ecological Status",
                                                               "Chl_summer",
                                                               "MSMDI","Secchi",
-                                                              #"DO_bot",
+                                                              "DO_bot",
                                                               "NH4_summer","NH4_winter",
-                                                              "NO3_summer","NO3_winter"#,
-                                                              #"PO4_summer","PO4_winter",
+                                                              "NO3_summer","NO3_winter",
+                                                              "PO4_summer","PO4_winter"
                                                               #"TN_summer","TN_winter",
                                                               #"TP_summer","TP_winter"
                                                             ))), 
@@ -169,10 +169,11 @@ server <- function(input, output, session) {
             "NO3_summer","NO3_winter","PO4_summer","PO4_winter",
             "TN_summer","TN_winter","TP_summer","TP_winter")
   
-  round_sig <- function(x, n){
+  round_sig <- function(x, n, max_dec=3){
     base <- ifelse(x==0, -2, ceiling(log10(abs(x))))
     ndig <- n - base 
     ndig <- ifelse(ndig<0,0,ndig)
+    ndig <- ifelse(ndig>max_dec,max_dec,ndig)
     return(round(x,ndig))    
   }
   
