@@ -7,6 +7,7 @@ library(shinyjs)
 library(terra)
 library(reactable)
 library(htmltools)
+library(shiny.router)
 
 r_colors <- rgb(t(col2rgb(colors()) / 255))
 names(r_colors) <- colors()
@@ -105,32 +106,19 @@ ui <- dashboardPage(skin = "black",title="MARTINI Status Assessment",
                               # "NQI1","H" - currently no results for these parameters
                               
                               column(2,
-                                     # selectInput("selParam",label="Display variable:",
-                                     #                        c("Ecological Status"="Ecological Status",
-                                     #                          "Chl a (summer)"="Chl_summer",
-                                     #                          "Chl a (90pct.)"="Chl",
-                                     #                          "MSMDI"="MSMDI",
-                                     #                          "Secchi (summer)"="Secchi",
-                                     #                          "DO (bottom)"="DO_bot",
-                                     #                          "NH4 (summer)"="NH4_summer",
-                                     #                          "NH4 (winter)"="NH4_winter",
-                                     #                          "NO3 (summer)"="NO3_summer",
-                                     #                          "NO3 (winter)"="NO3_winter",
-                                     #                          "PO4 (summer)"="PO4_summer",
-                                     #                          "PO4 (winter)"="PO4_winter"
-                                     #                          #"TN_summer","TN_winter",
-                                     #                          #"TP_summer","TP_winter"
-                                     #                        ))
+                                     
                                      uiOutput("selectParam", inline=T)
                                      ), 
                               column(2,
                                      p(disabled(checkboxInput("scaleDiscrete","Discrete colours",value=F))),
                                      p(checkboxInput("showStatus","Show status",value=TRUE))
                               ),
-                              column(2, offset = 2,
-                                     p(checkboxInput("useChl90","Use Chl a 90th percentile",value=F))
-                                     )
-                              ),
+                             column(2, offset = 2,
+                                    router_ui(route("/",""),
+                                              route("",""),
+                                              route("index",""),
+                                              route("chl90",""))
+                              )),
                               fluidRow(                                
                                 column(5,
                                        leafletOutput("mymap",height="660px"),""),
@@ -165,6 +153,9 @@ ui <- dashboardPage(skin = "black",title="MARTINI Status Assessment",
 # ----------------- Server -------------------------------------------------------- 
 
 server <- function(input, output, session) {
+  
+  router_server()
+  
   values <- reactiveValues()
   values$wbselected <- ""
   values$parameter <- "Ecological Status"
@@ -174,6 +165,15 @@ server <- function(input, output, session) {
   values$lat=59.46
   values$zoom=9
   
+ 
+  
+  useChl90 <- reactive({
+    s <- get_page()
+    res <- ifelse(stringr::str_detect(s, "chl90"),T,F)
+    #cat(paste0(s,"\n"))
+    return(res)
+  })
+    
   revList<-c("DO_bot","Secchi")
   
   scenario_comparison <- "baseline" 
@@ -201,7 +201,7 @@ server <- function(input, output, session) {
             "TN_summer","TN_winter","TP_summer","TP_winter")
   
   df_ind <- reactive({
-    if(input$useChl90){
+    if(useChl90()){
       return(df_ind2)
     }else{
       return(df_ind1)
@@ -209,7 +209,7 @@ server <- function(input, output, session) {
   })
 
   df_wb <- reactive({
-    if(input$useChl90){
+    if(useChl90()){
       return(df_wb2)
     }else{
       return(df_wb1)
@@ -218,7 +218,7 @@ server <- function(input, output, session) {
   
     
   param_select_list <- reactive({
-    if(input$useChl90){
+    if(useChl90()){
       list_param_sel <- c("Ecological Status"="Ecological Status",
                           "Chl a (90pct.)"="Chl",
                           "MSMDI"="MSMDI",
