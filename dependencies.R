@@ -10,6 +10,7 @@ packages <- c(
   'sf',
   'reactable',
   'shiny.router',
+  'stringr',
   
   '')
 options(Ncpus = -1)
