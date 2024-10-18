@@ -304,7 +304,7 @@ server <- function(input, output, session) {
   })
   
   output$SelectedWB <- renderText({
-    cat(file=stderr(),"output$SelectedWB=",values$wbselected,"\n")
+    #cat(file=stderr(),"output$SelectedWB=",values$wbselected,"\n")
     if (values$wbselected=="") {
       "No waterbody selected. Please select a waterbody using the map."
     }else{
@@ -316,7 +316,7 @@ server <- function(input, output, session) {
       type<-df_ind_wb$type[1]
       Salinity<-df_ind_wb$Salinity[1]
       CoastType<-df_ind_wb$Type[1]
-      cat(file=stderr(),values$wbselected," ",WB_name,", ",type," ",CoastType,", ",Salinity,"\n")
+      #cat(file=stderr(),values$wbselected," ",WB_name,", ",type," ",CoastType,", ",Salinity,"\n")
       WB_name<-df_WB[df_WB$VANNFOREKOMSTID==values$wbselected,"VANNFOREKOMSTNAVN"]
     
       paste0("<b>",values$wbselected," ",WB_name,"</b><br>",type," ",CoastType,", ",Salinity,"</b><br>Period: ",values$period)
@@ -348,6 +348,7 @@ server <- function(input, output, session) {
   })
   
   rs <- reactive({
+    req(input$selParam)
     values$parameter<-input$selParam
     values$period<-  "2017-2019"  #input$selPeriod
     if(values$parameter=="Ecological Status"){
@@ -368,7 +369,7 @@ server <- function(input, output, session) {
       rfile<-paste0("raster/",values$parameter,rfile,".tif")
       
       rfile<- paste0("raster_OF800/", scenario, "_", values$parameter,".tif")
-      cat(paste0(rfile,"\n"))
+      #cat(paste0(rfile,"\n"))
       return(terra::rast(rfile))
     }
   })
@@ -461,17 +462,19 @@ server <- function(input, output, session) {
                "#7e7e7e","#e0e0e0","#eed3bb","#d8a476","#aa7647",
                "#663300")
       palAS<-palAS[2:21]
-      
-      # colorvals <- values(r)
-      
-      # if(values$parameter=="NO3_summer"){
-      #   colorvals <- c(0,300)
-      # }
-      
+
       colorvals <- param_lims %>%
         filter(param==values$parameter)
       colorvals <- colorvals[1,c("min","max")]
-
+      
+      # the colour scale limits are taken from max and min values of the rasters
+      # if the extreme value in a raster is equal to the colorval limit, then
+      # rounding at many decimals can cause the ggplot to give a warning:
+      # Some values were outside the color scale and will be treated as NA.
+      # So we have extended the limits by a small amount
+      colorvals[1] <-  colorvals[1] * 0.9999
+      colorvals[2] <-  colorvals[2] * 1.0001
+      
       
       colorsdiscrete<-input$scaleDiscrete
       if(colorsdiscrete==F){
@@ -618,7 +621,7 @@ server <- function(input, output, session) {
      values$wbselected <- click$id
      
     }
-    print(click$id)
+    #print(click$id)
     
     #pulls lat and lon from shiny click event
     lat <- click$lat
@@ -670,9 +673,9 @@ server <- function(input, output, session) {
     if(values$wbselected==""){
       df<-data.frame()
     }else{
-      cat(file=stderr(),"values$wbselected=",values$wbselected,"\n")
-      cat(paste0("scenario_comparison: ", scenario_comparison, "\n"))
-      cat(paste0("scenario_sel(): ", scenario_sel(), "\n"))
+      #cat(file=stderr(),"values$wbselected=",values$wbselected,"\n")
+      #cat(paste0("scenario_comparison: ", scenario_comparison, "\n"))
+      #cat(paste0("scenario_sel(): ", scenario_sel(), "\n"))
 
       dfc <- df %>% 
         dplyr::filter(WB==values$wbselected) %>%
@@ -843,8 +846,6 @@ server <- function(input, output, session) {
         df<-data.frame()
       }else{
         
-      cat(file=stderr(),"values$wbselected=",values$wbselected,"\n")
-      
       df<-df %>% 
         dplyr::filter(WB==values$wbselected) %>%
         dplyr::filter(Period==values$period) %>%
@@ -913,8 +914,6 @@ server <- function(input, output, session) {
     if(values$wbselected==""){
       df<-data.frame()
     }else{
-      cat(file=stderr(),"values$wbselected=",values$wbselected,"\n")
-      
       df<-df %>% 
         dplyr::filter(WB==values$wbselected) %>%
         dplyr::filter(Period==values$period) %>%
