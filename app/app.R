@@ -9,10 +9,62 @@ library(reactable)
 library(htmltools)
 library(shiny.router)
 library(stringr)
+library(wesanderson)
+library(RColorBrewer)
+library(viridis)
 
 r_colors <- rgb(t(col2rgb(colors()) / 255))
 names(r_colors) <- colors()
 
+plot_pal <- function(pal=NA_character_){
+  
+  pal_list <- c("AS","wes","rainbow","spectral","viridis")
+  
+  pal_id <- tryCatch({
+    n <- as.numeric(pal)
+  },
+  warning=function(w){
+    return(NA)
+  })
+  
+  if(!is.na(pal_id)){
+    pal_id <- min(length(pal_list), pal_id)
+    pal_id <- max(1, pal_id)
+    pal <- pal_list[pal_id]
+  }else{
+    pal <- ifelse(is.na(pal),pal_list[1], pal)
+    pal <- pal_list[pal_list==pal]
+    if(length(pal)==0){
+      pal <- pal_list[1]
+    }
+  }
+  
+  if(pal=="AS"){
+    cols<-c("#ffffff","#4ed1d1","#00ffff","#00e38c","#00c000",
+            "#78de00","#ffff00","#ffa200","#ff0000","#ff1e78",
+            "#ec3fff","#7c22ff","#4040ff","#20207e","#242424",
+            "#7e7e7e","#e0e0e0","#eed3bb","#d8a476","#aa7647",
+            "#663300")
+    cols<-cols[2:21]
+  }
+  if(pal=="wes"){
+    cols <- wes_palette("Zissou1", n=20, type = "continuous")
+    cols <- as.character(cols)
+  }
+  if(pal=="rainbow"){
+    cols<-rev(rainbow(20))
+  }
+  if(pal=="viridis"){
+    cols<-viridis(20)
+  }
+  
+  if(pal=="spectral"){
+    cols<-rev(brewer.pal(11, "Spectral"))
+  }
+  return(cols)
+}
+
+#plot_pal("wes")
 
 plottitle<-function(parameter){
   params<-c("Ecological Status",
@@ -90,7 +142,7 @@ ui <- dashboardPage(skin = "black",title="MARTINI Status Assessment",
                               fluidRow(
                                 column(1, HTML("<br>"),p(actionButton("resetzoom", "Reset zoom"))),
                                 
-                                column(2,
+                                column(1,
                                        # selectInput("selPeriod",label="Period:",
                                        #               c("2017-2019","2017","2018","2019"
                                        #               )),
@@ -108,19 +160,28 @@ ui <- dashboardPage(skin = "black",title="MARTINI Status Assessment",
                               # currently no results for these parameters
                               
                               column(2,
-                                     
                                      uiOutput("selectParam", inline=T)
-                                     ), 
-                              column(2,
-                                     p(disabled(checkboxInput("scaleDiscrete","Discrete colours",value=F))),
-                                     p(checkboxInput("showStatus","Show status",value=TRUE))
+                                     ),
+                                    column(1,
+                                           p(disabled(checkboxInput("scaleDiscrete","Discrete colours",value=F))),
+                                           p(checkboxInput("showStatus","Show status",value=TRUE))
+                                    
                               ),
+                              column(1,
+                                     selectInput("selPal", label="Palette:",
+                                                 c("Default" = "AS",
+                                                   "Viridis" = "viridis",
+                                                   "Spectral" = "spectral",
+                                                   "Rainbow" = "rainbow",
+                                                   "Wes" = "wes"                                             
+                                                 ))),
                              column(2, offset = 2,
                                     router_ui(route("/",""),
                                               route("",""),
                                               route("index",""),
                                               route("chl90",""))
-                              )),
+
+                             )),
                               fluidRow(                                
                                 column(5,
                                        leafletOutput("mymap",height="660px"),""),
@@ -438,10 +499,11 @@ server <- function(input, output, session) {
   
   
   output$mymap <- renderLeaflet({
-   
+    
     values$rezoom
     values$rezoom<-FALSE
     r <- rs()
+    
     shape_wb <- wbstatus()
     palshp <- colorpal()
     statuslevels <- c("Bad","Poor","Mod","Good","High")
@@ -464,6 +526,8 @@ server <- function(input, output, session) {
                "#7e7e7e","#e0e0e0","#eed3bb","#d8a476","#aa7647",
                "#663300")
       palAS<-palAS[2:21]
+      
+      pal_map <- plot_pal(input$selPal)
 
       colorvals <- param_lims %>%
         filter(param==values$parameter)
@@ -480,11 +544,11 @@ server <- function(input, output, session) {
       
       colorsdiscrete<-input$scaleDiscrete
       if(colorsdiscrete==F){
-        palrev <- colorNumeric(palAS, colorvals,na.color = "transparent", reverse=T)
-        pal <- colorNumeric(palAS,colorvals,na.color = "transparent")
+        palrev <- colorNumeric(pal_map, colorvals,na.color = "transparent", reverse=T)
+        pal <- colorNumeric(pal_map,colorvals,na.color = "transparent")
       }else{
-        palrev <- colorBin(palAS, colorvals,bins=20,na.color = "transparent", reverse=T)
-        pal <- colorBin(palAS, colorvals,bins=20,na.color = "transparent")
+        palrev <- colorBin(pal_map, colorvals,bins=20,na.color = "transparent", reverse=T)
+        pal <- colorBin(pal_map, colorvals,bins=20,na.color = "transparent")
       }
         #palrev <- colorNumeric("viridis", values(r),na.color = "transparent", reverse=T)
         #pal <- colorNumeric("viridis", values(r),na.color = "transparent")

@@ -11,6 +11,8 @@ packages <- c(
   'reactable',
   'shiny.router',
   'stringr',
+  'viridis',
+  'wesanderson',
   
   '')
 options(Ncpus = -1)
