@@ -104,7 +104,8 @@ ui <- dashboardPage(skin = "black",title="MARTINI Status Assessment",
                                                    ))
                               ),
                               
-                              # "NQI1","H" - currently no results for these parameters
+                              # "NQI1","H" 
+                              # currently no results for these parameters
                               
                               column(2,
                                      
