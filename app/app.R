@@ -175,7 +175,7 @@ server <- function(input, output, session) {
     return(res)
   })
     
-  revList<-c("DO_bot","Secchi")
+  revList<-c("DO_bot","Secchi","MSMDI")
   
   scenario_comparison <- "baseline" 
   
