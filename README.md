@@ -19,3 +19,4 @@ You have to manually select the tag of the image, which is automatically deploye
 2. Update the newTag field for MARTINI in  [kustomization.yaml](https://github.com/NIVANorge/nivacloud-manifests/blob/main/workloads/martini/base/kustomization.yaml) in the [nivacloud-mainifests repository](https://github.com/NIVANorge/nivacloud-manifests)
 
 3. Commit and push
+
