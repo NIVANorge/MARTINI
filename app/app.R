@@ -727,54 +727,64 @@ server <- function(input, output, session) {
   
 
 
-  
-  output$tblind <- reactable::renderReactable({
-    
+  tblind_df <- reactive({
     shiny::req(values$wbselected)
     
-    df<-df_ind() %>%
+    df <- df_ind() %>%
       dplyr::select(WB,Indicator,Indikator, IndikatorDesc, Period,scenario,Kvalitetselement,Value,EQR,
                     Ref,HG,GM,MP,PB,Worst,Status)
     if(values$wbselected==""){
       df<-data.frame()
     }else{
-      #cat(file=stderr(),"values$wbselected=",values$wbselected,"\n")
-      #cat(paste0("scenario_comparison: ", scenario_comparison, "\n"))
-      #cat(paste0("scenario_sel(): ", scenario_sel(), "\n"))
-
+      
       dfc <- df %>% 
         dplyr::filter(WB==values$wbselected) %>%
         dplyr::filter(Period==values$period) %>%
         dplyr::filter(scenario==scenario_comparison) 
-      dfc$Indicator <- factor(dfc$Indicator,levels=params)
-      dfc <- dfc %>%
-        arrange(Indicator) %>%
-        mutate(EQR=round_sig(EQR,2)) %>%
-        mutate(Value=round_sig(Value,3)) %>%
-        select(Indicator, Value_comp=Value, EQR_comp=EQR, Status_comp=Status)
       
-  
-      df<-df %>% 
-        dplyr::filter(WB==values$wbselected) %>%
-        dplyr::filter(Period==values$period) %>%
-        dplyr::filter(scenario==scenario_sel())
-
-      df$Indicator <- factor(df$Indicator,levels=params)
-      
-      df<-df %>%
-        arrange(Indicator) %>%
-        mutate(across(c(Value,Ref,HG,GM,MP,PB,Worst), ~ round_sig(.x, n=3))) %>%
-        mutate(EQR=round_sig(EQR,2)) %>%
-        dplyr::select(-c(WB,Period)) %>%
-        relocate(Kvalitetselement,Indikator) 
-      
-
-      df<-df %>%
-        left_join(dfc, by="Indicator") %>%
-        relocate(Ref,HG,GM,MP,PB,Worst, .after=last_col())
-  
+      if(nrow(dfc)>0){
+        dfc$Indicator <- factor(dfc$Indicator,levels=params)
+        dfc <- dfc %>%
+          arrange(Indicator) %>%
+          mutate(EQR=round_sig(EQR,2)) %>%
+          mutate(Value=round_sig(Value,3)) %>%
+          select(Indicator, Value_comp=Value, EQR_comp=EQR, Status_comp=Status)
+        
+        
+        df<-df %>% 
+          dplyr::filter(WB==values$wbselected) %>%
+          dplyr::filter(Period==values$period) %>%
+          dplyr::filter(scenario==scenario_sel())
+        
+        df$Indicator <- factor(df$Indicator,levels=params)
+        
+        df<-df %>%
+          arrange(Indicator) %>%
+          mutate(across(c(Value,Ref,HG,GM,MP,PB,Worst),
+                        ~ round_sig(.x, n=3))) %>%
+          mutate(EQR=round_sig(EQR,2)) %>%
+          dplyr::select(-c(WB,Period)) %>%
+          relocate(Kvalitetselement,Indikator) 
+        
+        
+        df<-df %>%
+          left_join(dfc, by="Indicator") %>%
+          relocate(Ref,HG,GM,MP,PB,Worst, .after=last_col())
+      }else{
+        df <- data.frame()
+      }
     }
+    return(df)
+  })
+  
+  
+  output$tblind <- reactable::renderReactable({
     
+    shiny::req(values$wbselected)
+    
+    df <- tblind_df() 
+    
+    if(nrow(df)>0){
     show_base <- ifelse(scenario_sel()==scenario_comparison, F, T)
     
     colw=38
@@ -860,7 +870,9 @@ server <- function(input, output, session) {
                                                         "Status")),
                 colGroup(name = "Baseline", columns = c("Value_comp", "EQR_comp", "Status_comp"))
               )
-              )
+    )}else{
+      NULL
+      }
     
   })
   
@@ -869,7 +881,11 @@ server <- function(input, output, session) {
     if(values$wbselected==""){
       s<-NULL
     }else{
-      s <- "<b>Aggregated WB status</b>"
+      if(nrow(tblind_df())>0){
+        s <- "<b>Aggregated WB status</b>"
+      }else{
+        s <- NULL
+      }
     }
     return(s)
   })
@@ -878,7 +894,11 @@ server <- function(input, output, session) {
     if(values$wbselected=="" | scenario_sel()==scenario_comparison){
       s<-NULL
     }else{
-      s <- "Aggregated WB status (Baseline)"
+      if(nrow(tblind_df())>0){
+        s <- "Aggregated WB status (Baseline)"
+      }else{
+        s <- NULL
+      }
     }
     return(s)
   })
@@ -889,7 +909,11 @@ server <- function(input, output, session) {
     if(values$wbselected==""){
       s<-NULL
     }else{
-      s <- "<b>Indicator status</b>"
+      if(nrow(tblind_df())>0){
+        s <- "<b>Indicator status</b>"
+      }else{
+        s <- "<h4><i>no results</i></h4>"
+      }
     }
     return(s)
   })
@@ -897,8 +921,8 @@ server <- function(input, output, session) {
   
   output$tblaggBase <- reactable::renderReactable({
     
-    # browser()
     shiny::req(values$wbselected)
+
     ClassList<-c("Bad","Poor","Mod","Good","High")
     df<-df_wb() %>%
       dplyr::select(WB,Period,scenario,Worst_Biological,Biological,Worst_Supporting,Supporting,EQR,Status) 
@@ -914,7 +938,12 @@ server <- function(input, output, session) {
       df<-df %>% 
         dplyr::filter(WB==values$wbselected) %>%
         dplyr::filter(Period==values$period) %>%
-        dplyr::filter(scenario==scenario_comparison) %>%
+        dplyr::filter(scenario==scenario_comparison) 
+      
+      if(nrow(df)==0){
+        df<-data.frame()
+      }else{
+      df<-df %>%
         mutate(EQR_Biological=round_sig(Biological,3),
                EQR_Supporting=round_sig(Supporting,3),
                EQR=round_sig(EQR,2)) %>%
@@ -937,7 +966,7 @@ server <- function(input, output, session) {
                 EQRbio=colDef(width=80, name="EQR",
                               style = list(borderRight = "1px solid #ddd")),
                 WorstSup=colDef(width=colw, name="Worst Supporting"),
-                EQRsup=colDef(width=80, name="EQR",
+                EQRsup=colDef(width=80, name="EQR avg",
                               style = list(borderRight = "1px solid #ddd")),
                 EQR=colDef(width=110, name="EQR overall"),
                 
@@ -962,7 +991,7 @@ server <- function(input, output, session) {
                 ))
     )
     
-      }}
+      }}}
     
   })
   
@@ -971,6 +1000,7 @@ server <- function(input, output, session) {
     
     # browser()
     shiny::req(values$wbselected)
+    
     ClassList<-c("Bad","Poor","Mod","Good","High")
     df<-df_wb() %>%
       dplyr::select(WB,Period,scenario,Worst_Biological,Biological,Worst_Supporting,Supporting,EQR,Status) 
@@ -982,16 +1012,20 @@ server <- function(input, output, session) {
       df<-df %>% 
         dplyr::filter(WB==values$wbselected) %>%
         dplyr::filter(Period==values$period) %>%
-        dplyr::filter(scenario==scenario_sel()) %>%
+        dplyr::filter(scenario==scenario_sel()) 
+      
+      if(nrow(df)>0){
+      df<-df %>%
         mutate(EQR_Biological=round_sig(Biological,3),
                EQR_Supporting=round_sig(Supporting,3),
                EQR=round_sig(EQR,2)) %>%
         dplyr::select(WorstBio=Worst_Biological,EQRbio=EQR_Biological,
                       WorstSup=Worst_Supporting,EQRsup=EQR_Supporting,
                       EQR,Status)   
-      
+      }
     }
     
+    if(nrow(df)>0){
     mypal <- c("#ff000030","#ff8c2b30","#ffff0030","#00d60030","#007eff30")
     colw=120
     reactable(df, class = "noParenthesis",
@@ -1005,7 +1039,7 @@ server <- function(input, output, session) {
                 EQRbio=colDef(width=80, name="EQR",
                               style = list(borderRight = "1px solid #ddd")),
                 WorstSup=colDef(width=colw, name="Worst Supporting"),
-                EQRsup=colDef(width=80, name="EQR",
+                EQRsup=colDef(width=80, name="EQR avg",
                               style = list(borderRight = "1px solid #ddd")),
                 EQR=colDef(width=110, name="EQR overall"),
                 
@@ -1028,7 +1062,9 @@ server <- function(input, output, session) {
                     list( backgroundColor = color)
                   }
                 ))
-    )
+    )}else{
+      NULL
+    }
     
     
   })
