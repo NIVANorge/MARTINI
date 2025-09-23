@@ -46,7 +46,7 @@ ui <- dashboardPage(skin = "black",title="MARTINI Status Assessment",
 
 server <- function(input, output, session) {
   
-  router_server()
+  # router_server()
   
 }
 
