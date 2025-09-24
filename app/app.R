@@ -142,18 +142,11 @@ ui <- dashboardPage(skin = "black",title="MARTINI Status Assessment",
                               fluidRow(
                                 column(1, HTML("<br>"),p(actionButton("resetzoom", "Reset zoom"))),
                                 
-                                column(1,
+                                column(2,
                                        # selectInput("selPeriod",label="Period:",
                                        #               c("2017-2019","2017","2018","2019"
                                        #               )),
-                                       
-                                       selectInput("selScenario", label="Scenario:",
-                                                   c("Baseline",
-                                                     "DIN -100%",
-                                                     "DIP -100%",
-                                                     "DIN -100% DIP -100%",
-                                                     "optimistic-realistic"
-                                                   ))
+                                       uiOutput("selectScenario", inline=T)
                               ),
                               
                               # "NQI1","H" 
@@ -183,7 +176,9 @@ ui <- dashboardPage(skin = "black",title="MARTINI Status Assessment",
                              )),
                               fluidRow(                                
                                 column(5,
-                                       leafletOutput("mymap",height="660px"),""),
+                                       leafletOutput("mymap",height="660px")
+                                       ),
+                                       
                                 column(6,
                                        h3(htmlOutput("WBinfo")),
                                        htmlOutput("titleTblInd"),
@@ -227,7 +222,20 @@ server <- function(input, output, session) {
   values$lat=59.46
   values$zoom=9
   
- 
+  
+  indicators_included <- reactive({
+    df_ind() %>% 
+        pull(Indicator) %>%
+        unique() %>%
+        sort()
+  })
+  
+  scenarios_included <- reactive({
+    df_ind() %>% 
+      pull(scenario) %>%
+      unique() %>%
+      sort()
+  })
   
   useChl90 <- reactive({
     s <- get_page()
@@ -278,6 +286,23 @@ server <- function(input, output, session) {
     }
   })
   
+  
+  # generate the selection of scenarios which can be chosen
+  scenario_select_list <- reactive({
+    list_scenario_sel <- c(
+      "Baseline" = "baseline",
+      "DIN -100%" = "DIN100pc",
+      "DIP -100%" = "DIN100pc",
+      "DIN -100% DIP -100%" = "DINP100pc",
+      "optimistic-realistic" = "DINRA80-J10",
+      "DIN -100% TSM -100%" = "DINTSM100pc",
+      "N -100% TSM -100%" ="NTSM100pc")
+
+    list_scenario_sel <- list_scenario_sel[list_scenario_sel %in% scenarios_included()]
+    return(list_scenario_sel)
+  })
+  
+  
     
   param_select_list <- reactive({
     if(useChl90()){
@@ -311,9 +336,24 @@ server <- function(input, output, session) {
                           #"TP_summer","TP_winter"
       )
     }
+    indicators_available <- c("Ecological Status", indicators_included())
+    
+    list_param_sel <- list_param_sel[list_param_sel %in% indicators_available]
     return(list_param_sel)
   })
   
+  output$selectScenario <- renderUI({
+    list_scenario_sel <- scenario_select_list()
+    tagList(selectInput(
+      "selScenario",
+      "Scenario:",
+      choices = list_scenario_sel,
+      selected = list_scenario_sel[1],
+      multiple = FALSE, 
+      width="400px",
+      selectize = T
+    ))
+  })
   
   output$selectParam <- renderUI({
     list_param_sel <- param_select_list()
@@ -324,7 +364,7 @@ server <- function(input, output, session) {
       choices = list_param_sel,
       selected = list_param_sel[1],
       multiple = FALSE, 
-      #width="200px",
+      width="300px",
       selectize = T
     ))
   })
@@ -416,15 +456,17 @@ server <- function(input, output, session) {
     if(values$parameter=="Ecological Status"){
       return(NULL)
     }else{
-      #browser()
+      # browser()
       #"
-      scenario <- switch(input$selScenario,
-                         'Baseline' = 'baseline',
-                         'DIN -100%' = 'DIN100pc',
-                         'DIP -100%' = 'DIP100pc',
-                         'DIN -100% DIP -100%' =  'DINP100pc',
-                         'optimistic-realistic' = 'DINRA80-J10'
-                         )
+      scenario <- input$selScenario
+      
+      # scenario <- switch(input$selScenario,
+      #                    'Baseline' = 'baseline',
+      #                    'DIN -100%' = 'DIN100pc',
+      #                    'DIP -100%' = 'DIP100pc',
+      #                    'DIN -100% DIP -100%' =  'DINP100pc',
+      #                    'optimistic-realistic' = 'DINRA80-J10'
+      #                    )
       
       rfile<-values$period
       rfile<-ifelse(rfile=="2017-2019","",paste0("_",rfile))
@@ -458,15 +500,15 @@ server <- function(input, output, session) {
       }else{
       df<-df_wb() %>% 
         dplyr::filter(Period==values$period) %>%
-        dplyr::filter(scenario==scenario_sel()) %>%
+        dplyr::filter(scenario==input$selScenario) %>%
         dplyr::select(WB,Status)
       }
     }else{
-    
+    browser()
     df<-df_ind() %>% 
       dplyr::filter(Indicator==values$parameter) %>%
       dplyr::filter(Period==values$period) %>%
-      dplyr::filter(scenario==scenario_sel()) %>%
+      dplyr::filter(scenario==input$selScenario) %>%
       dplyr::select(WB,Status)
     }
     df$Status <- factor(df$Status,levels=c("Bad","Poor","Mod","Good","High"))
@@ -754,7 +796,7 @@ server <- function(input, output, session) {
         df<-df %>% 
           dplyr::filter(WB==values$wbselected) %>%
           dplyr::filter(Period==values$period) %>%
-          dplyr::filter(scenario==scenario_sel())
+          dplyr::filter(scenario==input$selScenario)
         
         df$Indicator <- factor(df$Indicator,levels=params)
         
@@ -785,7 +827,7 @@ server <- function(input, output, session) {
     df <- tblind_df() 
     
     if(nrow(df)>0){
-    show_base <- ifelse(scenario_sel()==scenario_comparison, F, T)
+    show_base <- ifelse(input$selScenario==scenario_comparison, F, T)
     
     colw=38
     mypal <- c("#ff000030","#ff8c2b30","#ffff0030","#00d60030","#007eff30")
@@ -891,7 +933,7 @@ server <- function(input, output, session) {
   })
   output$titleTblAggBase<- renderText({
     shiny::req(values$wbselected)
-    if(values$wbselected=="" | scenario_sel()==scenario_comparison){
+    if(values$wbselected=="" | input$selScenario==scenario_comparison){
       s<-NULL
     }else{
       if(nrow(tblind_df())>0){
@@ -926,9 +968,9 @@ server <- function(input, output, session) {
     ClassList<-c("Bad","Poor","Mod","Good","High")
     df<-df_wb() %>%
       dplyr::select(WB,Period,scenario,Worst_Biological,Biological,Worst_Supporting,Supporting,EQR,Status) 
-    show_base <- ifelse(scenario_sel()==scenario_comparison, F, T)
+    show_base <- ifelse(input$selScenario==scenario_comparison, F, T)
     
-    if(scenario_sel()==scenario_comparison){
+    if(input$selScenario==scenario_comparison){
       df<-data.frame()
     }else{
       if(values$wbselected==""){
@@ -1004,7 +1046,7 @@ server <- function(input, output, session) {
     ClassList<-c("Bad","Poor","Mod","Good","High")
     df<-df_wb() %>%
       dplyr::select(WB,Period,scenario,Worst_Biological,Biological,Worst_Supporting,Supporting,EQR,Status) 
-    show_base <- ifelse(scenario_sel()==scenario_comparison, F, T)
+    show_base <- ifelse(input$selScenario==scenario_comparison, F, T)
     
     if(values$wbselected==""){
       df<-data.frame()
@@ -1012,7 +1054,7 @@ server <- function(input, output, session) {
       df<-df %>% 
         dplyr::filter(WB==values$wbselected) %>%
         dplyr::filter(Period==values$period) %>%
-        dplyr::filter(scenario==scenario_sel()) 
+        dplyr::filter(scenario==input$selScenario) 
       
       if(nrow(df)>0){
       df<-df %>%
