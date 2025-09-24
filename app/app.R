@@ -73,9 +73,12 @@ plottitle<-function(parameter){
             "MSMDI",
             "NQI1","H","Secchi","DO_bot",
             "NH4_summer","NH4_winter",
-            "NO3_summer","NO3_winter","PO4_summer","PO4_winter",
-            "TN_summer","TN_winter","TP_summer","TP_winter")
-  titles<-c("Ecological status","Chl a [µg/l]","Chl a 90. pct [µg/l]",
+            "NO3_summer","NO3_winter",
+            "PO4_summer","PO4_winter",
+            "TN_summer","TN_winter",
+            "TP_summer","TP_winter")
+  titles<-c("Ecological status","Chl a [µg/l]",
+            "Chl a 90. pct [µg/l]",
             "MSMDI [EQR]","NQI1 [EQR]",
             "H [EQR]","Secchi [m]",
             "DO bottom [ml/l]",
@@ -155,12 +158,13 @@ ui <- dashboardPage(skin = "black",title="MARTINI Status Assessment",
                               column(2,
                                      uiOutput("selectParam", inline=T)
                                      ),
-                                    column(1,
+                                    column(2,
+                                           
                                            p(disabled(checkboxInput("scaleDiscrete","Discrete colours",value=F))),
-                                           p(checkboxInput("showStatus","Show status",value=TRUE))
+                                           p(disabled(checkboxInput("showStatus","Show status",value=TRUE)))
                                     
                               ),
-                              column(1,
+                              column(2,
                                      selectInput("selPal", label="Palette:",
                                                  c("Spectral" = "spectral",
                                                    "s3pcpn" = "AS",
@@ -218,6 +222,9 @@ server <- function(input, output, session) {
   values$lng=10.7
   values$lat=59.46
   values$zoom=9
+  
+  values$discrete_scale <- FALSE
+  values$show_status <- TRUE
   
   # --------------- indicators_included() ------------
   indicators_included <- reactive({
@@ -288,6 +295,8 @@ server <- function(input, output, session) {
       return(df_wb1)
     }
   })
+  
+  
   
   # --------------- scenario_select_list() ------------
   # generate the selection of scenarios which can be chosen
@@ -392,9 +401,30 @@ server <- function(input, output, session) {
   # --------------- observeEvent(values$parameter) ------------
   observeEvent(values$parameter, {
     if(values$parameter!="Ecological Status"){
+      #values$discrete_scale <- input$scaleDiscrete
+      #values$show_status <- input$showStatus
       shinyjs::enable("scaleDiscrete")
+      shinyjs::enable("showStatus")
+      updateCheckboxInput(
+        inputId =  "scaleDiscrete", 
+        value = values$discrete_scale
+      )
+      updateCheckboxInput(
+        inputId =  "showStatus", 
+        value = values$show_status
+      )
     }else{
       shinyjs::disable("scaleDiscrete")
+      shinyjs::disable("showStatus")
+      updateCheckboxInput(
+        inputId =  "scaleDiscrete", 
+        value = FALSE
+      )
+      updateCheckboxInput(
+        inputId =  "showStatus", 
+        value = TRUE
+      )
+      
     }
   })
   
@@ -791,6 +821,21 @@ server <- function(input, output, session) {
     updateTabItems(session, "tabs", "indicators")
   })
   
+
+  # ---------- observeEvent(input$scaleDiscrete) -------
+   observeEvent(input$scaleDiscrete, {  
+     if(values$parameter!="Ecological Status"){
+       values$discrete_scale <- input$scaleDiscrete
+     }
+   })
+
+  # ---------- observeEvent(input$showStatus) -------
+  observeEvent(input$showStatus, {  
+    if(values$parameter!="Ecological Status"){
+      values$show_status <- input$showStatus
+    }
+  })
+  # 
 
   # ------------------- tblind_df() ----------
   tblind_df <- reactive({
