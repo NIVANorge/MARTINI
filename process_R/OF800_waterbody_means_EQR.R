@@ -118,7 +118,7 @@ threshold_Chl_mean <- threshold_Chl_mean %>%
 # we will split the df into different categories of indicator, assign boundaries and then rejoin them
 
 
-params_sup <- c("NO3_summer","NO3_winter","NH4_summer","NH4_winter","DO_bot",
+params_sup <- c("NO3_summer","NO3_winter","NH4_summer","NH4_winter", #"DO_bot",
                 "TN_summer" ,"TN_winter","TP_summer","TP_winter",
                 "PO4_summer","PO4_winter","Secchi")
 params_bio <- c("Chl_summer","Chl","MSMDI")
@@ -172,7 +172,7 @@ means_all <- means_all %>%
 #   }
 
 res_ind <- means_all %>%
-  filter(!is.na(EQR06)) %>% # exclude indicators with no threshold value
+  #filter(!is.na(EQR06)) %>% # exclude indicators with no threshold value
   rowwise() %>%
   mutate(scenario=stringr::str_split_i(name,"_",1)) %>%
   ungroup()
@@ -201,6 +201,8 @@ res_ind <- res_ind %>%
 res_ind_all <- res_ind
 
 chl90 <- F
+# chl90 <- T
+
 if(chl90==T){
   res_ind <- res_ind_all %>%
     filter(Indicator!="Chl_summer")
