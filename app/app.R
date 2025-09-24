@@ -178,8 +178,7 @@ ui <- dashboardPage(skin = "black",title="MARTINI Status Assessment",
                                 column(5,
                                        leafletOutput("mymap",height="660px")
                                        ),
-                                       
-                                column(6,
+                                column(5,
                                        h3(htmlOutput("WBinfo")),
                                        htmlOutput("titleTblInd"),
                                        reactableOutput("tblind"),
@@ -189,8 +188,6 @@ ui <- dashboardPage(skin = "black",title="MARTINI Status Assessment",
                                        HTML("<BR>"),
                                        htmlOutput("titleTblAggBase"),
                                        reactableOutput("tblaggBase")  
-                                       
-                                       #DT::dataTableOutput("dtind")
                                        )
                               )
                               ),
@@ -834,6 +831,7 @@ server <- function(input, output, session) {
     reactable(df, class = "noParenthesis",
               highlight =TRUE,
               compact=TRUE,
+              fullWidth = FALSE,
               resizable = TRUE,
               defaultPageSize = 20,
               style = "white-space: nowrap;",
@@ -1000,6 +998,7 @@ server <- function(input, output, session) {
     reactable(df, class = "noParenthesis",
               highlight =TRUE,
               compact=TRUE,
+              fullWidth = FALSE,
               defaultPageSize = 20,
               style = "white-space: nowrap;",
               #groupBy = "Kvalitetselement",
@@ -1072,6 +1071,7 @@ server <- function(input, output, session) {
     colw=120
     reactable(df, class = "noParenthesis",
               highlight =TRUE,
+              fullWidth = FALSE,
               compact=TRUE,
               defaultPageSize = 20,
               style = "white-space: nowrap;",
