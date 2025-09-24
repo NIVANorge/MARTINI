@@ -219,7 +219,7 @@ server <- function(input, output, session) {
   values$lat=59.46
   values$zoom=9
   
-  
+  # --------------- indicators_included() ------------
   indicators_included <- reactive({
     df_ind() %>% 
         pull(Indicator) %>%
@@ -227,6 +227,7 @@ server <- function(input, output, session) {
         sort()
   })
   
+  # --------------- scenarios_included() ------------
   scenarios_included <- reactive({
     df_ind() %>% 
       pull(scenario) %>%
@@ -234,6 +235,7 @@ server <- function(input, output, session) {
       sort()
   })
   
+  # --------------- useChl90() ------------
   useChl90 <- reactive({
     s <- get_page()
     res <- ifelse(stringr::str_detect(s, "chl90"),T,F)
@@ -241,6 +243,8 @@ server <- function(input, output, session) {
     return(res)
   })
     
+  
+  # --------------- SETUP ------------
   revList<-c("DO_bot","Secchi","MSMDI")
   
   scenario_comparison <- "baseline" 
@@ -267,6 +271,7 @@ server <- function(input, output, session) {
             "NO3_summer","NO3_winter","PO4_summer","PO4_winter",
             "TN_summer","TN_winter","TP_summer","TP_winter")
   
+  # --------------- df_ind() ------------
   df_ind <- reactive({
     if(useChl90()){
       return(df_ind2)
@@ -274,7 +279,8 @@ server <- function(input, output, session) {
       return(df_ind1)
     }
   })
-
+  
+  # --------------- df_wb() ------------
   df_wb <- reactive({
     if(useChl90()){
       return(df_wb2)
@@ -283,7 +289,7 @@ server <- function(input, output, session) {
     }
   })
   
-  
+  # --------------- scenario_select_list() ------------
   # generate the selection of scenarios which can be chosen
   scenario_select_list <- reactive({
     list_scenario_sel <- c(
@@ -300,7 +306,7 @@ server <- function(input, output, session) {
   })
   
   
-    
+  # --------------- param_select_list() ------------
   param_select_list <- reactive({
     if(useChl90()){
       list_param_sel <- c("Ecological Status"="Ecological Status",
@@ -339,6 +345,7 @@ server <- function(input, output, session) {
     return(list_param_sel)
   })
   
+  # --------------- output$selectScenario() ------------
   output$selectScenario <- renderUI({
     list_scenario_sel <- scenario_select_list()
     tagList(selectInput(
@@ -352,6 +359,7 @@ server <- function(input, output, session) {
     ))
   })
   
+  # --------------- output$selectParam ------------
   output$selectParam <- renderUI({
     list_param_sel <- param_select_list()
     
@@ -366,6 +374,7 @@ server <- function(input, output, session) {
     ))
   })
   
+  # --------------- function round_sig() ------------
   round_sig <- function(x, n, max_dec=3){
     base <- ifelse(x==0, -2, ceiling(log10(abs(x))))
     ndig <- n - base 
@@ -374,13 +383,13 @@ server <- function(input, output, session) {
     return(round(x,ndig))    
   }
   
- 
+  # --------------- labs() ------------
   labs <- lapply(seq(nrow(waterbodies)), function(i) {
     paste0(waterbodies$Vannfore_1[i], '<br>', 
            waterbodies$Vannforeko[i] ) 
   })
   
-  
+  # --------------- observeEvent(values$parameter) ------------
   observeEvent(values$parameter, {
     if(values$parameter!="Ecological Status"){
       shinyjs::enable("scaleDiscrete")
@@ -389,6 +398,7 @@ server <- function(input, output, session) {
     }
   })
   
+  # --------------- output$WBinfo ------------
   output$WBinfo <-renderText({
     if (values$wbselected=="") {
       ""
@@ -402,6 +412,7 @@ server <- function(input, output, session) {
     }
   })
   
+  # --------------- output$SelectedWB ------------
   output$SelectedWB <- renderText({
     #cat(file=stderr(),"output$SelectedWB=",values$wbselected,"\n")
     if (values$wbselected=="") {
@@ -423,7 +434,7 @@ server <- function(input, output, session) {
     }
   })
   
-  
+  # --------------- output$SelectedWBStatus ------------
   output$SelectedWBStatus <- renderText({
     if (values$wbselected=="") {
       ""
@@ -431,12 +442,14 @@ server <- function(input, output, session) {
       "Aggregated status"
     }
   })
-  
+
+  # --------------- tagList() ------------
   tagList(
     sliderInput("n", "N", 1, 1000, 500),
     textInput("label", "Label")
   )
   
+  # --------------- output$WBbutton ------------
   output$WBbutton <- renderUI({
     if (values$wbselected=="") {
       ""
@@ -446,6 +459,7 @@ server <- function(input, output, session) {
     }
   })
   
+  # --------------- rs() ------------
   rs <- reactive({
     req(input$selParam)
     values$parameter<-input$selParam
@@ -475,7 +489,7 @@ server <- function(input, output, session) {
     }
   })
   
-
+  # --------------- scenario_sel() ------------
   scenario_sel <-  reactive({
     scenario <- switch(input$selScenario,
                        'Baseline' = 'baseline',
@@ -487,6 +501,7 @@ server <- function(input, output, session) {
     return(scenario)
   }) 
   
+  # --------------- wbstatus() -------------
   wbstatus <- reactive({
     
     if(values$parameter=="Ecological Status"){
@@ -501,7 +516,7 @@ server <- function(input, output, session) {
         dplyr::select(WB,Status)
       }
     }else{
-    browser()
+    #browser()
     df<-df_ind() %>% 
       dplyr::filter(Indicator==values$parameter) %>%
       dplyr::filter(Period==values$period) %>%
@@ -524,18 +539,20 @@ server <- function(input, output, session) {
     waterbodies
   }) 
   
+  # --------------- colorpal() -------------
   # create color pal
   colorpal <- reactive({
     mypal <- c("#ff0000","#ff8c2b","#ffff00","#00d600","#007eff")
       
      colorFactor(palette=mypal, domain=wbstatus()$Status, na.color="#CCCCCC")})
 
+  # --------------- colorpalrev() -------------
   colorpalrev <- reactive({
     mypal <- c("#ff0000","#ff8c2b","#ffff00","#00d600","#007eff")
     
     colorFactor(palette=mypal, domain=wbstatus()$Status, na.color="#CCCCCC")})
   
-  
+  # ------ output$mymap -------
   output$mymap <- renderLeaflet({
     
     values$rezoom
@@ -692,17 +709,23 @@ server <- function(input, output, session) {
     
   })
   
+  # ------ observeEvent(input$mymap_zoom) -------
   observeEvent(input$mymap_zoom, {
     values$zoom<- input$mymap_zoom
   })
   
+  # ------ observeEvent(input$mymap_center$lng) -------
   observeEvent(input$mymap_center$lng, {
     values$lng<-input$mymap_center$lng
   })
+  
+  # ------ observeEvent(input$mymap_center$lat) -------
   observeEvent(input$mymap_center$lat, {
     values$lat<-input$mymap_center$lat
   })
   
+  
+  # ------ observeEvent(input$resetzoom) -------
   observeEvent(input$resetzoom,{
     #values$lng=9.208247
     #values$lat=58.273135
@@ -714,6 +737,8 @@ server <- function(input, output, session) {
   }
   )
   
+  
+  # ---------- observeEvent(input$mymap_shape_click) -------
   observeEvent(input$mymap_shape_click, {
     #create object for clicked polygon
     click <- input$mymap_shape_click
@@ -760,15 +785,17 @@ server <- function(input, output, session) {
     
     })
   
+  
+  # ---------- observeEvent(input$goWB) -------
   observeEvent(input$goWB, {  
     updateTabItems(session, "tabs", "indicators")
   })
   
 
-
+  # ------------------- tblind_df() ----------
   tblind_df <- reactive({
     shiny::req(values$wbselected)
-    
+   
     df <- df_ind() %>%
       dplyr::select(WB,Indicator,Indikator, IndikatorDesc, Period,scenario,Kvalitetselement,Value,EQR,
                     Ref,HG,GM,MP,PB,Worst,Status)
@@ -809,6 +836,21 @@ server <- function(input, output, session) {
         df<-df %>%
           left_join(dfc, by="Indicator") %>%
           relocate(Ref,HG,GM,MP,PB,Worst, .after=last_col())
+        
+        df <- df %>%
+          mutate(diff_abs = Value - Value_comp) %>%
+          mutate(diff_pct = 100*(diff_abs / Value_comp))
+        
+        df <- df %>%
+          mutate(diff = ifelse(Indicator=="DO_bot",
+             paste0(formatC(flag="+", diff_abs, digits=2)," ml/l"),
+             paste0(formatC(flag="+", diff_pct,  digits=2),"%")
+                               )) %>%
+          select(-c(diff_abs, diff_pct)) %>%
+          relocate(diff , .after=Value)
+        
+        # nsmall=1,
+        
       }else{
         df <- data.frame()
       }
@@ -816,7 +858,7 @@ server <- function(input, output, session) {
     return(df)
   })
   
-  
+  # --------------- output$tblind ----------------------
   output$tblind <- reactable::renderReactable({
     
     shiny::req(values$wbselected)
@@ -850,6 +892,8 @@ server <- function(input, output, session) {
                 Worst=colDef(width=50, format=colFormat(digits=1)),
                 Value=colDef(width=40,
                              show=show_base),
+                diff=colDef(width=60, name="Diff.",
+                             show=show_base),
                 scenario = colDef(show = F), 
                 EQR=colDef(width=colw, aggregate = "min",
                            show=show_base),
@@ -857,6 +901,7 @@ server <- function(input, output, session) {
                   show=show_base,
                   width=50,
                   style = function(value) {
+                    value <- ifelse(is.na(value),"",value)
                     if (value == "High") {
                       color <- mypal[5]
                     } else if (value == "Good") {
@@ -887,6 +932,7 @@ server <- function(input, output, session) {
                   show = T,
                   width=50,
                   style = function(value) {
+                    value <- ifelse(is.na(value),"",value)
                     if (value == "High") {
                       color <- mypal[5]
                     } else if (value == "Good") {
@@ -906,6 +952,7 @@ server <- function(input, output, session) {
               columnGroups = list(
                 colGroup(name = "Thresholds", columns = c("Ref","HG","GM","MP","PB","Worst")),
                 colGroup(name = "Scenario", columns = c("Value",
+                                                        "diff",
                                                         "EQR",
                                                         "Status")),
                 colGroup(name = "Baseline", columns = c("Value_comp", "EQR_comp", "Status_comp"))
@@ -916,6 +963,7 @@ server <- function(input, output, session) {
     
   })
   
+  # ---------------- output$titleTblAgg ------------------
   output$titleTblAgg<-renderText({
     shiny::req(values$wbselected)
     if(values$wbselected==""){
@@ -929,6 +977,8 @@ server <- function(input, output, session) {
     }
     return(s)
   })
+  
+  # ---------------- output$titleTblAggBase ------------------
   output$titleTblAggBase<- renderText({
     shiny::req(values$wbselected)
     if(values$wbselected=="" | input$selScenario==scenario_comparison){
@@ -943,7 +993,7 @@ server <- function(input, output, session) {
     return(s)
   })
   
-  
+  # ----------- output$titleTblInd ------------
   output$titleTblInd<- renderText({
     shiny::req(values$wbselected)
     if(values$wbselected==""){
@@ -958,7 +1008,7 @@ server <- function(input, output, session) {
     return(s)
   })
   
-  
+  # ----------- output$tblaggBase ------------
   output$tblaggBase <- reactable::renderReactable({
     
     shiny::req(values$wbselected)
@@ -1014,6 +1064,7 @@ server <- function(input, output, session) {
                 Status=colDef(
                   width=60,
                   style = function(value) {
+                    value <- ifelse(is.na(value),"",value)
                     if (value == "High") {
                       color <- mypal[5]
                     } else if (value == "Good") {
@@ -1036,7 +1087,7 @@ server <- function(input, output, session) {
     
   })
   
-  
+  # ---------------- output$tblagg ------------------
   output$tblagg <- reactable::renderReactable({
     
     # browser()
@@ -1088,6 +1139,7 @@ server <- function(input, output, session) {
                 Status=colDef(
                   width=60,
                   style = function(value) {
+                    value <- ifelse(is.na(value),"",value)
                     if (value == "High") {
                       color <- mypal[5]
                     } else if (value == "Good") {
