@@ -13,126 +13,14 @@ library(wesanderson)
 library(RColorBrewer)
 library(viridis)
 
-r_colors <- rgb(t(col2rgb(colors()) / 255))
-names(r_colors) <- colors()
-
-plot_pal <- function(pal=NA_character_){
-  
-  pal_list <- c("AS","wes","rainbow","spectral","viridis")
-  
-  pal_id <- tryCatch({
-    n <- as.numeric(pal)
-  },
-  warning=function(w){
-    return(NA)
-  })
-  
-  if(!is.na(pal_id)){
-    pal_id <- min(length(pal_list), pal_id)
-    pal_id <- max(1, pal_id)
-    pal <- pal_list[pal_id]
-  }else{
-    pal <- ifelse(is.na(pal),pal_list[1], pal)
-    pal <- pal_list[pal_list==pal]
-    if(length(pal)==0){
-      pal <- pal_list[1]
-    }
-  }
-  
-  if(pal=="AS"){
-    cols<-c("#ffffff","#4ed1d1","#00ffff","#00e38c","#00c000",
-            "#78de00","#ffff00","#ffa200","#ff0000","#ff1e78",
-            "#ec3fff","#7c22ff","#4040ff","#20207e","#242424",
-            "#7e7e7e","#e0e0e0","#eed3bb","#d8a476","#aa7647",
-            "#663300")
-    cols<-cols[2:21]
-  }
-  if(pal=="wes"){
-    cols <- wes_palette("Zissou1", n=20, type = "continuous")
-    cols <- as.character(cols)
-  }
-  if(pal=="rainbow"){
-    cols<-rev(rainbow(20))
-  }
-  if(pal=="viridis"){
-    cols<-viridis(20)
-  }
-  
-  if(pal=="spectral"){
-    cols<-rev(brewer.pal(11, "Spectral"))
-  }
-  return(cols)
-}
-
-#plot_pal("wes")
-
-plottitle<-function(parameter){
-  params<-c("Ecological Status",
-            "Chl_summer",
-            "Chl",
-            "MSMDI",
-            "NQI1","H","Secchi","DO_bot",
-            "NH4_summer","NH4_winter",
-            "NO3_summer","NO3_winter",
-            "PO4_summer","PO4_winter",
-            "TN_summer","TN_winter",
-            "TP_summer","TP_winter")
-  titles<-c("Ecological status","Chl a [µg/l]",
-            "Chl a 90. pct [µg/l]",
-            "MSMDI [EQR]","NQI1 [EQR]",
-            "H [EQR]","Secchi [m]",
-            "DO bottom [ml/l]",
-            "NH4 summer [µg-N/l]",
-            "NH4 winter [µg-N/l]",
-            "NO3 summer [µg-N/l]",
-            "NO3 winter [µg-N/l]",
-            "PO4 summer [µg-P/l]",
-            "PO4 winter [µg-P/l]",
-            "TN summer [µg-N/l]",
-            "TN _winter [µg-N/l]",
-            "TP summer [µg-P/l]",
-            "TP winter [µg-P/l]")
-  
-  title<-titles[params==parameter]
-  return(title)
-  
-}
-
-# https://github.com/r-spatial/mapview/issues/258
-labelFormatCustom = function (prefix = "", suffix = "", between = " &ndash; ", 
-                              digits = 2, big.mark = ",", transform = identity, scientific=T) 
-{
-  
-  formatNum <- function(x) {
-    format(round(transform(x), digits), trim = TRUE, scientific = scientific,#TRUE, 
-           big.mark = big.mark, digits=digits)
-  }
-  function(type, ...) {
-    switch(type, numeric = (function(cuts) {
-      paste0(prefix, formatNum(cuts), suffix)
-    })(...), bin = (function(cuts) {
-      n <- length(cuts)
-      paste0(prefix, formatNum(cuts[-n]), between, formatNum(cuts[-1]), 
-             suffix)
-    })(...), quantile = (function(cuts, p) {
-      n <- length(cuts)
-      p <- paste0(round(p * 100), "%")
-      cuts <- paste0(formatNum(cuts[-n]), between, formatNum(cuts[-1]))
-      paste0("<span title=\"", cuts, "\">", 
-             prefix, p[-n], between, p[-1], suffix, "</span>")
-    })(...), factor = (function(cuts) {
-      paste0(prefix, as.character(transform(cuts)), suffix)
-    })(...))
-  }
-}
-
-
+source("functions.R")
 
 # ----------------- UI -------------------------------------------------------- 
 #shinyjs::
 
 ui <- dashboardPage(skin = "black",title="MARTINI Status Assessment",
-                    dashboardHeader(title = "MARTINI\nOslofjord"),
+                    dashboardHeader(title = "MARTINI\nOslofjord"
+                                    ),
                     dashboardSidebar(sidebarMenu(id="tabs",
                                                  menuItem("Map", tabName = "Map", icon = icon("map-marker")),
                                                  menuItem("About", tabName = "about", icon = icon("book"))#,
@@ -158,6 +46,7 @@ ui <- dashboardPage(skin = "black",title="MARTINI Status Assessment",
                               column(2,
                                      uiOutput("selectParam", inline=T)
                                      ),
+                                  
                                     column(2,
                                            
                                            p(disabled(checkboxInput("scaleDiscrete","Discrete colours",value=F))),
@@ -182,7 +71,7 @@ ui <- dashboardPage(skin = "black",title="MARTINI Status Assessment",
                                 column(5,
                                        leafletOutput("mymap",height="660px")
                                        ),
-                                column(5,
+                                column(7,
                                        h3(htmlOutput("WBinfo")),
                                        htmlOutput("titleTblInd"),
                                        reactableOutput("tblind"),
@@ -273,11 +162,18 @@ server <- function(input, output, session) {
   obs_stns <-  read.table("obs_stations.csv", sep=";", header=T)
 
   # "NQI1","H" - currently no results for these parameters
-  params<-c("Ecological Status","Chl_summer","Chl","MSMDI",
-            "Secchi","DO_bot","NH4_summer","NH4_winter",
+  
+  params_ind<-c("Chl_summer","Chl","MSMDI","Secchi",
+            "DO_bot","NH4_summer","NH4_winter",
             "NO3_summer","NO3_winter","PO4_summer","PO4_winter",
             "TN_summer","TN_winter","TP_summer","TP_winter")
+  params<-c("Ecological Status", params_ind)
   
+  
+  values$include <- data.frame(Indicator=params_ind) %>%
+    mutate(selected=T)
+  
+
   # --------------- df_ind() ------------
   df_ind <- reactive({
     if(useChl90()){
@@ -739,6 +635,22 @@ server <- function(input, output, session) {
     
   })
   
+  
+  # ------ observeEvent(input$show) -------
+  observeEvent(input$show, {
+    showModal(modalDialog(
+      title = "Somewhat important message",
+      "This is a somewhat important message.",
+      
+      easyClose = TRUE,
+      footer = tagList(
+        modalButton("Cancel"),
+        actionButton("ok", "OK")
+      )
+                 
+    ))
+  })
+  
   # ------ observeEvent(input$mymap_zoom) -------
   observeEvent(input$mymap_zoom, {
     values$zoom<- input$mymap_zoom
@@ -836,6 +748,30 @@ server <- function(input, output, session) {
     }
   })
   # 
+  
+  
+  # ------------------- tblwb_df() ----------
+  tblwb_df <- reactive({
+    shiny::req(values$wbselected)
+    shiny::req(tblind_df())
+      
+    dfind <- tblind_df()
+    
+    sel <- ind_tbl_selected() 
+    
+    sel <- sel[sel>0]
+    
+    dfind <- dfind[sel,]
+    
+    if(nrow(dfind)>0){
+      df <- aggregate(dfind)
+    }else{
+      df <- data.frame()
+    }
+    #browser()
+    
+    return(df)
+  })
 
   # ------------------- tblind_df() ----------
   tblind_df <- reactive({
@@ -903,6 +839,21 @@ server <- function(input, output, session) {
     return(df)
   })
   
+  # tblwb_df <- reactive({
+  #   df <- tblind_df()
+  #   df_inc <- values$include 
+  #   
+  #   df <- df %>%
+  #     left_join(df_inc, by="Indicator") %>%
+  #      filter(selected==T) %>%
+  #      select(-selected)
+  #   
+  #   df_wb <- df_wb()
+  #   
+  #   #browser()
+  #   
+  # })
+  
   # --------------- output$tblind ----------------------
   output$tblind <- reactable::renderReactable({
     
@@ -910,8 +861,27 @@ server <- function(input, output, session) {
     
     df <- tblind_df() 
     
+    df <- df %>%
+      rowwise() %>%
+      mutate(grp=param_group(Indicator)) %>%
+      ungroup() %>%
+      relocate(grp) 
+    
+    #browser()
+    
     if(nrow(df)>0){
     show_base <- ifelse(input$selScenario==scenario_comparison, F, T)
+    
+    colwidthgrps <- ifelse(show_base, 80, 120)
+    
+    df_sel <- isolate(values$include)
+    
+    sel_index <- df %>%
+      select(Indicator) %>%
+      left_join(df_sel, by="Indicator") %>%
+      mutate(id=row_number()) %>%
+      filter(selected==T) %>%
+      pull(id)
     
     colw=38
     mypal <- c("#ff000030","#ff8c2b30","#ffff0030","#00d60030","#007eff30")
@@ -923,12 +893,20 @@ server <- function(input, output, session) {
               defaultPageSize = 20,
               style = "white-space: nowrap;",
               sortable = FALSE,
+              onClick = "select",
+              defaultExpanded = TRUE,
               #groupBy = "Kvalitetselement",
+              selection = "multiple",
+              defaultSelected = sel_index,
+              groupBy = c("Kvalitetselement","grp"),
               columns = list(
                 Indicator = colDef(show = F), #colDef(width=100), #show = F,name="WB [Period]"),
                 IndikatorDesc = colDef(show=F), 
                 Indikator= colDef(name="Indikator", width=100, sticky = "left"),
-                Kvalitetselement=colDef(width=110, sticky = "left"),
+                Kvalitetselement=colDef(width=colwidthgrps, sticky = "left"),
+                grp = colDef(name="Gruppe",
+                             width=colwidthgrps, 
+                             sticky = "left"),
                 Ref=colDef(width=colw),
                 HG=colDef(width=colw),
                 GM=colDef(width=colw),
@@ -936,11 +914,14 @@ server <- function(input, output, session) {
                 PB=colDef(width=colw),
                 Worst=colDef(width=50, format=colFormat(digits=1)),
                 Value=colDef(width=40,
-                             show=show_base),
+                             #aggregate = "count",
+                             show=show_base
+                             ),
                 diff=colDef(width=60, name="Diff.",
                              show=show_base),
                 scenario = colDef(show = F), 
-                EQR=colDef(width=colw, aggregate = "min",
+                EQR=colDef(width=colw,
+                           #aggregate = "min",
                            show=show_base),
                 Status=colDef(
                   show=show_base,
@@ -969,7 +950,7 @@ server <- function(input, output, session) {
                 ),
                 EQR_comp=colDef(width=colw, 
                                 show = T,
-                                aggregate = "min",
+                                #aggregate = "min",
                                 name="EQR"
                 ),
                 Status_comp=colDef(
@@ -1001,12 +982,51 @@ server <- function(input, output, session) {
                                                         "EQR",
                                                         "Status")),
                 colGroup(name = "Baseline", columns = c("Value_comp", "EQR_comp", "Status_comp"))
-              )
+              ),
+              theme = reactableTheme(
+                tableBodyStyle =  list(
+                  color = "#999999",
+                  backgroundColor = "#dddddd"
+                ),
+                rowSelectedStyle = list(
+                  color = "#000000",
+                  backgroundColor = "#ffffff"
+                                     ))
     )}else{
       NULL
       }
     
   })
+  
+  # --------- ind_tbl_selected() -------------
+  ind_tbl_selected <- reactive({
+    shiny::req(values$wbselected)
+    sel <- reactable::getReactableState("tblind", "selected")
+    if(length(sel)==0){
+      sel <- -99
+    }
+    return(sel)
+  })
+  
+  observeEvent(ind_tbl_selected(),{
+    df_inc <- values$include
+    ix <- ind_tbl_selected()
+    df <- tblind_df() %>%
+      select(Indicator) %>%
+      mutate(id=row_number()) %>%
+      mutate(selected_new = ifelse(id %in% ix, T, F))
+    df_inc <- df_inc %>%
+      left_join(df, by="Indicator")
+    
+    df_inc <- df_inc %>%
+      mutate(selected=ifelse(is.na(selected_new),
+                             selected,
+                             selected_new)) %>%
+      select(-c(id,selected_new))
+    values$include <- df_inc
+
+  })
+  
   
   # ---------------- output$titleTblAgg ------------------
   output$titleTblAgg<-renderText({
@@ -1059,8 +1079,9 @@ server <- function(input, output, session) {
     shiny::req(values$wbselected)
 
     ClassList<-c("Bad","Poor","Mod","Good","High")
-    df<-df_wb() %>%
-      dplyr::select(WB,Period,scenario,Worst_Biological,Biological,Worst_Supporting,Supporting,EQR,Status) 
+    
+    df <- tblwb_df() 
+    
     show_base <- ifelse(input$selScenario==scenario_comparison, F, T)
     
     if(input$selScenario==scenario_comparison){
@@ -1071,8 +1092,6 @@ server <- function(input, output, session) {
       }else{
         
       df<-df %>% 
-        dplyr::filter(WB==values$wbselected) %>%
-        dplyr::filter(Period==values$period) %>%
         dplyr::filter(scenario==scenario_comparison) 
       
       if(nrow(df)==0){
@@ -1132,23 +1151,26 @@ server <- function(input, output, session) {
     
   })
   
+ 
+  
   # ---------------- output$tblagg ------------------
   output$tblagg <- reactable::renderReactable({
     
     # browser()
     shiny::req(values$wbselected)
     
+
     ClassList<-c("Bad","Poor","Mod","Good","High")
-    df<-df_wb() %>%
-      dplyr::select(WB,Period,scenario,Worst_Biological,Biological,Worst_Supporting,Supporting,EQR,Status) 
+    
+    df<-tblwb_df()
+  
+    
     show_base <- ifelse(input$selScenario==scenario_comparison, F, T)
     
     if(values$wbselected==""){
       df<-data.frame()
     }else{
       df<-df %>% 
-        dplyr::filter(WB==values$wbselected) %>%
-        dplyr::filter(Period==values$period) %>%
         dplyr::filter(scenario==input$selScenario) 
       
       if(nrow(df)>0){
