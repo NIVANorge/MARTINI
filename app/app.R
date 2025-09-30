@@ -204,7 +204,9 @@ server <- function(input, output, session) {
       "DIN -100% DIP -100%" = "DINP100pc",
       "optimistic-realistic" = "DINRA80-J10",
       "DIN -100% TSM -100%" = "DINTSM100pc",
-      "N -100% TSM -100%" ="NTSM100pc")
+      "N -100% TSM -100%" ="NTSM100pc",
+      "Scenario A" = "Scenario A",
+      "Scenario B" = "Scenario B")
 
     list_scenario_sel <- list_scenario_sel[list_scenario_sel %in% scenarios_included()]
     return(list_scenario_sel)
@@ -1158,7 +1160,7 @@ server <- function(input, output, session) {
     
     # browser()
     shiny::req(values$wbselected)
-    
+    shiny::req(input$selScenario)
 
     ClassList<-c("Bad","Poor","Mod","Good","High")
     
@@ -1170,8 +1172,10 @@ server <- function(input, output, session) {
     if(values$wbselected==""){
       df<-data.frame()
     }else{
-      df<-df %>% 
+      if(nrow(df)>0){
+              df<-df %>% 
         dplyr::filter(scenario==input$selScenario) 
+      }
       
       if(nrow(df)>0){
       df<-df %>%

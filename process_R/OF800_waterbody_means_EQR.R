@@ -96,6 +96,24 @@ threshold <- read.table(paste0(folder,"Threshold Values/IndicatorBoundaryLookup.
          MatchValue=ifelse(MatchValue=="",NA,MatchValue)) %>%
   rename(EQR00=Worst, EQR02=PB, EQR04=MP, EQR06=GM, EQR08=HG, EQR10=Ref)
 
+
+use_S3_for_S5 <- T
+if(use_S3_for_S5){
+  threshold <- threshold %>%
+    filter(MatchValue!="S5")
+  
+  thresholdS5 <- threshold %>%
+    filter(MatchValue=="S3") %>%
+    mutate(MatchValue = "S5")
+
+  threshold <- threshold %>%
+    bind_rows(thresholdS5)
+}
+
+
+
+
+
 threshold_DO <- threshold %>%
   filter(Code=="DO_bot") 
 
@@ -110,6 +128,18 @@ threshold_Chl_mean <-read.table(file=paste0(folder,"Threshold Values/summer_klfa
 # create values for EQR00
 threshold_Chl_mean <- threshold_Chl_mean %>%
   mutate(EQR00=round(10^(2*log10(EQR02) -log10(EQR04)),2))
+
+if(use_S3_for_S5){
+  threshold_Chl_mean <- threshold_Chl_mean %>%
+    filter(Type!="S5")
+  
+  threshold_Chl_mean_S5 <- threshold_Chl_mean %>%
+    filter(Type=="S3") %>%
+    mutate(Type = "S5")
+  
+  threshold_Chl_mean <- threshold_Chl_mean %>%
+    bind_rows(threshold_Chl_mean_S5)
+}
 
 
 
@@ -202,6 +232,7 @@ res_ind_all <- res_ind
 
 chl90 <- F
 # chl90 <- T
+for(chl90 in c(T,F)){
 
 if(chl90==T){
   res_ind <- res_ind_all %>%
@@ -294,6 +325,8 @@ write.table(res_ind, file=file_res_ind, sep=";", row.names=F, col.names=T, quote
 
 saveRDS(res_ind, file = file_rds_res_ind)
 saveRDS(res_wb, file = file_rds_res_wb)
+
+} # for Chl90 in c(T,F)
 
 # get quality element names
 df <- res_ind
