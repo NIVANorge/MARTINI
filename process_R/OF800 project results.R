@@ -19,13 +19,17 @@ scenario_ids <- c("",
                   "DINsources100pcred",
                   "DINTSMsources100pcred",
                   "DINPsources100pcred",
-                  "NTSMsources100pcred")
+                  "NTSMsources100pcred",
+                  "ScenarioA",
+                  "ScenarioB")
 
 scenario_names <- c("baseline",
                     "DIN100pc",
                     "DINTSM100pc",
                     "DINP100pc",
-                    "NTSM100pc")
+                    "NTSM100pc",
+                    "Scenario A",
+                    "Scenario B")
 
 # DINsources100pcred 100% reduction of DIN loads
 # DINTSMsources100pcred 100% reduction of DIN loads and TSM loads
@@ -36,14 +40,18 @@ folders <- c("OF800/res_v10aa/OF800_v10aa/",
              "OF800/res_v10aa/OF800_v10aa_DINsources100pcred/",
              "OF800/res_v10aa/OF800_v10aa_DINTSMsources100pcred/",
              "OF800/res_v10aa/OF800_v10aa_DINPsources100pcred/",
-             "OF800/res_v10aa/OF800_v10aa_NTSMsources100pcred/")
+             "OF800/res_v10aa/OF800_v10aa_NTSMsources100pcred/",
+             "OF800/res_v10aa/OF800_v10aa_v3_Scenario_A/",
+             "OF800/res_v10aa/OF800_v10aa_v3_Scenario_B/")
 
 # files also have prefixes depending on scenario
 scenario_prefix <- c("of800_v10aa",
                      "of800_v10aa_DINsources100pcred",
                      "of800_v10aa_DINTSMsources100pcred",
                      "of800_v10aa_DINPsources100pcred",
-                     "of800_v10aa_NTSMsources100pcred")
+                     "of800_v10aa_NTSMsources100pcred",
+                     "of800_v10aa_v3_Scenario_A",
+                     "of800_v10aa_v3_Scenario_B")
 
 files <- folders %>% 
   lapply(list.files, pattern="*.nc", full.names=T) %>%
