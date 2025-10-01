@@ -278,14 +278,22 @@ res_wb <- merge(res_wb_bio, res_wb_sup,
                 all=T)
 
 adj_EQR<- function(bio,sup){
+  sup <- ifelse(is.na(sup),1,sup)
   if(!is.na(bio)){
-    if(bio>=0.6){
-      sup <- ifelse(is.na(sup),1,sup)
+    if(bio>=0.6 & bio < 0.8){
       if(sup<0.6){
-      # reduce bio by 1 class
-      bio <- bio - 0.2
-      # but new overall EQR should not be lower than supporting
-      bio <- ifelse(bio < sup, sup, bio)
+        # reduce bio by 1 class
+        bio <- bio - 0.2
+        # but new overall EQR should not be lower than supporting
+        bio <- ifelse(bio < sup, sup, bio)
+      }
+    }
+    else if(bio>=0.8){
+      if(sup<0.8){
+        # reduce bio by 1 class
+        bio <- bio - 0.2
+        # but new overall EQR should not be lower than supporting
+        bio <- ifelse(bio < sup, sup, bio)
       }
     }
   }
