@@ -61,10 +61,7 @@ ui <- dashboardPage(skin = "black",title="MARTINI Status Assessment",
                                                    "Wes" = "wes",                                                                                     "Rainbow" = "rainbow"
                                                  ))),
                              column(2, offset = 2,
-                                    router_ui(route("/",""),
-                                              route("",""),
-                                              route("index",""),
-                                              route("chl90",""))
+                                    p("")
 
                              )),
                               fluidRow(                                
