@@ -230,117 +230,42 @@ res_ind <- res_ind %>%
 
 res_ind_all <- res_ind
 
-chl90 <- F
+list_optChl <- c(NA, "chl90", "chl_summer")
+
 # chl90 <- T
-for(chl90 in c(T,F)){
-
-if(chl90==T){
-  res_ind <- res_ind_all %>%
-    filter(Indicator!="Chl_summer")
-}else{
-  res_ind <- res_ind_all %>%
-    filter(Indicator!="Chl")
-}
-
-
-res_wb <- res_ind %>%
-  select(Period, WB, scenario, Kvalitetselement, Indikator,EQR, Status, QEtype) %>%
-  group_by(WB, Period, QEtype, scenario) %>%
-  arrange(EQR) %>%
-  slice(1) %>%
-  ungroup()
-
-res_wb_avg <- res_ind %>%
-  group_by(WB, Period, QEtype, scenario) %>%
-  summarise(EQRavg=mean(EQR, na.rm=T), .groups = "drop") %>%
-  filter(QEtype=="Sup")
-
-
-res_wb_sup <- res_wb %>%
-  filter(QEtype=="Sup") %>%
-  select(Period, WB, scenario, 
-         Worst_Supporting=Indikator) %>%
-         #Supporting=EQR)
-  left_join(res_wb_avg, by=c("Period", "WB", "scenario")) %>%
-  select(Period, WB, scenario, 
-         Worst_Supporting, Supporting=EQRavg)
-
-
-
-res_wb_bio <- res_wb %>%
-  filter(QEtype=="Bio") %>%
-  select(Period, WB, scenario, 
-         Worst_Biological=Indikator,
-         Biological=EQR)
-
-res_wb <- merge(res_wb_bio, res_wb_sup, 
-                by=c("Period", "WB", "scenario"),
-                all=T)
-
-adj_EQR<- function(bio,sup){
-  sup <- ifelse(is.na(sup),1,sup)
-  if(!is.na(bio)){
-    if(bio>=0.6 & bio < 0.8){
-      if(sup<0.6){
-        # reduce bio by 1 class
-        bio <- bio - 0.2
-        # but new overall EQR should not be lower than supporting
-        bio <- ifelse(bio < sup, sup, bio)
-      }
-    }
-    else if(bio>=0.8 & bio < 1){
-      if(sup<0.8){
-        # reduce bio by 1 class
-        bio <- bio - 0.2
-        # but new overall EQR should not be lower than supporting
-        bio <- ifelse(bio < sup, sup, bio)
-      }
-    }
-    else if(bio>=1){
-      if(sup<0.8){
-        # reduce bio by 1 class
-        bio <- 0.799
-      }
-    }
+for(optChl in list_optChl){
+  
+  file_suffix <- ifelse(is.na(optChl),"",paste0("_", optChl))
+  file_res_wb <- paste0("app/WB_results_OF", file_suffix, ".csv")
+  file_res_ind <- paste0("app/indicator_results_OF", file_suffix, ".csv")
+  file_rds_res_wb <- paste0("OF800/res_v10aa/WB_results_OF", file_suffix, ".Rds")
+  file_rds_res_ind <- paste0("OF800/res_v10aa/indicator_results_OF", file_suffix, ".Rds")
+  
+  optChl <- ifelse(is.na(optChl),"",optChl)
+  
+  if(optChl == "chl90"){
+    res_ind <- res_ind_all %>%
+      filter(Indicator!="Chl_summer")
+  }else if(optChl == "chl_summer"){
+    res_ind <- res_ind_all %>%
+      filter(Indicator!="Chl")
+  }else{
+    res_ind <- res_ind_all
   }
-  return(bio)
-}
-
-# adjust overall EQR according to WFD
-# a less than good supporting status can reduce overall status
-res_wb <- res_wb %>%
-  rowwise() %>%
-  mutate(EQR=adj_EQR(Biological, Supporting)) %>%
-  mutate(Status=ifelse(is.na(EQR),NA,
-                      ifelse(EQR<0.2,"Bad",
-                             ifelse(EQR<0.4,"Poor",
-                                    ifelse(EQR<0.6,"Mod",
-                                           ifelse(EQR<0.8,"Good","High")))))) %>%
-  ungroup()
-
-res_wb <- res_wb %>%
-  select(WB,Period, scenario, Biological, Supporting, EQR, Status, Worst_Biological, Worst_Supporting)
-
-if(chl90==T){
-  file_res_wb <- "app/WB_results_OF_chl90.csv"
-  file_res_ind <- "app/indicator_results_OF_chl90.csv"
-  file_rds_res_wb <- "OF800/res_v10aa/WB_results_OF_chl90.Rds"
-  file_rds_res_ind <- "OF800/res_v10aa/indicator_results_OF_chl90.Rds"
-}else{
-  file_res_wb <- "app/WB_results_OF.csv"
-  file_res_ind <- "app/indicator_results_OF.csv"
-  file_rds_res_wb <- "OF800/res_v10aa/WB_results_OF.Rds"
-  file_rds_res_ind <- "OF800/res_v10aa/indicator_results_OF.Rds"
-}
-
-write.table(res_wb, file=file_res_wb, sep=";", row.names=F, col.names=T, quote=T, fileEncoding="UTF-8")
-write.table(res_ind, file=file_res_ind, sep=";", row.names=F, col.names=T, quote=T, fileEncoding="UTF-8")
-
-
-saveRDS(res_ind, file = file_rds_res_ind)
-saveRDS(res_wb, file = file_rds_res_wb)
-
+  
+  res_wb <- aggregate_wb(res_ind)
+  
+  
+  write.table(res_wb, file=file_res_wb, sep=";", row.names=F, col.names=T, quote=T, fileEncoding="UTF-8")
+  write.table(res_ind, file=file_res_ind, sep=";", row.names=F, col.names=T, quote=T, fileEncoding="UTF-8")
+  
+  
+  saveRDS(res_ind, file = file_rds_res_ind)
+  saveRDS(res_wb, file = file_rds_res_wb)
+  
 } # for Chl90 in c(T,F)
+
+
 
 # get quality element names
 df <- res_ind

@@ -5,6 +5,13 @@ r_colors <- rgb(t(col2rgb(colors()) / 255))
 names(r_colors) <- colors()
 
 adj_EQR<- function(bio,sup){
+  
+  if(length(bio)==0){
+    return(NA)
+  }
+  if(length(sup)==0){
+    sup <- 1
+  }
   sup <- ifelse(is.na(sup),1,sup)
   if(!is.na(bio)){
     if(bio>=0.6 & bio < 0.8){
@@ -32,6 +39,77 @@ adj_EQR<- function(bio,sup){
   }
   return(bio)
 }
+
+
+aggregate_wb <- function(df){
+  
+  
+  # supporting
+  
+  res_wb_sup_avg <- df %>%
+    filter(QEtype=="Sup") %>%
+    group_by(WB, Period, QEtype, scenario) %>%
+    summarise(EQRavg=mean(EQR, na.rm=T), .groups = "drop") %>%
+    filter(QEtype=="Sup")
+  
+  res_wb_sup <- df %>%
+    filter(QEtype=="Sup") %>%
+    select(Period, WB, scenario, Kvalitetselement, Indikator,EQR, Status, QEtype) %>%
+    group_by(WB, Period, QEtype, scenario) %>%
+    arrange(EQR) %>%
+    slice(1) %>%
+    ungroup()
+  
+  res_wb_sup <- res_wb_sup %>%
+    select(Period, WB, scenario, 
+           Worst_Supporting=Indikator) %>%
+    #Supporting=EQR)
+    left_join(res_wb_sup_avg, by=c("Period", "WB", "scenario")) %>%
+    select(Period, WB, scenario, 
+           Worst_Supporting, Supporting=EQRavg)
+  
+  # biological
+  res_wb_bio_QE <- df %>%
+    filter(QEtype=="Bio") %>%
+    select(Period, WB, scenario, Kvalitetselement, Indikator,EQR, Status, QEtype) %>%
+    group_by(WB, Period, QEtype, Kvalitetselement, scenario) %>%
+    summarise(EQR = mean(EQR, na.rm=T), .groups = "drop")
+  
+  res_wb_bio_QE <- res_wb_bio_QE %>%
+    select(Period, WB, scenario, Kvalitetselement, EQR, QEtype) %>%
+    group_by(WB, Period, QEtype, scenario) %>%
+    arrange(EQR) %>%
+    slice(1) %>%
+    ungroup()
+  
+  
+  res_wb_bio <- res_wb_bio_QE %>%
+    select(Period, WB, scenario, 
+           Worst_Biological=Kvalitetselement,
+           Biological=EQR)
+  
+  res_wb <- merge(res_wb_bio, res_wb_sup, 
+                  by=c("Period", "WB", "scenario"),
+                  all=T)
+  
+  res_wb <- res_wb %>%
+    rowwise() %>%
+    mutate(EQR=adj_EQR(Biological, Supporting)) %>%
+    mutate(Status=ifelse(is.na(EQR),NA,
+                         ifelse(EQR<0.2,"Bad",
+                                ifelse(EQR<0.4,"Poor",
+                                       ifelse(EQR<0.6,"Mod",
+                                              ifelse(EQR<0.8,"Good","High")))))) %>%
+    ungroup()
+  
+  res_wb <- res_wb %>%
+    select(WB,Period, scenario, Biological, Supporting, EQR, Status, Worst_Biological, Worst_Supporting)
+  
+  return(res_wb)
+  
+}
+
+
 
 aggregate <- function(df, baseline="baseline", map_status=F){
   if(!"Indicator" %in% names(df)){

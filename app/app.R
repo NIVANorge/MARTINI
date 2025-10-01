@@ -7,7 +7,7 @@ library(shinyjs)
 library(terra)
 library(reactable)
 library(htmltools)
-library(shiny.router)
+#library(shiny.router)
 library(stringr)
 library(wesanderson)
 library(RColorBrewer)
@@ -101,7 +101,7 @@ ui <- dashboardPage(skin = "black",title="MARTINI Status Assessment",
 
 server <- function(input, output, session) {
   
-  router_server()
+  #router_server()
   
   values <- reactiveValues()
   values$wbselected <- ""
@@ -131,14 +131,7 @@ server <- function(input, output, session) {
       sort()
   })
   
-  # --------------- useChl90() ------------
-  useChl90 <- reactive({
-    s <- get_page()
-    res <- ifelse(stringr::str_detect(s, "chl90"),T,F)
-    #cat(paste0(s,"\n"))
-    return(res)
-  })
-    
+ 
   
   # --------------- SETUP ------------
   revList<-c("DO_bot","Secchi","MSMDI")
@@ -152,13 +145,12 @@ server <- function(input, output, session) {
   df_WB<-read.table(file="nve/WBlist.txt",header=T,stringsAsFactors=F,sep=";")
   df_ind1 <- read.table(file="indicator_results_OF.csv",sep=";",header=T)
   df_wb1 <- read.table(file="WB_results_OF.csv",sep=";",header=T)
-  df_ind2 <- read.table(file="indicator_results_OF_chl90.csv",sep=";",header=T)
-  df_wb2 <- read.table(file="WB_results_OF_chl90.csv",sep=";",header=T)
+  
   df_wb_obs <- read.table(file="EQR_status.txt",sep=";",header=T)
   
   param_lims <- read.table(file="param_limits.csv",sep=";",header=T)
   
-  # obs_stns <- sf::st_read("shp/obs_stns.shp", quiet=T)
+  
   obs_stns <-  read.table("obs_stations.csv", sep=";", header=T)
 
   # "NQI1","H" - currently no results for these parameters
@@ -176,20 +168,12 @@ server <- function(input, output, session) {
 
   # --------------- df_ind() ------------
   df_ind <- reactive({
-    if(useChl90()){
-      return(df_ind2)
-    }else{
       return(df_ind1)
-    }
   })
   
   # --------------- df_wb() ------------
   df_wb <- reactive({
-    if(useChl90()){
-      return(df_wb2)
-    }else{
       return(df_wb1)
-    }
   })
   
   
@@ -215,23 +199,8 @@ server <- function(input, output, session) {
   
   # --------------- param_select_list() ------------
   param_select_list <- reactive({
-    if(useChl90()){
       list_param_sel <- c("Ecological Status"="Ecological Status",
                           "Chl a (90pct.)"="Chl",
-                          "MSMDI"="MSMDI",
-                          "Secchi (summer)"="Secchi",
-                          "DO (bottom)"="DO_bot",
-                          "NH4 (summer)"="NH4_summer",
-                          "NH4 (winter)"="NH4_winter",
-                          "NO3 (summer)"="NO3_summer",
-                          "NO3 (winter)"="NO3_winter",
-                          "PO4 (summer)"="PO4_summer",
-                          "PO4 (winter)"="PO4_winter"
-                          #"TN_summer","TN_winter",
-                          #"TP_summer","TP_winter"
-      )
-    }else{
-      list_param_sel <- c("Ecological Status"="Ecological Status",
                           "Chl a (summer)"="Chl_summer",
                           "MSMDI"="MSMDI",
                           "Secchi (summer)"="Secchi",
@@ -245,7 +214,7 @@ server <- function(input, output, session) {
                           #"TN_summer","TN_winter",
                           #"TP_summer","TP_winter"
       )
-    }
+      
     indicators_available <- c("Ecological Status", indicators_included())
     
     list_param_sel <- list_param_sel[list_param_sel %in% indicators_available]
@@ -429,6 +398,34 @@ server <- function(input, output, session) {
     return(scenario)
   }) 
   
+  # --------------- wb_status_overall() -------------
+  wb_status_overall <- reactive({
+
+    req(df_ind())
+    req(input$selScenario)
+    req(values$include)
+    
+    df <- df_ind()
+    
+    scenarios <- c("baseline",input$selScenario)
+    
+    df <- df %>%
+      filter(scenario %in% scenarios)
+    
+    ind_incl <- values$include 
+    
+    df <- ind_incl %>%
+      filter(selected==T) %>%
+      select(-selected) %>%
+      left_join(df, by="Indicator")
+    
+    dfagg <- aggregate_wb(df)
+
+    return(dfagg)
+  })
+  
+  
+  
   # --------------- wbstatus() -------------
   wbstatus <- reactive({
    
@@ -438,10 +435,16 @@ server <- function(input, output, session) {
           dplyr::select(WB=Vannforeko, Status=Class)
 
       }else{
-      df<-df_wb() %>% 
-        dplyr::filter(Period==values$period) %>%
-        dplyr::filter(scenario==input$selScenario) %>%
-        dplyr::select(WB,Status)
+        #dfagg <- wb_status_overall()
+        #browser()
+        #df<-df_wb() %>% 
+        #  dplyr::filter(Period==values$period) %>%
+        #  dplyr::filter(scenario==input$selScenario) %>%
+        #  dplyr::select(WB,Status)
+        
+        df<- wb_status_overall() %>%
+          dplyr::filter(scenario==input$selScenario) %>%
+          dplyr::select(WB,Status)
       }
     }else{
     
@@ -464,6 +467,14 @@ server <- function(input, output, session) {
     waterbodies$ShapeLabel <- dat$ShapeLabel
     waterbodies$Status <- dat$Status
 
+    
+    # dfagg <- df_ind() %>%
+    #   filter(scenario==input$selScenario) %>%
+    #   split(.$WB) %>%
+    #   purrr::map(aggregate, map_status=T) %>%
+    #   bind_rows(.id="WB")
+    
+    
     waterbodies
   }) 
   
@@ -752,29 +763,28 @@ server <- function(input, output, session) {
   # 
   
   
+  
   # ------------------- tblwb_df() ----------
   tblwb_df <- reactive({
     shiny::req(values$wbselected)
-    shiny::req(tblind_df())
+    shiny::req(wb_status_overall())
     
-    dfind <- tblind_df()
-    
+    df_wb <- wb_status_overall()
     df <- data.frame()
     
-    if(nrow(dfind)>0){
-      sel <- ind_tbl_selected() 
-      
-      sel <- sel[sel>0]
-      
-      dfind <- dfind[sel,]
-
-      if(nrow(dfind)>0){
-        df <- aggregate(dfind)
-        }
+    if(values$wbselected==""){
+      df<-data.frame()
+    }else{
+      if(nrow(df_wb)>0){
+        df <- df_wb %>%
+          filter(WB==values$wbselected)
       }
-    
+    }
+
     return(df)
   })
+  
+  
 
   # ------------------- tblind_df() ----------
   tblind_df <- reactive({
@@ -1003,14 +1013,18 @@ server <- function(input, output, session) {
     return(sel)
   })
   
-  observeEvent(ind_tbl_selected(),{
+  observeEvent(ind_tbl_selected(),
+               ignoreInit = T,{
+    
+    req(tblind_df())
     
     df_inc <- values$include
     ix <- ind_tbl_selected()
     
+   
     df <- tblind_df() 
     if(nrow(df)>0){
-      
+       # browser()
       df <- df%>%
         select(Indicator) %>%
         mutate(id=row_number()) %>%
