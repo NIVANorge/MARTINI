@@ -334,7 +334,7 @@ server <- function(input, output, session) {
       scenario <- input$selScenario
       scenario <- ifelse(scenario=="", "", paste0(" [", scenario, "]"))
       WB_name<-df_WB[df_WB$VANNFOREKOMSTID==values$wbselected,"VANNFOREKOMSTNAVN"]
-      #browser()
+      
      paste0(WB_name," ",  values$wbselected, scenario)
       
     }
@@ -395,7 +395,7 @@ server <- function(input, output, session) {
     if(values$parameter=="Ecological Status"){
       return(NULL)
     }else{
-      # browser()
+      
       #"
       scenario <- input$selScenario
       
@@ -431,7 +431,7 @@ server <- function(input, output, session) {
   
   # --------------- wbstatus() -------------
   wbstatus <- reactive({
-    
+   
     if(values$parameter=="Ecological Status"){
       if(input$selScenario=="Observations"){
         df <-  df_wb_obs %>%
@@ -444,7 +444,7 @@ server <- function(input, output, session) {
         dplyr::select(WB,Status)
       }
     }else{
-    #browser()
+    
     df<-df_ind() %>% 
       dplyr::filter(Indicator==values$parameter) %>%
       dplyr::filter(Period==values$period) %>%
@@ -756,21 +756,22 @@ server <- function(input, output, session) {
   tblwb_df <- reactive({
     shiny::req(values$wbselected)
     shiny::req(tblind_df())
-      
+    
     dfind <- tblind_df()
     
-    sel <- ind_tbl_selected() 
-    
-    sel <- sel[sel>0]
-    
-    dfind <- dfind[sel,]
+    df <- data.frame()
     
     if(nrow(dfind)>0){
-      df <- aggregate(dfind)
-    }else{
-      df <- data.frame()
-    }
-    #browser()
+      sel <- ind_tbl_selected() 
+      
+      sel <- sel[sel>0]
+      
+      dfind <- dfind[sel,]
+
+      if(nrow(dfind)>0){
+        df <- aggregate(dfind)
+        }
+      }
     
     return(df)
   })
@@ -778,14 +779,17 @@ server <- function(input, output, session) {
   # ------------------- tblind_df() ----------
   tblind_df <- reactive({
     shiny::req(values$wbselected)
-   
-    df <- df_ind() %>%
-      dplyr::select(WB,Indicator,Indikator, IndikatorDesc, Period,scenario,Kvalitetselement,Value,EQR,
-                    Ref,HG,GM,MP,PB,Worst,Status)
+
     if(values$wbselected==""){
       df<-data.frame()
     }else{
       
+      df <- df_ind()
+      
+      df <- df %>%
+        dplyr::select(WB,Indicator,Indikator, IndikatorDesc, 
+                      Period,scenario,Kvalitetselement,Value,EQR,
+                    Ref,HG,GM,MP,PB,Worst,Status)
       dfc <- df %>% 
         dplyr::filter(WB==values$wbselected) %>%
         dplyr::filter(Period==values$period) %>%
@@ -840,21 +844,7 @@ server <- function(input, output, session) {
     }
     return(df)
   })
-  
-  # tblwb_df <- reactive({
-  #   df <- tblind_df()
-  #   df_inc <- values$include 
-  #   
-  #   df <- df %>%
-  #     left_join(df_inc, by="Indicator") %>%
-  #      filter(selected==T) %>%
-  #      select(-selected)
-  #   
-  #   df_wb <- df_wb()
-  #   
-  #   #browser()
-  #   
-  # })
+
   
   # --------------- output$tblind ----------------------
   output$tblind <- reactable::renderReactable({
@@ -863,13 +853,16 @@ server <- function(input, output, session) {
     
     df <- tblind_df() 
     
+    if(nrow(df)==0){
+      return(NULL)
+    }
+    
     df <- df %>%
       rowwise() %>%
       mutate(grp=param_group(Indicator)) %>%
       ungroup() %>%
       relocate(grp) 
     
-    #browser()
     
     if(nrow(df)>0){
     show_base <- ifelse(input$selScenario==scenario_comparison, F, T)
@@ -1011,22 +1004,28 @@ server <- function(input, output, session) {
   })
   
   observeEvent(ind_tbl_selected(),{
+    
     df_inc <- values$include
     ix <- ind_tbl_selected()
-    df <- tblind_df() %>%
-      select(Indicator) %>%
-      mutate(id=row_number()) %>%
-      mutate(selected_new = ifelse(id %in% ix, T, F))
-    df_inc <- df_inc %>%
-      left_join(df, by="Indicator")
     
-    df_inc <- df_inc %>%
-      mutate(selected=ifelse(is.na(selected_new),
-                             selected,
-                             selected_new)) %>%
-      select(-c(id,selected_new))
-    values$include <- df_inc
-
+    df <- tblind_df() 
+    if(nrow(df)>0){
+      
+      df <- df%>%
+        select(Indicator) %>%
+        mutate(id=row_number()) %>%
+        mutate(selected_new = ifelse(id %in% ix, T, F))
+      df_inc <- df_inc %>%
+        left_join(df, by="Indicator")
+      
+      df_inc <- df_inc %>%
+        mutate(selected=ifelse(is.na(selected_new),
+                               selected,
+                               selected_new)) %>%
+        select(-c(id,selected_new))
+      values$include <- df_inc
+    }
+    
   })
   
   
@@ -1158,7 +1157,7 @@ server <- function(input, output, session) {
   # ---------------- output$tblagg ------------------
   output$tblagg <- reactable::renderReactable({
     
-    # browser()
+    
     shiny::req(values$wbselected)
     shiny::req(input$selScenario)
 

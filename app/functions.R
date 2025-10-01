@@ -33,13 +33,21 @@ adj_EQR<- function(bio,sup){
   return(bio)
 }
 
-aggregate <- function(df, baseline="baseline"){
- 
+aggregate <- function(df, baseline="baseline", map_status=F){
+  if(!"Indicator" %in% names(df)){
+    cat("!!!!!!!!!!!! aggregation without indicator !!!!!!!!!!!\n")
+    cat(paste0("    map status = ", map_status, "\n"))
+  }
+  # results for map are different from those for the indicator tables
   dfgrp <- param_group_df()
 
   scenario_selected <- df$scenario[1]
   
-  df <- df %>%
+  if(map_status==T){
+    df <- df %>%
+      select(Indicator,Indikator, scenario, EQR)
+  }else{
+    df <- df %>%
     select(Indicator,Indikator, scenario, EQR, EQR_comp)
   if(scenario_selected==baseline){
     df <- df %>%
@@ -52,6 +60,9 @@ aggregate <- function(df, baseline="baseline"){
       select(Indicator,Indikator, scenario, EQR) %>%
       bind_rows(df0)
   }
+  }
+  
+  
     
   df <- df %>%
     left_join(dfgrp, by="Indicator")
