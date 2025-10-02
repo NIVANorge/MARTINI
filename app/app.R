@@ -107,7 +107,7 @@ server <- function(input, output, session) {
   values$run <- FALSE
   values$lng=10.7
   values$lat=59.46
-  values$zoom=9
+  values$zoom=8
   
   values$discrete_scale <- FALSE
   values$show_status <- TRUE
@@ -136,7 +136,7 @@ server <- function(input, output, session) {
   scenario_comparison <- "baseline" 
   
  # waterbodies <- sf::st_read("nve/oslofjord_wbs.shp", quiet=T)
-  waterbodies <- sf::st_read("shp/oslofjord/oslofjord_waterbodies.shp",
+  waterbodies <- sf::st_read("shp/oslomod3.shp",
                         quiet=T, check_ring_dir=T, promote_to_multi=F)
 
   df_WB<-read.table(file="nve/WBlist.txt",header=T,stringsAsFactors=F,sep=";")
@@ -794,7 +794,8 @@ server <- function(input, output, session) {
       df <- df_ind()
       
       df <- df %>%
-        dplyr::select(WB,Indicator,Indikator, IndikatorDesc, 
+        dplyr::select(WB, Indicator,
+                      Indikator, IndikatorDesc, 
                       Period,scenario,Kvalitetselement,Value,EQR,
                     Ref,HG,GM,MP,PB,Worst,Status)
       dfc <- df %>% 
@@ -803,6 +804,7 @@ server <- function(input, output, session) {
         dplyr::filter(scenario==scenario_comparison) 
       
       if(nrow(dfc)>0){
+        
         dfc$Indicator <- factor(dfc$Indicator,levels=params)
         dfc <- dfc %>%
           arrange(Indicator) %>%
