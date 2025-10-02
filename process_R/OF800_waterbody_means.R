@@ -15,8 +15,6 @@ wkt_OF800 <- readLines("wkt_OF800", warn=F) %>%
   paste0(collapse="")
 terra::crs(r_grid) <- wkt_OF800
 
-df_grid <- readRDS("OF800/wb_grid.Rds")
-
 # without saving converted raster (tif) or figures (png)
 
 #ind_data <- readRDS("processing/res_v10f.Rds")
@@ -29,6 +27,8 @@ rs <- purrr::map(ind_data, convert_nc, r0=r_grid, .progress=T, project=F)
 
 saveRDS(rs, file="processing/res_v10aa_rasters.Rds")
 # get the MSMDI rasters by from MSMDI_results.R 
+
+# rs <- readRDS("processing/res_v10aa_rasters.Rds")
 rs1 <- rs
 
 # rs_MSMDIx <- readRDS("app/raster_OF800/rs_MSMDI.Rds")
@@ -49,6 +49,7 @@ param_lims <- r_limits %>%
 write.table(param_lims, file="app/param_limits.csv", sep=";", row.names=F, col.names=T, quote=T, fileEncoding="UTF-8")
 
 grid <- readRDS("processing/raster_cellid_to_WB.Rds")
+grid <- readRDS("processing/raster_cellid_to_WB_OM3.Rds")
 
 means <- purrr::map2(rs, names, wb_means, grid=grid, .progress=T) %>%
   bind_rows()
@@ -58,6 +59,7 @@ means <- purrr::map2(rs, names, wb_means, grid=grid, .progress=T) %>%
 #means <- readRDS("OF800/res_v10f/res_v10f_WB_means_20241016.Rds")
 saveRDS(means, file="OF800/res_v10aa/res_v10aa_WB_means.Rds")
 means <- readRDS("OF800/res_v10aa/res_v10aa_WB_means.Rds")
+means0 <- readRDS("OF800/res_v10aa/res_v10aa_WB_means.v1.Rds")
 
 
 # get modelled salinities
@@ -100,6 +102,9 @@ saveRDS(means, file="OF800/res_v10aa/res_v10aa_WB_means_incl_psu.Rds")
 
 
 # ------------------------------- plots of grids and WBs ---------------------
+
+df_grid <- readRDS("OF800/wb_grid.Rds")
+
 
 
 # fix the CRS of the raster

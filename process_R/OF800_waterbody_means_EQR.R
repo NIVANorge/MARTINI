@@ -6,6 +6,7 @@ library(ggplot2)
 
 source("process_R/utils.R")
 
+use_S3_for_missing <- T
 
 # join means to status class boundaries
 
@@ -88,6 +89,10 @@ van_type <- read.table(paste0(folder,"gis/oslofjord/oslofjord_waterbodies.txt"),
 van_type <- van_type %>%
   select(Vannforeko, Type)
 
+
+source("process_R/vannnet_type.R")
+van_type <- vannnet_type 
+
 # thresholds for DO_bot
 
 threshold <- read.table(paste0(folder,"Threshold Values/IndicatorBoundaryLookup.txt"),header=T,quote="",sep=";")%>%
@@ -97,8 +102,8 @@ threshold <- read.table(paste0(folder,"Threshold Values/IndicatorBoundaryLookup.
   rename(EQR00=Worst, EQR02=PB, EQR04=MP, EQR06=GM, EQR08=HG, EQR10=Ref)
 
 
-use_S3_for_S5 <- T
-if(use_S3_for_S5){
+
+if(use_S3_for_missing){
   threshold <- threshold %>%
     filter(MatchValue!="S5")
   
@@ -106,8 +111,13 @@ if(use_S3_for_S5){
     filter(MatchValue=="S3") %>%
     mutate(MatchValue = "S5")
 
+  thresholdUK <- thresholdS5 %>%
+    mutate(MatchValue = "unknown")
+  
+  
   threshold <- threshold %>%
-    bind_rows(thresholdS5)
+    bind_rows(thresholdS5)%>%
+    bind_rows(thresholdUK)
 }
 
 
@@ -129,7 +139,7 @@ threshold_Chl_mean <-read.table(file=paste0(folder,"Threshold Values/summer_klfa
 threshold_Chl_mean <- threshold_Chl_mean %>%
   mutate(EQR00=round(10^(2*log10(EQR02) -log10(EQR04)),2))
 
-if(use_S3_for_S5){
+if(use_S3_for_missing){
   threshold_Chl_mean <- threshold_Chl_mean %>%
     filter(Type!="S5")
   
@@ -137,8 +147,12 @@ if(use_S3_for_S5){
     filter(Type=="S3") %>%
     mutate(Type = "S5")
   
+  threshold_Chl_mean_UK <- threshold_Chl_mean_S5 %>%
+    mutate(Type = "unknown")
+    
   threshold_Chl_mean <- threshold_Chl_mean %>%
-    bind_rows(threshold_Chl_mean_S5)
+    bind_rows(threshold_Chl_mean_S5)%>%
+    bind_rows(threshold_Chl_mean_UK)
 }
 
 
@@ -155,6 +169,28 @@ params_bio <- c("Chl_summer","Chl","MSMDI")
 
  means <- means %>%
   left_join(van_type, by="Vannforeko")
+ 
+ 
+ shp_wb <- sf::st_read("app/shp/oslomod3.shp", quiet=T)
+ 
+ shp_wb <- shp_wb %>%
+   left_join(van_type, by="Vannforeko")
+ 
+ shp_wb <- shp_wb %>%
+   mutate(Type=ifelse(is.na(Type), "unknown", Type))
+ 
+
+ col_type <- c("S1"="#006600","S2"="#009966",
+               "S3"="#006699",
+               "S5" = "#dd8000",
+               "unknown"="#ff0000")
+ggplot() +
+   geom_sf(data = shp_wb, 
+           aes(fill=Type), 
+           colour=NA, alpha=0.5) +
+   theme_minimal() +
+  scale_fill_manual(values = col_type) 
+ 
 
 means_chl <- means %>%
   filter(param %in% c("Chl_summer")) %>%

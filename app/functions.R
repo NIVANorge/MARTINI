@@ -23,7 +23,12 @@ adj_EQR<- function(bio,sup){
       }
     }
     else if(bio>=0.8 & bio < 1){
-      if(sup<0.8){
+      if(sup<0.6){
+        # reduce bio by 2 classes
+        bio <- bio - 0.4
+        # but new overall EQR should not be lower than supporting
+        bio <- ifelse(bio < sup, sup, bio)
+      }else if(sup<0.8){
         # reduce bio by 1 class
         bio <- bio - 0.2
         # but new overall EQR should not be lower than supporting
@@ -31,7 +36,10 @@ adj_EQR<- function(bio,sup){
       }
     }
     else if(bio>=1){
-      if(sup<0.8){
+      if(sup<0.6){
+        # reduce bio by 1 class
+        bio <- 0.599
+      }else if(sup<0.8){
         # reduce bio by 1 class
         bio <- 0.799
       }
