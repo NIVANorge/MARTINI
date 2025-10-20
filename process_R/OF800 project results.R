@@ -15,9 +15,12 @@ basefolder <- "./OF800/"
 result_set <- "v10f"
 result_set <- "v10aa"
 
+
 scenario_ids <- c("",
                   "DINsources100pcred",
+                  "DINsources50pcred", #*
                   "DINTSMsources100pcred",
+                  "DINTSMsources50pcred", #*
                   "DINPsources100pcred",
                   "NTSMsources100pcred",
                   "ScenarioA",
@@ -25,7 +28,9 @@ scenario_ids <- c("",
 
 scenario_names <- c("baseline",
                     "DIN100pc",
+                    "DIN50pc",
                     "DINTSM100pc",
+                    "DINTSM50pc",
                     "DINP100pc",
                     "NTSM100pc",
                     "Scenario A",
@@ -38,7 +43,9 @@ scenario_names <- c("baseline",
 
 folders <- c("OF800/res_v10aa/OF800_v10aa/",
              "OF800/res_v10aa/OF800_v10aa_DINsources100pcred/",
+             "OF800/res_v10aa/OF800_v10aa_DINsources50pcred/", #*
              "OF800/res_v10aa/OF800_v10aa_DINTSMsources100pcred/",
+             "OF800/res_v10aa/OF800_v10aa_DINTSMsources50pcred/", #* 
              "OF800/res_v10aa/OF800_v10aa_DINPsources100pcred/",
              "OF800/res_v10aa/OF800_v10aa_NTSMsources100pcred/",
              "OF800/res_v10aa/OF800_v10aa_v3_Scenario_A/",
@@ -47,7 +54,9 @@ folders <- c("OF800/res_v10aa/OF800_v10aa/",
 # files also have prefixes depending on scenario
 scenario_prefix <- c("of800_v10aa",
                      "of800_v10aa_DINsources100pcred",
+                     "of800_v10aa_DINsources50pcred",
                      "of800_v10aa_DINTSMsources100pcred",
+                     "of800_v10aa_DINTSMsources50pcred",
                      "of800_v10aa_DINPsources100pcred",
                      "of800_v10aa_NTSMsources100pcred",
                      "of800_v10aa_v3_Scenario_A",
@@ -91,8 +100,8 @@ params <- c("Chl_summer",
             "Secchi")
 
 
-sid <- 1:length(param_ids)
-pid <- 1:length(param_ids)
+# sid <- 1:length(param_ids)
+# pid <- 1:length(param_ids)
 
 
 ind_data <- list()

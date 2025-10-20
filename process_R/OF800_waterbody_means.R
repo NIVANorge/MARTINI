@@ -2,6 +2,7 @@ library(dplyr)
 library(tidyr)
 library(sf)
 library(ggplot2)
+library(terra)
 #library(patchwork)
 
 source("process_R/utils.R")
@@ -26,12 +27,14 @@ ind_data <- readRDS("processing/res_v10aa.Rds")
 rs <- purrr::map(ind_data, convert_nc, r0=r_grid, .progress=T, project=F)
 
 saveRDS(rs, file="processing/res_v10aa_rasters.Rds")
-# get the MSMDI rasters by from MSMDI_results.R 
 
 # rs <- readRDS("processing/res_v10aa_rasters.Rds")
 rs1 <- rs
 
+# get the MSMDI rasters by from "OF800 project results MSMDI.R"
+# WARNING - doesn't work reading saved Rds file
 # rs_MSMDIx <- readRDS("app/raster_OF800/rs_MSMDI.Rds")
+# rs_MSMDI <- readRDS("app/raster_OF800/res_v10aa_MSMDI.Rds")
 rs <- c(rs1, rs_MSMDI)
 
 names <- names(rs)
@@ -48,7 +51,7 @@ param_lims <- r_limits %>%
 
 write.table(param_lims, file="app/param_limits.csv", sep=";", row.names=F, col.names=T, quote=T, fileEncoding="UTF-8")
 
-grid <- readRDS("processing/raster_cellid_to_WB.Rds")
+#grid <- readRDS("processing/raster_cellid_to_WB.Rds")
 grid <- readRDS("processing/raster_cellid_to_WB_OM3.Rds")
 
 means <- purrr::map2(rs, names, wb_means, grid=grid, .progress=T) %>%
