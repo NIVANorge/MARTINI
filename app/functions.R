@@ -4,7 +4,7 @@
 r_colors <- rgb(t(col2rgb(colors()) / 255))
 names(r_colors) <- colors()
 
-adj_EQR<- function(bio,sup){
+adj_EQR<- function(bio,sup, reduce2classes=F){
   
   if(length(bio)==0){
     return(NA)
@@ -25,7 +25,8 @@ adj_EQR<- function(bio,sup){
     else if(bio>=0.8 & bio < 1){
       if(sup<0.6){
         # reduce bio by 2 classes
-        bio <- bio - 0.4
+        reduce_by <- ifelse(reduce2classes, 0.4,0.2)
+        bio <- bio - reduce_by
         # but new overall EQR should not be lower than supporting
         bio <- ifelse(bio < sup, sup, bio)
       }else if(sup<0.8){
@@ -37,8 +38,8 @@ adj_EQR<- function(bio,sup){
     }
     else if(bio>=1){
       if(sup<0.6){
-        # reduce bio by 1 class
-        bio <- 0.599
+        # reduce bio by 1 or 2 classes
+        bio <- ifelse(reduce2classes, 0.599, 0.799)
       }else if(sup<0.8){
         # reduce bio by 1 class
         bio <- 0.799
@@ -50,6 +51,84 @@ adj_EQR<- function(bio,sup){
 
 
 aggregate_wb <- function(df){
+  
+  
+  # supporting - first average by season
+  
+  res_wb_sup <- df  %>%
+    filter(QEtype=="Sup") %>%
+    rowwise() %>%
+    mutate(season = indicator_info(Indicator, "season"),
+           pressure = indicator_info(Indicator, "pres")) %>%
+    ungroup()
+  
+  
+  res_wb_sup_avg <- res_wb_sup %>%
+    group_by(WB, Period,QEtype, Kvalitetselement, scenario, pressure, season) %>%
+    summarise(EQR=mean(EQR, na.rm=T), .groups = "drop") 
+  
+  res_wb_sup_avg <- res_wb_sup_avg %>%
+    group_by(WB, Period, QEtype, Kvalitetselement, scenario, pressure) %>%
+    summarise(EQR=mean(EQR, na.rm=T), .groups = "drop") 
+  
+  
+  res_wb_sup <- res_wb_sup_avg %>%
+    filter(QEtype=="Sup") %>%
+    select(Period, WB, QEtype, Kvalitetselement, scenario, pressure, EQR) %>%
+    #select(Period, WB, scenario, Kvalitetselement, Indikator,EQR, Status, QEtype) %>%
+    group_by(WB, Period, QEtype, scenario) %>%
+    arrange(EQR) %>%
+    slice(1) %>%
+    ungroup()
+  
+  res_wb_sup <- res_wb_sup %>%
+    select(Period, WB, scenario, 
+           Worst_Supporting=pressure, Supporting=EQR)
+  
+  # biological
+  res_wb_bio_QE <- df %>%
+    filter(QEtype=="Bio") %>%
+    select(Period, WB, scenario, Kvalitetselement, Indikator,EQR, Status, QEtype) %>%
+    group_by(WB, Period, QEtype, Kvalitetselement, scenario) %>%
+    summarise(EQR = mean(EQR, na.rm=T), .groups = "drop")
+  
+  res_wb_bio_QE <- res_wb_bio_QE %>%
+    select(Period, WB, scenario, Kvalitetselement, EQR, QEtype) %>%
+    group_by(WB, Period, QEtype, scenario) %>%
+    arrange(EQR) %>%
+    slice(1) %>%
+    ungroup()
+  
+  
+  res_wb_bio <- res_wb_bio_QE %>%
+    select(Period, WB, scenario, 
+           Worst_Biological=Kvalitetselement,
+           Biological=EQR)
+  
+  res_wb <- merge(res_wb_bio, res_wb_sup, 
+                  by=c("Period", "WB", "scenario"),
+                  all=T)
+  
+  res_wb <- res_wb %>%
+    rowwise() %>%
+    mutate(EQR=adj_EQR(Biological, Supporting)) %>%
+    mutate(Status=ifelse(is.na(EQR),NA,
+                         ifelse(EQR<0.2,"Bad",
+                                ifelse(EQR<0.4,"Poor",
+                                       ifelse(EQR<0.6,"Mod",
+                                              ifelse(EQR<0.8,"Good","High")))))) %>%
+    ungroup()
+  
+  res_wb <- res_wb %>%
+    select(WB,Period, scenario, Biological, Supporting, EQR, Status, Worst_Biological, Worst_Supporting)
+  
+  return(res_wb)
+  
+}
+
+
+
+aggregate_wb_0 <- function(df){
   
   
   # supporting
@@ -117,104 +196,190 @@ aggregate_wb <- function(df){
   
 }
 
-
-
-aggregate <- function(df, baseline="baseline", map_status=F){
-  if(!"Indicator" %in% names(df)){
-    cat("!!!!!!!!!!!! aggregation without indicator !!!!!!!!!!!\n")
-    cat(paste0("    map status = ", map_status, "\n"))
-  }
-  # results for map are different from those for the indicator tables
-  dfgrp <- param_group_df()
-
-  scenario_selected <- df$scenario[1]
+indicator_info<- function(param, out=NA_character_){
+  list_param <- c("Chl_summer", "Chl", "DO_bot", "MSMDI",
+                  "NO3_summer", "NO3_winter", 
+                  "NH4_summer", "NH4_winter", 
+                  "TN_summer", "TN_winter", 
+                  "TP_summer", "TP_winter", 
+                  "PO4_summer", "PO4_winter", 
+                  "Secchi")
+  list_KE <- rep("Fysisk-kjemiske", length(list_param))
+  list_QE <- rep("Physical-chemical", length(list_param))
   
-  if(map_status==T){
-    df <- df %>%
-      select(Indicator,Indikator, scenario, EQR)
+  
+  
+  list_KE <- ifelse(list_param %in% c("Chl_summer","Chl"), "Planteplankton", list_KE)
+  list_KE <- ifelse(list_param %in% c("MSMDI"), "Makroalger", list_KE)
+  list_QE <- ifelse(list_param %in% c("Chl_summer","Chl"), "Phytoplankton", list_QE)
+  list_QE <- ifelse(list_param %in% c("MSMDI"), "Macroalgae", list_QE)
+  
+  list_KE_type <- list_KE
+  list_KE_type <- ifelse(list_KE_type=="Fysisk-kjemiske","Støtteparameter","Biologiske")
+  list_QE_type <- list_QE
+  list_QE_type <- ifelse(list_QE_type=="Physical-chemical","Sup","Bio")
+  
+  list_indikator <- c("Klorofyll a, sommer (µg/l)",
+                      "Klorofyll a, 90. percentil (µg/l)",
+                      "Oksygen (ml O2/l)", 
+                      "MSMDI (Nedre voksegrense) - EQR", 
+                      "Nitrat-nitrogen, sommer (µg N/l)", "Nitrat-nitrogen, vinter (µg N/l)", 
+                      "Ammonium-nitrogen, sommer (µg N/l)", "Ammonium-nitrogen, vinter (µg N/l)", 
+                      "Total nitrogen, sommer (µg N/l)", "Total nitrogen, vinter (µg N/l)", 
+                      "Total fosfor, sommer (µg P/l)", "Total fosfor, vinter (µg P/l)",
+                      "Fosfat-fosfor, sommer (µg P/l)", "Fosfat-fosfor, vinter (µg P/l)", 
+                      "Siktdyp (m), sommer")
+  list_indikator_short <- c("Klfa sommer", "Klfa 90pct",
+                            "Oksygen", "MSMDI", 
+                            "NO3-N sommer", "NO3-N vinter", 
+                            "NH4-N sommer", "NH4-N vinter", 
+                            "TN sommer", "TN vinter", 
+                            "TP sommer", "TP vinter",
+                            "PO4-P sommer", "PO4-P vinter", 
+                            "Siktdyp")
+  
+  list_season <- c("", "",
+                   "", "", 
+                   "Sommer", "Vinter", 
+                   "Sommer", "Vinter", 
+                   "Sommer", "Vinter", 
+                   "Sommer", "Vinter",
+                   "Sommer", "Vinter", 
+                   "Sommer")
+  
+  list_pressure <- c("", "",
+                     "Organisk", "", 
+                     "Eutrofiering", "Eutrofiering", 
+                     "Eutrofiering", "Eutrofiering", 
+                     "Eutrofiering", "Eutrofiering", 
+                     "Eutrofiering", "Eutrofiering",
+                     "Eutrofiering", "Eutrofiering", 
+                     "Eutrofiering")
+  
+  
+  out <- ifelse(is.na(out),"", tolower(out))
+  if(out=="shortname"){
+    var_out <- list_indikator_short
+  }else if(out=="qe"){
+    var_out <- list_QE
+  }else if(out %in% c("qetype","qe_type")){
+    var_out <- list_QE_type
+  }else if(out=="ke"){
+    var_out <- list_KE
+  }else if(out %in% c("ketype","ke_type")){
+    var_out <- list_KE_type
+  }else if(out %in% c("season")){
+    var_out <- list_season
+  }else if(out %in% c("pressure","pres","presfaktor")){
+    var_out <- list_pressure
   }else{
-    df <- df %>%
-    select(Indicator,Indikator, scenario, EQR, EQR_comp)
-  if(scenario_selected==baseline){
-    df <- df %>%
-      select(Indicator,Indikator, scenario, EQR)
-  }else{
-    df0 <- df %>%
-      select(Indicator,Indikator, EQR=EQR_comp) %>%
-      mutate(scenario = baseline)
-    df <- df %>%
-      select(Indicator,Indikator, scenario, EQR) %>%
-      bind_rows(df0)
-  }
+    var_out <- list_indikator
   }
   
-  
-    
-  df <- df %>%
-    left_join(dfgrp, by="Indicator")
-  
-  res_group0_min <- df %>%
-    group_by(scenario, group0) %>%
-    arrange(EQR) %>%
-    slice(1) %>%
-    ungroup()
+  ix <- (1:length(list_param))[tolower(list_param)==tolower(param)]
   
   
-  res_group0_sup_avg <- df %>%
-    group_by(scenario, group0) %>%
-    summarise(EQRavg=mean(EQR, na.rm=T), .groups = "drop") %>%
-    filter(group0=="sup")
-  
-  
-  res_sup <- res_group0_min %>%
-    filter(group0=="sup") %>%
-    select(scenario, 
-           Worst_Supporting=Indikator) %>%
-    #Supporting=EQR)
-    left_join(res_group0_sup_avg, by=c("scenario")) %>%
-    select(scenario, 
-           Worst_Supporting, Supporting=EQRavg)
-  
-  res_bio <- res_group0_min %>%
-    filter(group0=="bio") %>%
-    select(scenario, 
-           Worst_Biological=Indikator,
-           Biological=EQR)
-  
-  if(nrow(res_bio)==0){
-    res_bio <- df %>%
-      distinct(scenario) %>%
-      mutate(Worst_Biological=NA_character_,
-             Biological=NA)
-  }
-  if(nrow(res_sup)==0){
-    res_sup <- df %>%
-      distinct(scenario) %>%
-      mutate(Worst_Supporting=NA_character_,
-             Supporting=NA)
-  }
-  
-  res <- merge(res_bio, res_sup, 
-                  by=c("scenario"),
-                  all=T)
-  
-  
-  # adjust overall EQR according to WFD
-  # a less than good supporting status can reduce overall status
-  res <- res %>%
-    rowwise() %>%
-    mutate(EQR=adj_EQR(Biological, Supporting)) %>%
-    mutate(Status=ifelse(is.na(EQR),NA,
-                         ifelse(EQR<0.2,"Bad",
-                                ifelse(EQR<0.4,"Poor",
-                                       ifelse(EQR<0.6,"Mod",
-                                              ifelse(EQR<0.8,"Good","High")))))) %>%
-    ungroup()
-  
-  return(res)
-  
+  return(var_out[ix]) 
   
 }
+
+# 
+# aggregate <- function(df, baseline="baseline", map_status=F){
+#   if(!"Indicator" %in% names(df)){
+#     cat("!!!!!!!!!!!! aggregation without indicator !!!!!!!!!!!\n")
+#     cat(paste0("    map status = ", map_status, "\n"))
+#   }
+#   # results for map are different from those for the indicator tables
+#   dfgrp <- param_group_df()
+# 
+#   scenario_selected <- df$scenario[1]
+#   
+#   if(map_status==T){
+#     df <- df %>%
+#       select(Indicator,Indikator, scenario, EQR)
+#   }else{
+#     df <- df %>%
+#     select(Indicator,Indikator, scenario, EQR, EQR_comp)
+#   if(scenario_selected==baseline){
+#     df <- df %>%
+#       select(Indicator,Indikator, scenario, EQR)
+#   }else{
+#     df0 <- df %>%
+#       select(Indicator,Indikator, EQR=EQR_comp) %>%
+#       mutate(scenario = baseline)
+#     df <- df %>%
+#       select(Indicator,Indikator, scenario, EQR) %>%
+#       bind_rows(df0)
+#   }
+#   }
+#   
+#   
+#     
+#   df <- df %>%
+#     left_join(dfgrp, by="Indicator")
+#   
+#   res_group0_min <- df %>%
+#     group_by(scenario, group0) %>%
+#     arrange(EQR) %>%
+#     slice(1) %>%
+#     ungroup()
+#   
+#   
+#   res_group0_sup_avg <- df %>%
+#     group_by(scenario, group0) %>%
+#     summarise(EQRavg=mean(EQR, na.rm=T), .groups = "drop") %>%
+#     filter(group0=="sup")
+#   
+#   
+#   res_sup <- res_group0_min %>%
+#     filter(group0=="sup") %>%
+#     select(scenario, 
+#            Worst_Supporting=Indikator) %>%
+#     #Supporting=EQR)
+#     left_join(res_group0_sup_avg, by=c("scenario")) %>%
+#     select(scenario, 
+#            Worst_Supporting, Supporting=EQRavg)
+#   
+#   res_bio <- res_group0_min %>%
+#     filter(group0=="bio") %>%
+#     select(scenario, 
+#            Worst_Biological=Indikator,
+#            Biological=EQR)
+#   
+#   if(nrow(res_bio)==0){
+#     res_bio <- df %>%
+#       distinct(scenario) %>%
+#       mutate(Worst_Biological=NA_character_,
+#              Biological=NA)
+#   }
+#   if(nrow(res_sup)==0){
+#     res_sup <- df %>%
+#       distinct(scenario) %>%
+#       mutate(Worst_Supporting=NA_character_,
+#              Supporting=NA)
+#   }
+#   
+#   res <- merge(res_bio, res_sup, 
+#                   by=c("scenario"),
+#                   all=T)
+#   
+#   
+#   # adjust overall EQR according to WFD
+#   # a less than good supporting status can reduce overall status
+#   res <- res %>%
+#     rowwise() %>%
+#     mutate(EQR=adj_EQR(Biological, Supporting)) %>%
+#     mutate(Status=ifelse(is.na(EQR),NA,
+#                          ifelse(EQR<0.2,"Bad",
+#                                 ifelse(EQR<0.4,"Poor",
+#                                        ifelse(EQR<0.6,"Mod",
+#                                               ifelse(EQR<0.8,"Good","High")))))) %>%
+#     ungroup()
+#   browser()
+#   return(res)
+#   
+#   
+# }
 
 
 plot_pal <- function(pal=NA_character_){
@@ -265,63 +430,63 @@ plot_pal <- function(pal=NA_character_){
   return(cols)
 }
 
-#plot_pal("wes")
-
-param_group_df <- function(){
-  params<-c("Chl_summer",
-            "Chl",
-            "MSMDI",
-            "NQI1","H","Secchi","DO_bot",
-            "NH4_summer","NH4_winter",
-            "NO3_summer","NO3_winter",
-            "PO4_summer","PO4_winter",
-            "TN_summer","TN_winter",
-            "TP_summer","TP_winter")
-  group0<-c("bio",
-            "bio",
-            "bio","bio",
-            "bio","sup",
-            "sup",
-            "sup",
-            "sup",
-            "sup",
-            "sup",
-            "sup",
-            "sup",
-            "sup",
-            "sup",
-            "sup",
-            "sup")
-  group1<-c("Phytoplankton",
-            "Phytoplankton",
-            "Macroalgae","Benthic fauna",
-            "Benthic fauna","Secchi",
-            "Oxygen",
-            "Nutrients",
-            "Nutrients",
-            "Nutrients",
-            "Nutrients",
-            "Nutrients",
-            "Nutrients",
-            "Nutrients",
-            "Nutrients",
-            "Nutrients",
-            "Nutrients")
-  group2<-c("Phytoplankton",
-            "Phytoplankton",
-            "Macroalgae","Benthic fauna",
-            "Benthic fauna","Secchi",
-            "Oxygen",
-            "N","N",
-            "N","N",
-            "P","P",
-            "N","N",
-            "P","P")
-  
-  df <- data.frame(Indicator=params, group0, group1, group2)
-
-  return(df)  
-}
+# #plot_pal("wes")
+# 
+# param_group_df <- function(){
+#   params<-c("Chl_summer",
+#             "Chl",
+#             "MSMDI",
+#             "NQI1","H","Secchi","DO_bot",
+#             "NH4_summer","NH4_winter",
+#             "NO3_summer","NO3_winter",
+#             "PO4_summer","PO4_winter",
+#             "TN_summer","TN_winter",
+#             "TP_summer","TP_winter")
+#   group0<-c("bio",
+#             "bio",
+#             "bio","bio",
+#             "bio","sup",
+#             "sup",
+#             "sup",
+#             "sup",
+#             "sup",
+#             "sup",
+#             "sup",
+#             "sup",
+#             "sup",
+#             "sup",
+#             "sup",
+#             "sup")
+#   group1<-c("Phytoplankton",
+#             "Phytoplankton",
+#             "Macroalgae","Benthic fauna",
+#             "Benthic fauna","Secchi",
+#             "Oxygen",
+#             "Nutrients",
+#             "Nutrients",
+#             "Nutrients",
+#             "Nutrients",
+#             "Nutrients",
+#             "Nutrients",
+#             "Nutrients",
+#             "Nutrients",
+#             "Nutrients",
+#             "Nutrients")
+#   group2<-c("Phytoplankton",
+#             "Phytoplankton",
+#             "Macroalgae","Benthic fauna",
+#             "Benthic fauna","Secchi",
+#             "Oxygen",
+#             "N","N",
+#             "N","N",
+#             "P","P",
+#             "N","N",
+#             "P","P")
+#   
+#   df <- data.frame(Indicator=params, group0, group1, group2)
+# 
+#   return(df)  
+# }
 
 
 param_group<-function(parameter){
@@ -351,6 +516,23 @@ param_group<-function(parameter){
             "Næringssalter",
             "Næringssalter",
             "Næringssalter")
+  
+  group<-c("Økologisk tilstand",
+           "Planteplankton",
+           "Planteplankton",
+           "Makroalger","Bentisk fauna",
+           "Bentisk fauna","Eutrof., sommer",
+           "Organisk",
+           "Eutrof., sommer",
+           "Eutrof., vinter",
+           "Eutrof., sommer",
+           "Eutrof., vinter",
+           "Eutrof., sommer",
+           "Eutrof., vinter",
+           "Eutrof., sommer",
+           "Eutrof., vinter",
+           "Eutrof., sommer",
+           "Eutrof., vinter")
   
   group<-group[params==parameter]
   return(group)

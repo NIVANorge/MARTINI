@@ -29,7 +29,94 @@ adj_EQR<- function(bio,sup){
   return(bio)
 }
 
+
 aggregate_wb <- function(df){
+  
+  
+  # supporting - first average by season
+  
+  res_wb_sup <- df  %>%
+    filter(QEtype=="Sup") %>%
+    rowwise() %>%
+    mutate(season = indicator_info(Indicator, "season"),
+           pressure = indicator_info(Indicator, "pres"),
+           group_sup = indicator_info(Indicator, "group")) %>%
+    ungroup()
+  
+  
+  res_wb_sup_avg <- res_wb_sup %>%
+    group_by(WB, Period,QEtype, Kvalitetselement, scenario, pressure, 
+             season, group_sup) %>%
+    summarise(EQR=mean(EQR, na.rm=T), .groups = "drop") 
+  
+  res_wb_sup_avg_info <- res_wb_sup_avg %>%
+    select(WB, Period, scenario,group_sup, EQR) %>%
+    pivot_wider(names_from = "group_sup", values_from = "EQR")
+
+  
+  res_wb_sup_avg <- res_wb_sup_avg %>%
+    group_by(WB, Period, QEtype, Kvalitetselement, scenario, pressure) %>%
+    summarise(EQR=mean(EQR, na.rm=T), .groups = "drop") 
+
+  
+  res_wb_sup <- res_wb_sup_avg %>%
+    filter(QEtype=="Sup") %>%
+    select(Period, WB, QEtype, Kvalitetselement, scenario, pressure, EQR) %>%
+    #select(Period, WB, scenario, Kvalitetselement, Indikator,EQR, Status, QEtype) %>%
+    group_by(WB, Period, QEtype, scenario) %>%
+    arrange(EQR) %>%
+    slice(1) %>%
+    ungroup()
+  
+  res_wb_sup <- res_wb_sup %>%
+    select(Period, WB, scenario, 
+           Worst_Supporting=pressure, Supporting=EQR) %>%
+    left_join(res_wb_sup_avg_info, by=c("WB", "Period", "scenario"))
+  
+  # biological
+  res_wb_bio_QE <- df %>%
+    filter(QEtype=="Bio") %>%
+    select(Period, WB, scenario, Kvalitetselement, Indikator,EQR, Status, QEtype) %>%
+    group_by(WB, Period, QEtype, Kvalitetselement, scenario) %>%
+    summarise(EQR = mean(EQR, na.rm=T), .groups = "drop")
+  
+  res_wb_bio_QE <- res_wb_bio_QE %>%
+    select(Period, WB, scenario, Kvalitetselement, EQR, QEtype) %>%
+    group_by(WB, Period, QEtype, scenario) %>%
+    arrange(EQR) %>%
+    slice(1) %>%
+    ungroup()
+  
+  
+  res_wb_bio <- res_wb_bio_QE %>%
+    select(Period, WB, scenario, 
+           Worst_Biological=Kvalitetselement,
+           Biological=EQR)
+  
+  res_wb <- merge(res_wb_bio, res_wb_sup, 
+                  by=c("Period", "WB", "scenario"),
+                  all=T)
+  
+  res_wb <- res_wb %>%
+    rowwise() %>%
+    mutate(EQR=adj_EQR(Biological, Supporting)) %>%
+    mutate(Status=ifelse(is.na(EQR),NA,
+                         ifelse(EQR<0.2,"Bad",
+                                ifelse(EQR<0.4,"Poor",
+                                       ifelse(EQR<0.6,"Mod",
+                                              ifelse(EQR<0.8,"Good","High")))))) %>%
+    ungroup()
+  
+  res_wb <- res_wb %>%
+    relocate(WB,Period, scenario, Biological, Supporting, EQR, Status, Worst_Biological, Worst_Supporting)
+  
+  return(res_wb)
+  
+}
+
+
+
+aggregate_wb_0 <- function(df){
   
   
   # supporting
@@ -138,6 +225,36 @@ indicator_info<- function(param, out=NA_character_){
                             "TP sommer", "TP vinter",
                             "PO4-P sommer", "PO4-P vinter", 
                             "Siktdyp")
+  
+  list_season <- c("", "",
+                   "", "", 
+                   "Sommer", "Vinter", 
+                   "Sommer", "Vinter", 
+                   "Sommer", "Vinter", 
+                   "Sommer", "Vinter",
+                   "Sommer", "Vinter", 
+                   "Sommer")
+  
+  list_pressure <- c("", "",
+                "Organisk", "", 
+                "Eutrofiering", "Eutrofiering", 
+                "Eutrofiering", "Eutrofiering", 
+                "Eutrofiering", "Eutrofiering", 
+                "Eutrofiering", "Eutrofiering",
+                "Eutrofiering", "Eutrofiering", 
+                "Eutrofiering")
+  
+  list_group_sup <- c("", "",
+                     "sup_org", "", 
+                     "sup_sommer", "sup_vinter", 
+                     "sup_sommer", "sup_vinter", 
+                     "sup_sommer", "sup_vinter", 
+                     "sup_sommer", "sup_vinter",
+                     "sup_sommer", "sup_vinter", 
+                     "sup_sommer")
+  
+  
+  
   out <- ifelse(is.na(out),"", tolower(out))
   if(out=="shortname"){
     var_out <- list_indikator_short
@@ -149,6 +266,12 @@ indicator_info<- function(param, out=NA_character_){
     var_out <- list_KE
   }else if(out %in% c("ketype","ke_type")){
     var_out <- list_KE_type
+  }else if(out %in% c("season")){
+    var_out <- list_season
+  }else if(out %in% c("pressure","pres","presfaktor")){
+    var_out <- list_pressure
+  }else if(out %in% c("group","grp")){
+    var_out <- list_group_sup
   }else{
     var_out <- list_indikator
   }

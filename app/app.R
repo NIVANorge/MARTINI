@@ -180,10 +180,12 @@ server <- function(input, output, session) {
   scenario_select_list <- reactive({
     list_scenario_sel <- c(
       "Baseline" = "baseline",
+      "DIN  -50%" = "DIN50pc",
       "DIN -100%" = "DIN100pc",
       "DIP -100%" = "DIN100pc",
       "DIN -100% DIP -100%" = "DINP100pc",
       "optimistic-realistic" = "DINRA80-J10",
+      "DIN  -50% TSM  -50%" = "DINTSM50pc",
       "DIN -100% TSM -100%" = "DINTSM100pc",
       "N -100% TSM -100%" ="NTSM100pc",
       "Scenario A" = "Scenario A",
