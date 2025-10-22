@@ -15,6 +15,7 @@ packages <- c(
   'wesanderson',
   'ggplot2',
   'ggnewscale',
+  'basemaps',
   
   '')
 options(Ncpus = -1)
