@@ -4,3 +4,11 @@
 *.nc
 *.Rds
 *.json
+res_v10aa
+postprocessing_scripts_Phil
+overview results.xlsx
+check_coverage
+check_coverage.R
+MARTINI_OF800_coverage.pdf
+MARTINI_OF800_coverage.docx
+OF800.code-workspace
