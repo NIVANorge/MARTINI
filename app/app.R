@@ -19,7 +19,6 @@ library(basemaps)
 source("functions.R")
 
 # ----------------- UI -------------------------------------------------------- 
-#shinyjs::
 
 ui <- dashboardPage(skin = "black",title="MARTINI Status Assessment",
                     dashboardHeader(title = "MARTINI\nOslofjord"

@@ -72,6 +72,11 @@
       "Repository": "CRAN",
       "Hash": "543776ae6848fde2f48ff3816d0628bc"
     },
+    "basemaps": {
+      "Package": "basemaps",
+      "Version": "0.0.8",
+      "Source": "Repository"
+    },
     "bslib": {
       "Package": "bslib",
       "Version": "0.3.1",
