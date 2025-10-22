@@ -70,8 +70,8 @@ ui <- dashboardPage(skin = "black",title="MARTINI Status Assessment",
                              )),
                               fluidRow(                                
                                 column(5,
-                                       leafletOutput("mymap",height="660px"),
-                                       downloadButton(label="Download png", outputId = "dl")
+                                       leafletOutput("mymap",height="660px")#,
+                                       #downloadButton(label="Download png", outputId = "dl")
                                        ),
                                 column(7,
                                        h3(htmlOutput("WBinfo")),
