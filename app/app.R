@@ -369,18 +369,6 @@ server <- function(input, output, session) {
       #"
       scenario <- input$selScenario
       
-      # scenario <- switch(input$selScenario,
-      #                    'Baseline' = 'baseline',
-      #                    'DIN -100%' = 'DIN100pc',
-      #                    'DIP -100%' = 'DIP100pc',
-      #                    'DIN -100% DIP -100%' =  'DINP100pc',
-      #                    'optimistic-realistic' = 'DINRA80-J10'
-      #                    )
-      
-      rfile<-values$period
-      rfile<-ifelse(rfile=="2017-2019","",paste0("_",rfile))
-      rfile<-paste0("raster/",values$parameter,rfile,".tif")
-      
       rfile<- paste0("raster_OF800/", scenario, "_", values$parameter,".tif")
       #cat(paste0(rfile,"\n"))
       return(terra::rast(rfile))
