@@ -13,7 +13,7 @@ packages <- c(
   'stringr',
   'viridis',
   'wesanderson',
-  'ggplot',
+  'ggplot2',
   'ggnewscale',
   
   '')
