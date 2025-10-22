@@ -7,7 +7,6 @@ on:
       - '.github/workflows/**'
       - 'app/**'
       - 'Dockerfile'
-      - 'dependencies.R'
 env:
   IMAGE_NAME: martini
 jobs:
