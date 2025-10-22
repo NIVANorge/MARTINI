@@ -12,6 +12,7 @@ library(stringr)
 library(wesanderson)
 library(RColorBrewer)
 library(viridis)
+library(ggplot2)
 
 source("functions.R")
 
