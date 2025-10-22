@@ -219,6 +219,11 @@
       "Repository": "CRAN",
       "Hash": "15e9634c0fcd294799e9b2e929ed1b86"
     },
+    "ggnewscale": {
+      "Package": "ggnewscale",
+      "Version": "0.5.2",
+      "Source": "Repository"
+    },
     "ggplot2": {
       "Package": "ggplot2",
       "Version": "4.0.0",

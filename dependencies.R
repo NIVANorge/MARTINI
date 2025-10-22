@@ -13,6 +13,8 @@ packages <- c(
   'stringr',
   'viridis',
   'wesanderson',
+  'ggplot',
+  'ggnewscale',
   
   '')
 options(Ncpus = -1)

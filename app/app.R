@@ -13,6 +13,7 @@ library(wesanderson)
 library(RColorBrewer)
 library(viridis)
 library(ggplot2)
+library(ggnewscale)
 
 source("functions.R")
 
