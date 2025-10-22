@@ -10,7 +10,8 @@ RUN apt-get update -y && \
     libspatialindex-dev \
     libudunits2-dev \
     proj-bin \
-    proj-data
+    proj-data \
+    libmagick++-dev
 
 ENV CPLUS_INCLUDE_PATH /usr/include/gdal
 
