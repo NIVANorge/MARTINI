@@ -21,6 +21,7 @@ source("functions.R")
 
 # ----------------- UI -------------------------------------------------------- 
 
+
 ui <- dashboardPage(skin = "black",title="MARTINI Status Assessment",
                     dashboardHeader(title = "MARTINI\nOslofjord"
                                     ),
@@ -69,7 +70,8 @@ ui <- dashboardPage(skin = "black",title="MARTINI Status Assessment",
                              )),
                               fluidRow(                                
                                 column(5,
-                                       leafletOutput("mymap",height="660px")
+                                       leafletOutput("mymap",height="660px"),
+                                       downloadButton(label="Download png", outputId = "dl")
                                        ),
                                 column(7,
                                        h3(htmlOutput("WBinfo")),
@@ -481,8 +483,15 @@ server <- function(input, output, session) {
     
     colorFactor(palette=mypal, domain=wbstatus()$Status, na.color="#CCCCCC")})
   
-  # ------ output$mymap -------
+  
   output$mymap <- renderLeaflet({
+    
+    map_obj()
+    
+  })
+  
+  # ------ output$mymap -------
+  map_obj <- reactive({
     
     values$rezoom
     values$rezoom<-FALSE
@@ -729,7 +738,152 @@ server <- function(input, output, session) {
     
     
     })
+
+  png_map <- reactive({
+    
+    
+  })
   
+  plot_ext <- reactive({
+    
+    if(values$wbselected==""){
+      ext <- waterbodies  %>%
+        select(Vannforeko) %>%
+        sf::st_transform(crs=sf::st_crs(3857)) %>%
+        sf::st_bbox()
+      width_buffer <- 10000
+    }else{
+      ext <- waterbodies  %>%
+        select(Vannforeko) %>%
+        filter(Vannforeko == values$wbselected) %>%
+        sf::st_transform(crs=sf::st_crs(3857)) %>%
+        sf::st_bbox()
+      width_buffer <- 5000
+    }
+    
+    
+    x0 <- ext$xmin-width_buffer
+    x1 <- ext$xmax+width_buffer
+    y0 <- ext$ymin-width_buffer
+    y1 <- ext$ymax+width_buffer
+    
+    
+    pts <- rbind(c(x0,y0), c(x1,y0), c(x1,y1), c(x0,y1), c(x0,y0))
+    po <- st_polygon(list(pts)) %>%
+      sf::st_sfc(crs=sf::st_crs(3857))
+    
+    ext <- po %>%  
+      sf::st_bbox()
+    
+    return(ext)
+    
+  })
+  
+  
+  plot_basemap <- reactive({
+    
+    map <- basemaps::basemap_ggplot(plot_ext(), map_service = "esri", map_res = 2,
+                                  map_type = "world_light_gray_base") 
+    
+    return(map)
+  }) %>% shiny::bindCache(values$wbselected)
+  
+  
+  
+  # ---------- generate ggplot object for download -----------
+  p <-reactive({
+    
+    ext <- plot_ext()
+    
+    selected_wb <- isolate(values$wbselected)
+    
+    statusopacity <- ifelse(input$showStatus,0.9,0)
+    
+      
+    palAS<-c("#ffffff","#4ed1d1","#00ffff","#00e38c","#00c000",
+               "#78de00","#ffff00","#ffa200","#ff0000","#ff1e78",
+               "#ec3fff","#7c22ff","#4040ff","#20207e","#242424",
+               "#7e7e7e","#e0e0e0","#eed3bb","#d8a476","#aa7647",
+               "#663300")
+    palAS<-palAS[2:21]
+      
+    pal_map <- plot_pal(input$selPal)
+      
+    colorvals <- param_lims %>%
+      filter(param==values$parameter)
+    colorvals <- colorvals[1,c("min","max")]
+      
+      # the colour scale limits are taken from max and min values of the rasters
+      # if the extreme value in a raster is equal to the colorval limit, then
+      # rounding at many decimals can cause the ggplot to give a warning:
+      # Some values were outside the color scale and will be treated as NA.
+      # So we have extended the limits by a small amount
+    colorvals[1] <-  colorvals[1] * 0.9999
+    colorvals[2] <-  colorvals[2] * 1.0001
+      
+      
+    colorsdiscrete<-input$scaleDiscrete
+    
+  
+    shp_wb <-waterbodies  %>%
+      select(Vannforeko) %>%
+      sf::st_transform(crs=sf::st_crs(3857))
+    #p <- static_map(plot_basemap(), wb)
+    
+    p <- plot_basemap() +
+      geom_sf(data=shp_wb, fill="transparent", colour=alpha("black",0.2))
+    
+    if(selected_wb==""){
+      p <- p +
+        scale_x_continuous(breaks=c(10,11)) +
+        scale_y_continuous(breaks=c(59,59.5))
+    }else{
+      shp_sel <- shp_wb %>%
+        filter(Vannforeko == selected_wb)
+      
+      p <- p +
+        geom_sf(data=shp_sel, fill="transparent", colour=alpha("red",0.8),
+                linewidth=1) 
+    }
+    p <- p +
+      coord_sf(expand=F,
+               xlim=c(ext$xmin, ext$xmax),
+               ylim=c(ext$ymin, ext$ymax)) +
+      theme_minimal(base_size = 11) +
+      labs(subtitle = "Test") +
+      theme(axis.title = element_blank())
+    
+    
+    
+    # p <- ggplot() +
+    #   geom_point(data=data.frame(x=rnorm(10),y=rnorm(10)),
+    #              aes(x=x,y=y))
+    # 
+    return(p)
+    
+  })
+  
+  # ------------ download ----------------------
+  output$dl <- downloadHandler(
+    filename = paste0( Sys.Date()
+                       , "_map"
+                       , ".png"
+    ),
+    content = function(file) {
+      
+      withProgress(message = 'Download plot', 
+                   value = 0, { 
+                     
+                     ggsave(file, p(), device="png", 
+                            height=15, width=15, units="cm", dpi=300)
+                     
+                     incProgress(0.9, detail = "Downloading...")
+                   })
+                     
+    }  # end of content() function
+  ) # end of downloadHandler() function
+  
+    
   
   # ---------- observeEvent(input$goWB) -------
   observeEvent(input$goWB, {  
