@@ -16,6 +16,7 @@ library(ggplot2)
 library(ggnewscale)
 library(basemaps)
 
+
 source("functions.R")
 
 
@@ -23,55 +24,53 @@ source("functions.R")
 
 
 ui <- dashboardPage(skin = "black",title="MARTINI Status Assessment",
-                    dashboardHeader(title = "MARTINI\nOslofjord"
-                                    ),
-                    dashboardSidebar(sidebarMenu(id="tabs",
-                                                 menuItem("Map", tabName = "Map", icon = icon("map-marker")),
-                                                 menuItem("About", tabName = "about", icon = icon("book"))#,
-                    ), 
-                    collapsed=T),
-                    dashboardBody(useShinyjs(),
-                                  tabItems(
+              dashboardHeader(title = "MARTINI\nOslofjord"),
+              dashboardSidebar(sidebarMenu(id="tabs",
+                    menuItem("Map", tabName = "Map", icon = icon("map-marker")),
+                    menuItem("About", tabName = "about", icon = icon("book"))#,
+              ), 
+              collapsed=T),
+              dashboardBody(useShinyjs(),
+                            tabItems(
                       # tab content
-                      tabItem(tabName = "Map",
-                              fluidRow(
-                                column(1, HTML("<br>"),p(actionButton("resetzoom", "Reset zoom"))),
+                  tabItem(tabName = "Map",
+                         fluidRow(
+                            column(1, HTML("<br>"),p(actionButton("resetzoom", "Reset zoom"))),
                                 
-                                column(2,
-                                       # selectInput("selPeriod",label="Period:",
-                                       #               c("2017-2019","2017","2018","2019"
-                                       #               )),
+                            column(2,
                                        uiOutput("selectScenario", inline=T)
                               ),
                               
-                              # "NQI1","H" 
-                              # currently no results for these parameters
-                              
-                              column(2,
+                            column(2,
                                      uiOutput("selectParam", inline=T)
                                      ),
+                            
                                   
-                                    column(2,
-                                           
-                                           p(disabled(checkboxInput("scaleDiscrete","Discrete colours",value=F))),
-                                           p(disabled(checkboxInput("showStatus","Show status",value=TRUE)))
-                                    
+                            column(2,HTML("<br>"),
+                                  p(disabled(checkboxInput("showStatus","Show status",value=TRUE)))
                               ),
-                              column(2,
-                                     selectInput("selPal", label="Palette:",
-                                                 c("Spectral" = "spectral",
-                                                   "s3pcpn" = "AS",
-                                                   "Viridis" = "viridis",
-                                                   "Wes" = "wes",                                                                                     "Rainbow" = "rainbow"
-                                                 ))),
+                              
                              column(2, offset = 2,
                                     p("")
 
                              )),
+                         
+                         fluidRow(
+                           column(1, p("")),
+                           column(2,
+                                  uiOutput("selectThresholds", inline=T)
+                           ),
+                           column(2,
+                                  uiOutput("selectPalette", inline=T)
+                  ),
+                           column(2,HTML("<br>"),
+                           p(disabled(checkboxInput("scaleDiscrete","Discrete colours",value=F)))
+                           )
+                         ),
                               fluidRow(                                
                                 column(5,
                                        leafletOutput("mymap",height="660px")#,
-                                       #downloadButton(label="Download png", outputId = "dl")
+                                       #p(downloadButton(label="Download png", outputId = "dl"))
                                        ),
                                 column(7,
                                        h3(htmlOutput("WBinfo")),
@@ -178,6 +177,16 @@ server <- function(input, output, session) {
       return(df_wb1)
   })
   
+  wb_type <- reactive({
+    
+    type <- df_ind1 %>%
+      filter(version==input$selVersion) %>%
+      filter(WB==values$wbselected)
+    type <- type$Type %>% 
+      unique()
+    type <- type[1]
+    return(type)
+  })
   
   
   # --------------- scenario_select_list() ------------
@@ -254,6 +263,44 @@ server <- function(input, output, session) {
     ))
   })
   
+  
+  # --------------- output$selectThresholds ------------
+  
+  threshold_versions <- reactive({
+   c(#"veileder (2018)"="2018",
+     "veileder rev. (2023)"="2023",
+     "kystrev (2025)"="2025"
+     )
+
+  })
+  
+  
+  output$selectThresholds <- renderUI({
+    list_threshold_versions <- threshold_versions()
+    
+    tagList(selectInput(
+      "selVersion",
+      "Thresholds:",
+      choices = list_threshold_versions,
+      selected = list_threshold_versions[1],
+      multiple = FALSE, 
+      width="300px",
+      selectize = T
+    ))
+  })
+  
+  
+  output$selectPalette <- renderUI({
+  
+      tagList(selectInput("selPal", 
+                          label="Palette:",
+              c("Spectral" = "spectral",
+                "s3pcpn" = "AS",
+                "Viridis" = "viridis",
+                "Wes" = "wes",                                                                  "Rainbow" = "rainbow")))
+  
+    })
+  
   # --------------- function round_sig() ------------
   round_sig <- function(x, n, max_dec=3){
     base <- ifelse(x==0, -2, ceiling(log10(abs(x))))
@@ -302,15 +349,21 @@ server <- function(input, output, session) {
   # --------------- output$WBinfo ------------
   output$WBinfo <-renderText({
     if (values$wbselected=="") {
-      ""
+     s<-  ""
     }else{
+      
+      type <- wb_type()
       scenario <- input$selScenario
       scenario <- ifelse(scenario=="", "", paste0(" [", scenario, "]"))
       WB_name<-df_WB[df_WB$VANNFOREKOMSTID==values$wbselected,"VANNFOREKOMSTNAVN"]
+      s <- paste0(WB_name," ",  values$wbselected, scenario)
       
-     paste0(WB_name," ",  values$wbselected, scenario)
-      
+      if(!is.null(type)){
+       # s <- paste0(s, " (Type: ", type,")")  
+      }
+       
     }
+    return(s)
   })
   
   # --------------- output$SelectedWB ------------
@@ -427,12 +480,7 @@ server <- function(input, output, session) {
           dplyr::select(WB=Vannforeko, Status=Class)
 
       }else{
-        #dfagg <- wb_status_overall()
-        #browser()
-        #df<-df_wb() %>% 
-        #  dplyr::filter(Period==values$period) %>%
-        #  dplyr::filter(scenario==input$selScenario) %>%
-        #  dplyr::select(WB,Status)
+
         
         df<- wb_status_overall() %>%
           dplyr::filter(scenario==input$selScenario) %>%
@@ -441,6 +489,7 @@ server <- function(input, output, session) {
     }else{
     
     df<-df_ind() %>% 
+      dplyr::filter(version==input$selVersion) %>%
       dplyr::filter(Indicator==values$parameter) %>%
       dplyr::filter(Period==values$period) %>%
       dplyr::filter(scenario==input$selScenario) %>%
@@ -450,7 +499,6 @@ server <- function(input, output, session) {
 
     dat <- waterbodies  %>%
       as.data.frame()
-    
 
     dat <- dat %>%
       left_join(df,by=c("Vannforeko"="WB")) %>%
@@ -777,7 +825,7 @@ server <- function(input, output, session) {
     
     return(ext)
     
-  })
+  })  %>% shiny::bindCache(values$wbselected)
   
   
   plot_basemap <- reactive({
@@ -789,101 +837,8 @@ server <- function(input, output, session) {
   }) %>% shiny::bindCache(values$wbselected)
   
   
+
   
-  # ---------- generate ggplot object for download -----------
-  p <-reactive({
-    
-    ext <- plot_ext()
-    
-    selected_wb <- isolate(values$wbselected)
-    
-    statusopacity <- ifelse(input$showStatus,0.9,0)
-    
-      
-    palAS<-c("#ffffff","#4ed1d1","#00ffff","#00e38c","#00c000",
-               "#78de00","#ffff00","#ffa200","#ff0000","#ff1e78",
-               "#ec3fff","#7c22ff","#4040ff","#20207e","#242424",
-               "#7e7e7e","#e0e0e0","#eed3bb","#d8a476","#aa7647",
-               "#663300")
-    palAS<-palAS[2:21]
-      
-    pal_map <- plot_pal(input$selPal)
-      
-    colorvals <- param_lims %>%
-      filter(param==values$parameter)
-    colorvals <- colorvals[1,c("min","max")]
-      
-      # the colour scale limits are taken from max and min values of the rasters
-      # if the extreme value in a raster is equal to the colorval limit, then
-      # rounding at many decimals can cause the ggplot to give a warning:
-      # Some values were outside the color scale and will be treated as NA.
-      # So we have extended the limits by a small amount
-    colorvals[1] <-  colorvals[1] * 0.9999
-    colorvals[2] <-  colorvals[2] * 1.0001
-      
-      
-    colorsdiscrete<-input$scaleDiscrete
-    
-  
-    shp_wb <-waterbodies  %>%
-      select(Vannforeko) %>%
-      sf::st_transform(crs=sf::st_crs(3857))
-    #p <- static_map(plot_basemap(), wb)
-    
-    p <- plot_basemap() +
-      geom_sf(data=shp_wb, fill="transparent", colour=alpha("black",0.2))
-    
-    if(selected_wb==""){
-      p <- p +
-        scale_x_continuous(breaks=c(10,11)) +
-        scale_y_continuous(breaks=c(59,59.5))
-    }else{
-      shp_sel <- shp_wb %>%
-        filter(Vannforeko == selected_wb)
-      
-      p <- p +
-        geom_sf(data=shp_sel, fill="transparent", colour=alpha("red",0.8),
-                linewidth=1) 
-    }
-    p <- p +
-      coord_sf(expand=F,
-               xlim=c(ext$xmin, ext$xmax),
-               ylim=c(ext$ymin, ext$ymax)) +
-      theme_minimal(base_size = 11) +
-      labs(subtitle = "Test") +
-      theme(axis.title = element_blank())
-    
-    
-    
-    # p <- ggplot() +
-    #   geom_point(data=data.frame(x=rnorm(10),y=rnorm(10)),
-    #              aes(x=x,y=y))
-    # 
-    return(p)
-    
-  })
-  
-  # ------------ download ----------------------
-  output$dl <- downloadHandler(
-    filename = paste0( Sys.Date()
-                       , "_map"
-                       , ".png"
-    ),
-    content = function(file) {
-      
-      withProgress(message = 'Download plot', 
-                   value = 0, { 
-                     
-                     ggsave(file, p(), device="png", 
-                            height=15, width=15, units="cm", dpi=300)
-                     
-                     incProgress(0.9, detail = "Downloading...")
-                   })
-                     
-    }  # end of content() function
-  ) # end of downloadHandler() function
-  
-    
   
   # ---------- observeEvent(input$goWB) -------
   observeEvent(input$goWB, {  
@@ -941,11 +896,13 @@ server <- function(input, output, session) {
       df <- df_ind()
       
       df <- df %>%
-        dplyr::select(WB, Indicator,
+        mutate(version=as.character(version)) %>%
+        dplyr::select(version, WB, Indicator,
                       Indikator, IndikatorDesc, 
                       Period,scenario,Kvalitetselement,Value,EQR,
                     Ref,HG,GM,MP,PB,Worst,Status)
       dfc <- df %>% 
+        dplyr::filter(version==input$selVersion) %>%
         dplyr::filter(WB==values$wbselected) %>%
         dplyr::filter(Period==values$period) %>%
         dplyr::filter(scenario==scenario_comparison) 
@@ -961,6 +918,7 @@ server <- function(input, output, session) {
         
         
         df<-df %>% 
+          dplyr::filter(version==input$selVersion) %>%
           dplyr::filter(WB==values$wbselected) %>%
           dplyr::filter(Period==values$period) %>%
           dplyr::filter(scenario==input$selScenario)
@@ -1170,7 +1128,7 @@ server <- function(input, output, session) {
    
     df <- tblind_df() 
     if(nrow(df)>0){
-       # browser()
+       
       df <- df%>%
         select(Indicator) %>%
         mutate(id=row_number()) %>%
