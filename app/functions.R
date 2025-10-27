@@ -571,6 +571,41 @@ plottitle<-function(parameter){
   
 }
 
+
+
+plottitle_png<-function(parameter){
+  params<-c("Ecological Status",
+            "Chl_summer",
+            "Chl",
+            "MSMDI",
+            "NQI1","H","Secchi","DO_bot",
+            "NH4_summer","NH4_winter",
+            "NO3_summer","NO3_winter",
+            "PO4_summer","PO4_winter",
+            "TN_summer","TN_winter",
+            "TP_summer","TP_winter")
+  titles<-c("Ecological status",
+            "Chl a, summer [µg/l]",
+            "Chl a 90. pct [µg/l]",
+            "MSMDI [EQR]","NQI1 [EQR]",
+            "H [EQR]","Secchi [m]",
+            "DO bottom [ml/l]",
+            "NH4 summer [µg-N/l]",
+            "NH4 winter [µg-N/l]",
+            "NO3 summer [µg-N/l]",
+            "NO3 winter [µg-N/l]",
+            "PO4 summer [µg-P/l]",
+            "PO4 winter [µg-P/l]",
+            "TN summer [µg-N/l]",
+            "TN winter [µg-N/l]",
+            "TP summer [µg-P/l]",
+            "TP winter [µg-P/l]")
+  
+  title<-titles[params==parameter]
+  return(title)
+  
+}
+
 # https://github.com/r-spatial/mapview/issues/258
 labelFormatCustom = function (prefix = "", suffix = "", between = " &ndash; ", 
                               digits = 2, big.mark = ",", transform = identity, scientific=T) 
@@ -598,3 +633,146 @@ labelFormatCustom = function (prefix = "", suffix = "", between = " &ndash; ",
     })(...))
   }
 }
+
+
+
+
+static_map <- function(wb){
+  # wbselected, parameter, param_lims
+  ext <- wb %>%
+    sf::st_transform(crs=sf::st_crs(3857)) %>%
+    sf::st_bbox()
+  
+  p <- basemaps::basemap_ggplot(ext, map_service = "esri", map_res = 2,
+                      map_type = "world_light_gray_base") 
+  
+  return(p)
+  
+}
+
+
+scenario_desc <- function(scenario){
+  list_scenario_sel <- c(
+    "Baseline" = "baseline",
+    "DIN  -50%" = "DIN50pc",
+    "DIN -100%" = "DIN100pc",
+    "DIP -100%" = "DIN100pc",
+    "DIN -100% DIP -100%" = "DINP100pc",
+    "optimistic-realistic" = "DINRA80-J10",
+    "DIN  -50% TSM  -50%" = "DINTSM50pc",
+    "DIN -100% TSM -100%" = "DINTSM100pc",
+    "N -100% TSM -100%" ="NTSM100pc",
+    "Scenario A" = "Scenario A",
+    "Scenario B" = "Scenario B")
+  
+  res <- names(list_scenario_sel)[list_scenario_sel==scenario]
+  
+  return(res)
+}
+
+scenario_desc_figs <- function(scenario){
+  list_scenario_sel <- c(
+    "Baseline" = "baseline",
+    "DIN -50%" = "DIN50pc",
+    "DIN -100%" = "DIN100pc",
+    "DIP -100%" = "DIN100pc",
+    "DIN -100%, DIP -100%" = "DINP100pc",
+    "optimistic-realistic" = "DINRA80-J10",
+    "DIN -50%, TSM -50%" = "DINTSM50pc",
+    "DIN -100%, TSM -100%" = "DINTSM100pc",
+    "N -100%, TSM -100%" ="NTSM100pc",
+    "Scenario A" = "Scenario A",
+    "Scenario B" = "Scenario B")
+  
+  res <- names(list_scenario_sel)[list_scenario_sel==scenario]
+  
+  return(res)
+}
+
+
+
+legendtitle_figs<-function(parameter){
+  params<-c("Ecological Status",
+            "Chl_summer",
+            "Chl",
+            "MSMDI",
+            "NQI1","H","Secchi","DO_bot",
+            "NH4_summer","NH4_winter",
+            "NO3_summer","NO3_winter",
+            "PO4_summer","PO4_winter",
+            "TN_summer","TN_winter",
+            "TP_summer","TP_winter")
+  titles<-c("Ecological status","Chl a [µg/l]",
+            "Chl a [µg/l]",
+            "MSMDI [EQR]","NQI1 [EQR]",
+            "H [EQR]","Secchi [m]",
+            "DO [ml/l]",
+            "NH4 [µg-N/l]",
+            "NH4 [µg-N/l]",
+            "NO3 [µg-N/l]",
+            "NO3 [µg-N/l]",
+            "PO4 [µg-P/l]",
+            "PO4 [µg-P/l]",
+            "TN [µg-N/l]",
+            "TN [µg-N/l]",
+            "TP [µg-P/l]",
+            "TP [µg-P/l]")
+  
+  title<-titles[params==parameter]
+  return(title)
+  
+}
+
+legend_labs <- function(labelvals){
+  interval <- floor(length(labelvals) / 4)
+  labels <- c()
+  sel <- seq(1,length(labelvals),interval)
+  
+  scales::label_number(labelvals,accuracy=3)
+  
+  
+}
+
+scale_values <- function(colorvals){
+  
+  
+  diff <- colorvals$max - colorvals$min
+  
+  minsteps <- 15
+  tens <- 6
+  
+  diff0 <- c(5,2, 1)
+  diff0 <- diff0 * 10^tens
+  
+  nsteps <- ceiling(diff / diff0)
+  
+  while(length(nsteps[nsteps > minsteps]) == 0){
+    tens <- tens - 1
+    diff0 <- diff0 * 0.1
+    nsteps <- ceiling(diff / diff0)
+  }
+  
+  diff0 <- diff0[nsteps > minsteps] %>% max()
+  nsteps <- nsteps[nsteps > minsteps] %>% min() 
+  min_neat <- diff0 * floor(colorvals$min / diff0) 
+  max_neat <- diff0 * ceiling(colorvals$max / diff0) 
+  
+  vals_neat <- seq(min_neat,max_neat, diff0)
+  
+  labs0 <-  vals_neat[1:(length(vals_neat)-2)]
+  breaks <- vals_neat[2:(length(vals_neat)-1)]
+  
+  ndigits <- -1*tens
+  if(ndigits>0){
+    labs0 <- format(labs0, nsmall=ndigits)
+    labs1 <- format(breaks, nsmall=ndigits)
+    labs <- paste0(labs0, " - ", labs1)
+  }else{
+    labs <- paste0(labs0, " - ", breaks)
+  }
+  
+  
+  return(list(breaks=breaks, labels=labs, intervals=length(breaks)))
+}
+
+
