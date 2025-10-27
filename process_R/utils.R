@@ -32,6 +32,13 @@ adj_EQR<- function(bio,sup){
 
 aggregate_wb <- function(df){
   
+  if("version" %in% names(df)){
+    drop_version <- F
+  }else{
+    drop_version <- T
+    df <- df %>%
+      mutate(version="xxxxxx")
+  }
   
   # supporting - first average by season
   
@@ -45,56 +52,56 @@ aggregate_wb <- function(df){
   
   
   res_wb_sup_avg <- res_wb_sup %>%
-    group_by(WB, Period,QEtype, Kvalitetselement, scenario, pressure, 
+    group_by(version, WB, Period,QEtype, Kvalitetselement, scenario, pressure, 
              season, group_sup) %>%
     summarise(EQR=mean(EQR, na.rm=T), .groups = "drop") 
   
   res_wb_sup_avg_info <- res_wb_sup_avg %>%
-    select(WB, Period, scenario,group_sup, EQR) %>%
+    select(version, WB, Period, scenario, group_sup, EQR) %>%
     pivot_wider(names_from = "group_sup", values_from = "EQR")
 
   
   res_wb_sup_avg <- res_wb_sup_avg %>%
-    group_by(WB, Period, QEtype, Kvalitetselement, scenario, pressure) %>%
+    group_by(version, WB, Period, QEtype, Kvalitetselement, scenario, pressure) %>%
     summarise(EQR=mean(EQR, na.rm=T), .groups = "drop") 
 
   
   res_wb_sup <- res_wb_sup_avg %>%
     filter(QEtype=="Sup") %>%
-    select(Period, WB, QEtype, Kvalitetselement, scenario, pressure, EQR) %>%
+    select(version, Period, WB, QEtype, Kvalitetselement, scenario, pressure, EQR) %>%
     #select(Period, WB, scenario, Kvalitetselement, Indikator,EQR, Status, QEtype) %>%
-    group_by(WB, Period, QEtype, scenario) %>%
+    group_by(version, WB, Period, QEtype, scenario) %>%
     arrange(EQR) %>%
     slice(1) %>%
     ungroup()
   
   res_wb_sup <- res_wb_sup %>%
-    select(Period, WB, scenario, 
+    select(version, Period, WB, scenario, 
            Worst_Supporting=pressure, Supporting=EQR) %>%
-    left_join(res_wb_sup_avg_info, by=c("WB", "Period", "scenario"))
+    left_join(res_wb_sup_avg_info, by=c("version", "WB", "Period", "scenario"))
   
   # biological
   res_wb_bio_QE <- df %>%
     filter(QEtype=="Bio") %>%
-    select(Period, WB, scenario, Kvalitetselement, Indikator,EQR, Status, QEtype) %>%
-    group_by(WB, Period, QEtype, Kvalitetselement, scenario) %>%
+    select(version, Period, WB, scenario, Kvalitetselement, Indikator,EQR, Status, QEtype) %>%
+    group_by(version, WB, Period, QEtype, Kvalitetselement, scenario) %>%
     summarise(EQR = mean(EQR, na.rm=T), .groups = "drop")
   
   res_wb_bio_QE <- res_wb_bio_QE %>%
-    select(Period, WB, scenario, Kvalitetselement, EQR, QEtype) %>%
-    group_by(WB, Period, QEtype, scenario) %>%
+    select(version, Period, WB, scenario, Kvalitetselement, EQR, QEtype) %>%
+    group_by(version, WB, Period, QEtype, scenario) %>%
     arrange(EQR) %>%
     slice(1) %>%
     ungroup()
   
   
   res_wb_bio <- res_wb_bio_QE %>%
-    select(Period, WB, scenario, 
+    select(version, Period, WB, scenario, 
            Worst_Biological=Kvalitetselement,
            Biological=EQR)
   
   res_wb <- merge(res_wb_bio, res_wb_sup, 
-                  by=c("Period", "WB", "scenario"),
+                  by=c("version", "Period", "WB", "scenario"),
                   all=T)
   
   res_wb <- res_wb %>%
@@ -108,7 +115,7 @@ aggregate_wb <- function(df){
     ungroup()
   
   res_wb <- res_wb %>%
-    relocate(WB,Period, scenario, Biological, Supporting, EQR, Status, Worst_Biological, Worst_Supporting)
+    relocate(version, WB,Period, scenario, Biological, Supporting, EQR, Status, Worst_Biological, Worst_Supporting)
   
   return(res_wb)
   
@@ -566,4 +573,93 @@ convert_nc <- function(ind_data, r0, proj="EPSG:3857", outfolder="", pngfolder="
   }
   return(r_proj)
 }
+
+
+
+thresholds_supporting <- function(){
+read.table(sep="\t", header=T, text="
+version	param	psu	EQR00	EQR02	EQR04	EQR06	EQR08	EQR10
+2023	NH4_summer	NA	265.69	163	100	25	9.5	3.61
+2023	NH4_winter	NA	340.6282051	163	78	38	17	7.605263158
+2023	NO3_summer	18	961.5384615	250	65	23	12	6.260869565
+2023	NO3_summer	5	590.8923767	363	223	156	97	60.31410256
+2023	NO3_winter	18	544.4444444	350	225	125	97	75.272
+2023	NO3_winter	5	700.8711656	478	326	226	143	90.48230088
+2023	PO4_summer	18	156.25	50	16	7	3.5	1.75
+2023	PO4_summer	5	58.8	21	7.5	3.5	2	1.142857143
+2023	PO4_winter	18	73.52941176	50	34	21	14.5	10.01190476
+2023	PO4_winter	5	60.0625	31	16	9	7	5.444444444
+2023	Secchi	18	1.388888889	2.5	4.5	6	7.5	9.375
+2023	Secchi	5	0.9	1.5	2.5	4.5	7	10.88888889
+2023	TN_summer	18	1280	800	500	330	250	189.3939394
+2023	TN_summer	5	1189.591078	800	538	383	250	163.1853786
+2023	TN_winter	18	1142.857143	800	560	380	291	222.8447368
+2023	TN_winter	5	1157.323689	800	553	385	261	176.9376623
+2023	TP_summer	18	124.137931	60	29	16	11.5	8.265625
+2023	TP_summer	5	127.6818182	53	22	12	8	5.333333333
+2023	TP_winter	18	85.71428571	60	42	25	20	16
+2023	TP_winter	5	108.0384615	53	26	14.5	10.5	7.603448276
+2023	DO_bot	NA	0	1.5	2.5	3.5	4.5	6
+2025	TP_summer	18	42.09	28	20.5	13	6.5	3.25
+2025	PO4_summer	18	14.46	10.7	8.3	6	3	1.50
+2025	TN_summer	18	630.11	438	329	220	110	55.00
+2025	NO3_summer	18	874.26	166	88	10	5	2.50
+2025	NH4_summer	18	137.75	61	37	14	7	3.50
+2025	Secchi	18	1.70	2.5	4.5	6	7.5	9.38
+2025	TP_winter	18	66.02	46	34	23	11.5	5.75
+2025	PO4_winter	18	78.40	50	34	21	14.5	10.01
+2025	TN_winter	18	1055.96	675	477	290	145	72.50
+2025	NO3_winter	18	600.08	350	225	125	97	75.27
+2025	NH4_winter	18	322.74	111	64	17	8.5	4.25
+2025	DO_bot	18	0	1.5	2.5	3.5	4.5	6
+")
+  
+  
+}
+
+
+
+thresholds_bio <- function(){
+read.table(sep="\t", header=T, quote="", text="
+version	Kvalitetselement	Indikator	Code	Match	MatchValue	NotUsed	EQR10	EQR08	EQR06	EQR04	EQR02	EQR00	comment
+2018	Planteplankton	Klorofyll a	Chl	type	S1	NA	2.3	3.5	7	11	20	40	
+2018	Planteplankton	Klorofyll a	Chl	type	S2	NA	2	3	6	9	18	36	
+2018	Planteplankton	Klorofyll a	Chl	type	S3	NA	2	3	6	9	18	36	
+2018	Planteplankton	Klorofyll a	Chl	type	S4	TRUE	2	3	6	9	18	36	
+2018	Planteplankton	Klorofyll a	Chl	type	S5	TRUE	2	3	6	9	18	36	
+2018	Planteplankton	Klorofyll a	Chl	type	unknown	TRUE	2	3	6	9	18	36	
+2018	Makroalger	MSMDI (Nedre voksegrense) - EQR	MSMDI	NA	NA	NA	1	0.8	0.6	0.4	0.2	0	
+2018	Bløtfunnsfauna	NQI - EQR	NQI1	NA	NA	NA	1	0.8	0.6	0.4	0.2	0	
+2018	Bløtfunnsfauna	H'	H	NA	NA	NA	1	0.8	0.6	0.4	0.2	0	
+2023	Planteplankton	Klorofyll a	Chl	type	S1	NA	2.57	3.53	5.26	11	20	40	
+2023	Planteplankton	Klorofyll a	Chl	type	S2	NA	3.13	3.95	5.53	9	18	36	
+2023	Planteplankton	Klorofyll a	Chl	type	S3	NA	2.98	3.92	6.9	9	18	36	
+2023	Planteplankton	Klorofyll a	Chl	type	S4	NA	2.98	3.92	6.9	9	18	36	
+2023	Planteplankton	Klorofyll a	Chl	type	S5	NA	2.98	3.92	6.9	9	18	36	
+2023	Planteplankton	Klorofyll a	Chl	type	unknown	NA	2.98	3.92	6.9	9	18	36	
+2023	Makroalger	MSMDI (Nedre voksegrense) - EQR	MSMDI	NA	NA	NA	1	0.8	0.6	0.4	0.2	0	
+2023	Bløtfunnsfauna	NQI - EQR	NQI1	NA	NA	NA	1	0.8	0.6	0.4	0.2	0	
+2023	Bløtfunnsfauna	H'	H	NA	NA	NA	1	0.8	0.6	0.4	0.2	0	
+2023	Planteplankton	Klorofyll a	Chl_summer	type	S1	NA	0.99	1.25	1.57	3.19	5.5	9.48	Derived from estimates of G/M from AS
+2023	Planteplankton	Klorofyll a	Chl_summer	type	S2	NA	1.15	1.51	1.85	3.29	6.05	11.13	Derived from estimates of G/M from AS
+2023	Planteplankton	Klorofyll a	Chl_summer	type	S3	NA	1.37	1.73	2.4	4.03	5.96	8.81	Derived from estimates of G/M from AS
+2023	Planteplankton	Klorofyll a	Chl_summer	type	S5	NA	1.37	1.73	2.4	4.03	5.96	8.81	Derived from estimates of G/M from AS
+2023	Planteplankton	Klorofyll a	Chl_summer	type	unknown	NA	1.37	1.73	2.4	4.03	5.96	8.81	Derived from estimates of G/M from AS
+2025	Planteplankton	Klorofyll a	Chl	type	S01	NA	2	3	4.5	6.8	10.2	20.4	
+2025	Planteplankton	Klorofyll a	Chl	type	S02	NA	2.6	3.9	5.9	8.8	13.2	26.4	
+2025	Planteplankton	Klorofyll a	Chl	type	S03	NA	2.8	4.3	6.4	9.6	14.4	28.8	
+2025	Planteplankton	Klorofyll a	Chl	type	S04	NA	2.3	3.5	5.2	7.8	11.7	23.4	
+2025	Planteplankton	Klorofyll a	Chl	type	S05	NA	3.1	4.7	7	10.5	15.7	31.4	
+2025	Planteplankton	Klorofyll a	Chl	type	S06	NA	2	3	4.4	6.6	10	20	
+2025	Planteplankton	Klorofyll a	Chl	type	S07	NA	3.2	4.9	7.3	10.9	16.4	32.8	
+2025	Planteplankton	Klorofyll a	Chl_summer	type	S01	NA	1.2	1.7	2.6	3.9	5.9	11.8	
+2025	Planteplankton	Klorofyll a	Chl_summer	type	S02	NA	1.9	2.9	4.4	6.5	9.8	19.6	
+2025	Planteplankton	Klorofyll a	Chl_summer	type	S03	NA	1.4	2.1	3.1	4.6	6.9	13.8	
+2025	Planteplankton	Klorofyll a	Chl_summer	type	S04	NA	1.1	1.6	2.4	3.6	5.5	11	
+2025	Planteplankton	Klorofyll a	Chl_summer	type	S05	NA	1.4	2.1	3.1	4.6	7	14	
+2025	Planteplankton	Klorofyll a	Chl_summer	type	S06	NA	1.2	1.8	2.7	4.1	6.1	12.2	
+2025	Planteplankton	Klorofyll a	Chl_summer	type	S07	NA	1.4	2.1	3.1	4.7	7	14	
+2025	Planteplankton	Klorofyll a	Chl_summer	type	General	NA	1.2	1.8	2.7	4	6	12	
+")}
+
 
