@@ -26,16 +26,17 @@ ui <- dashboardPage(skin = "black",title="MARTINI Status Assessment",
               dashboardHeader(title = "MARTINI\nOslofjord"),
               dashboardSidebar(sidebarMenu(id="tabs",
                     menuItem("Map", tabName = "Map", icon = icon("map-marker")),
+                    menuItem("Options", tabName = "Options", icon = icon("cog")),
                     menuItem("About", tabName = "about", icon = icon("book"))#,
               ), 
-              collapsed=T),
+              collapsed=F),
               dashboardBody(useShinyjs(),
                             tabItems(
                       # tab content
                   tabItem(tabName = "Map",
                          fluidRow(
+                          
                             column(1, HTML("<br>"),p(actionButton("resetzoom", "Reset zoom"))),
-                                
                             column(2,
                                        uiOutput("selectScenario", inline=T)
                               ),
@@ -43,37 +44,29 @@ ui <- dashboardPage(skin = "black",title="MARTINI Status Assessment",
                             column(2,
                                      uiOutput("selectParam", inline=T)
                                      ),
-                            
-                                  
-                            column(2,HTML("<br>"),
+                            column(6,h3(htmlOutput("WBinfo")))),
+                         fluidRow(
+                           column(3,""),     
+                            column(1,
                                   p(disabled(checkboxInput("showStatus","Show status",value=TRUE)))
                               ),
-                              
-                             column(2, offset = 2,
-                                    p("")
-
-                             )),
-                         
-                         fluidRow(
-                           column(1, p("")),
-                           column(2,
-                                  uiOutput("selectThresholds", inline=T)
+                              column(1,
+                                   p(disabled(checkboxInput("scaleDiscrete","Discrete colour",value=T)))
+                            ),
+                           column(6,htmlOutput("titleTblInd"))
                            ),
-                           column(2,
-                                  uiOutput("selectPalette", inline=T)
-                  ),
-                           column(2,HTML("<br>"),
-                           p(disabled(checkboxInput("scaleDiscrete","Discrete colours",value=F)))
-                           )
-                         ),
+                         
+                         
                               fluidRow(                                
                                 column(5,
-                                       leafletOutput("mymap",height="660px")#,
+                                       leafletOutput("mymap",height="660px"),
+                                       column(9,""),
+                                       column(3,
+                                              div(uiOutput("selectPalette", inline=T))
+                                              )#,
                                        #p(downloadButton(label="Download png", outputId = "dl"))
                                        ),
                                 column(7,
-                                       h3(htmlOutput("WBinfo")),
-                                       htmlOutput("titleTblInd"),
                                        reactableOutput("tblind"),
                                        HTML("<BR>"),
                                        htmlOutput("titleTblAgg"),
@@ -84,6 +77,37 @@ ui <- dashboardPage(skin = "black",title="MARTINI Status Assessment",
                                        )
                               )
                               ),
+                  # ---------------------- Options -----------------------------------
+                  tabItem(tabName = "Options",
+                          fluidRow(column(4,  h3("Options"))),
+                          fluidRow(column(4,  
+    p("By default, the integrated ecological status assessment is made using all available modelled indicator parameters."),
+    p("It is also possible to exclude individual indicators or groups of indicators from the aggregation process to sinvestigate how this affects theintegrated status."),
+    p("Do this by changing the selection of indicators in the table below.")),
+    #column(1,p("")),
+    column(2,
+           p(em("more explanation required...")),
+           p("Select the set of threshold values to be used when calculating EQR values and status class from model results.")  
+    )
+    ),
+                          
+                          fluidRow(
+                            column(4,
+                                   p(strong("Select Indicators:")),
+                                 reactableOutput("tblSelectIndicators")),
+                            column(2,
+                                   uiOutput("selectThresholds", inline=T)
+                                 )
+                            
+                          ),
+                          fluidRow(
+                            column(2,
+                                  ""
+                            )
+                          )
+                  ),                
+                  
+                  
                       tabItem(tabName = "status",
                               fluidRow( column(6,""))),
                       tabItem(tabName = "about",
@@ -155,10 +179,13 @@ server <- function(input, output, session) {
 
   # "NQI1","H" - currently no results for these parameters
   
-  params_ind<-c("Chl_summer","Chl","MSMDI","Secchi",
-            "DO_bot","NH4_summer","NH4_winter",
-            "NO3_summer","NO3_winter","PO4_summer","PO4_winter",
-            "TN_summer","TN_winter","TP_summer","TP_winter")
+  params_ind<-c("Chl_summer","Chl","MSMDI",
+            "DO_bot","Secchi",
+            "NH4_summer","NO3_summer",
+            "PO4_summer","TN_summer",
+            "TP_summer","NH4_winter",
+            "NO3_winter","PO4_winter",
+            "TN_winter","TP_winter")
   params<-c("Ecological Status", params_ind)
   
   
@@ -179,7 +206,7 @@ server <- function(input, output, session) {
   wb_type <- reactive({
     
     type <- df_ind1 %>%
-      filter(version==input$selVersion) %>%
+      filter(version==thresholds_version_selected()) %>%
       filter(WB==values$wbselected)
     type <- type$Type %>% 
       unique()
@@ -193,14 +220,7 @@ server <- function(input, output, session) {
   scenario_select_list <- reactive({
     list_scenario_sel <- c(
       "Baseline" = "baseline",
-      "DIN  -50%" = "DIN50pc",
-      "DIN -100%" = "DIN100pc",
-      "DIP -100%" = "DIN100pc",
-      "DIN -100% DIP -100%" = "DINP100pc",
-      "optimistic-realistic" = "DINRA80-J10",
-      "DIN  -50% TSM  -50%" = "DINTSM50pc",
-      "DIN -100% TSM -100%" = "DINTSM100pc",
-      "N -100% TSM -100%" ="NTSM100pc",
+      "Pristine" = "Pristine",
       "Scenario A" = "Scenario A",
       "Scenario B" = "Scenario B")
 
@@ -291,7 +311,8 @@ server <- function(input, output, session) {
   
   output$selectPalette <- renderUI({
   
-      tagList(selectInput("selPal", 
+      tagList(selectInput("selPal",
+                          width="150px",
                           label="Palette:",
               c("Spectral" = "spectral",
                 "s3pcpn" = "AS",
@@ -468,11 +489,22 @@ server <- function(input, output, session) {
     return(dfagg)
   })
   
+  thresholds_version_selected <- reactive({
+    
+    if(is.null( input$selVersion)){
+      list_threshold_versions <- threshold_versions()
+      version <- list_threshold_versions[1]
+    }else{
+      version <- input$selVersion
+    }
+    return(version)
+  })
   
   
   # --------------- wbstatus() -------------
   wbstatus <- reactive({
    
+    
     if(values$parameter=="Ecological Status"){
       if(input$selScenario=="Observations"){
         df <-  df_wb_obs %>%
@@ -488,7 +520,7 @@ server <- function(input, output, session) {
     }else{
     
     df<-df_ind() %>% 
-      dplyr::filter(version==input$selVersion) %>%
+      dplyr::filter(version==thresholds_version_selected()) %>%
       dplyr::filter(Indicator==values$parameter) %>%
       dplyr::filter(Period==values$period) %>%
       dplyr::filter(scenario==input$selScenario) %>%
@@ -882,6 +914,79 @@ server <- function(input, output, session) {
     return(df)
   })
   
+  dfSelectIndicators <- reactive({
+    
+    df <- df_indicator_list()
+    
+    df <- df %>%
+      rowwise() %>%
+      mutate(grp=param_group(Indicator)) %>%
+      ungroup() %>%
+      relocate(grp) 
+    
+    df$Indicator <- factor(df$Indicator,levels=params)
+    df <- df %>%
+      arrange(Indicator)  
+    
+    return(df)
+    
+  })
+  
+  
+  
+  # --------------- output$tblindxxxxx ----------------------
+  output$tblSelectIndicators <- reactable::renderReactable({
+    df <- dfSelectIndicators()
+    
+    df_sel <- isolate(values$include)
+    
+    sel_index <- df %>%
+      select(Indicator) %>%
+      left_join(df_sel, by="Indicator") %>%
+      mutate(id=row_number()) %>%
+      filter(selected==T) %>%
+      pull(id)
+  
+    
+    
+    colwidths <- 140
+    #browser()
+    reactable(df, class = "noParenthesis",
+              highlight =TRUE,
+              compact=TRUE,
+              fullWidth = FALSE,
+              resizable = TRUE,
+              defaultPageSize = 20,
+              style = "white-space: nowrap;",
+              sortable = FALSE,
+              onClick = "select",
+              defaultExpanded = TRUE,
+              #groupBy = "Kvalitetselement",
+              selection = "multiple",
+              defaultSelected = sel_index,
+              groupBy = c("Kvalitetselement","grp"),
+              columns = list(
+                Indicator = colDef(show = F), #colDef(width=100), #show = F,name="WB [Period]"),
+                IndikatorDesc = colDef(show=F), 
+                Indikator= colDef(name="Indikator", width=colwidths, sticky = "left"),
+                Kvalitetselement=colDef(width=colwidths, sticky = "left"),
+                grp = colDef(name="Gruppe",
+                             width=colwidths, 
+                             sticky = "left")),
+              theme = reactableTheme(
+                tableBodyStyle =  list(
+                  color = "#999999",
+                  backgroundColor = "#dddddd"
+                ),
+                rowSelectedStyle = list(
+                  color = "#000000",
+                  backgroundColor = "#ffffff"
+                ))
+          )
+    
+  })
+  
+  
   
 
   # ------------------- tblind_df() ----------
@@ -901,7 +1006,7 @@ server <- function(input, output, session) {
                       Period,scenario,Kvalitetselement,Value,EQR,
                     Ref,HG,GM,MP,PB,Worst,Status)
       dfc <- df %>% 
-        dplyr::filter(version==input$selVersion) %>%
+        dplyr::filter(version==thresholds_version_selected()) %>%
         dplyr::filter(WB==values$wbselected) %>%
         dplyr::filter(Period==values$period) %>%
         dplyr::filter(scenario==scenario_comparison) 
@@ -917,7 +1022,7 @@ server <- function(input, output, session) {
         
         
         df<-df %>% 
-          dplyr::filter(version==input$selVersion) %>%
+          dplyr::filter(version==thresholds_version_selected()) %>%
           dplyr::filter(WB==values$wbselected) %>%
           dplyr::filter(Period==values$period) %>%
           dplyr::filter(scenario==input$selScenario)
@@ -961,7 +1066,7 @@ server <- function(input, output, session) {
   
   # --------------- output$tblind ----------------------
   output$tblind <- reactable::renderReactable({
-    
+   
     shiny::req(values$wbselected)
     
     df <- tblind_df() 
@@ -982,7 +1087,8 @@ server <- function(input, output, session) {
     
     colwidthgrps <- ifelse(show_base, 80, 120)
     
-    df_sel <- isolate(values$include)
+    #df_sel <- isolate(values$include)
+    df_sel <- values$include
     
     sel_index <- df %>%
       select(Indicator) %>%
@@ -1001,10 +1107,10 @@ server <- function(input, output, session) {
               defaultPageSize = 20,
               style = "white-space: nowrap;",
               sortable = FALSE,
-              onClick = "select",
+              #onClick = "select",
               defaultExpanded = TRUE,
               #groupBy = "Kvalitetselement",
-              selection = "multiple",
+              #selection = "multiple",
               defaultSelected = sel_index,
               groupBy = c("Kvalitetselement","grp"),
               columns = list(
@@ -1108,10 +1214,12 @@ server <- function(input, output, session) {
   
   # --------- ind_tbl_selected() -------------
   ind_tbl_selected <- reactive({
-    shiny::req(values$wbselected)
-    sel <- reactable::getReactableState("tblind", "selected")
+    #shiny::req(values$wbselected)
+    sel <- reactable::getReactableState("tblSelectIndicators", "selected")
+    #sel <- reactable::getReactableState("tblind", "selected")
     if(length(sel)==0){
-      sel <- -99
+      n <- df_indicator_list() %>% length()
+      sel <- rep(1, n)
     }
     return(sel)
   })
