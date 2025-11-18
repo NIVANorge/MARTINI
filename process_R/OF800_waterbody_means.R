@@ -8,8 +8,8 @@ library(terra)
 source("process_R/utils.R")
 
 polys_geo <- readRDS("processing/grid_OF800_geo_vector_incl_NAs.Rds")
-#ind_data <- readRDS("processing/res_v10f.Rds")
-ind_data <- readRDS("processing/res_v10aa.Rds")
+
+ind_data <- readRDS("processing/res_v10ad.Rds")
 
 r_grid <- terra::rast("OF800/of800_grid_polar_stereo.tif")
 wkt_OF800 <- readLines("wkt_OF800", warn=F) %>% 
@@ -21,12 +21,12 @@ terra::crs(r_grid) <- wkt_OF800
 #ind_data <- readRDS("processing/res_v10f.Rds")
 #ind_data <- readRDS("processing/res_v10f_20241016.Rds")
 
-ind_data <- readRDS("processing/res_v10aa.Rds")
+ind_data <- readRDS("processing/res_v10ad.Rds")
 
 
 rs <- purrr::map(ind_data, convert_nc, r0=r_grid, .progress=T, project=F)
 
-saveRDS(rs, file="processing/res_v10aa_rasters.Rds")
+saveRDS(rs, file="processing/res_v10ad_rasters.Rds")
 
 # rs <- readRDS("processing/res_v10aa_rasters.Rds")
 rs1 <- rs
@@ -60,9 +60,8 @@ means <- purrr::map2(rs, names, wb_means, grid=grid, .progress=T) %>%
 
 #saveRDS(means, file="OF800/res_v10f/res_v10f_WB_means_20241016.Rds")
 #means <- readRDS("OF800/res_v10f/res_v10f_WB_means_20241016.Rds")
-saveRDS(means, file="OF800/res_v10aa/res_v10aa_WB_means.Rds")
-means <- readRDS("OF800/res_v10aa/res_v10aa_WB_means.Rds")
-means0 <- readRDS("OF800/res_v10aa/res_v10aa_WB_means.v1.Rds")
+saveRDS(means, file="OF800/res_v10ad/res_v10ad_WB_means.Rds")
+means <- readRDS("OF800/res_v10ad/res_v10ad_WB_means.Rds")
 
 
 # get modelled salinities
@@ -97,7 +96,7 @@ means <- means %>%
 means <- means %>%
   left_join(means_psu, by=c("Vannforeko", "season"))
 
-saveRDS(means, file="OF800/res_v10aa/res_v10aa_WB_means_incl_psu.Rds")
+saveRDS(means, file="OF800/res_v10ad/res_v10ad_WB_means_incl_psu.Rds")
 
 
 

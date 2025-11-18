@@ -12,7 +12,7 @@ use_S3_for_missing <- T
 
 # means <- readRDS(file="OF800/res_v10f/res_v10f_WB_means_incl_psu.Rds")
 # means <- readRDS(file="OF800/res_v10f/res_v10f_WB_means_incl_psu_20241016.Rds")
-means <- readRDS(file="OF800/res_v10aa/res_v10aa_WB_means_incl_psu.Rds")
+means <- readRDS(file="OF800/res_v10ad/res_v10ad_WB_means_incl_psu.Rds")
 
 
 
@@ -274,8 +274,8 @@ for(optChl in list_optChl){
   file_suffix <- ifelse(is.na(optChl),"",paste0("_", optChl))
   file_res_wb <- paste0("app/WB_results_OF", file_suffix, ".csv")
   file_res_ind <- paste0("app/indicator_results_OF", file_suffix, ".csv")
-  file_rds_res_wb <- paste0("OF800/res_v10aa/WB_results_OF", file_suffix, ".Rds")
-  file_rds_res_ind <- paste0("OF800/res_v10aa/indicator_results_OF", file_suffix, ".Rds")
+  file_rds_res_wb <- paste0("OF800/res_v10ad/WB_results_OF", file_suffix, ".Rds")
+  file_rds_res_ind <- paste0("OF800/res_v10ad/indicator_results_OF", file_suffix, ".Rds")
   
   optChl <- ifelse(is.na(optChl),"",optChl)
   

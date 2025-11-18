@@ -26,22 +26,12 @@ df_grid <- polys_geo %>%
 
 
 scenario_list <- c("baseline",
-                   "DINPsources100pcred",
-                   "DINsources100pcred",
-                   "DINsources50pcred",
-                   "DINTSMsources100pcred",
-                   "DINTSMsources50pcred",
-                   "NTSMsources100pcred",
+                   "v3_pristine",
                    "v3_Scenario_A",
                    "v3_Scenario_B")    
 
 scenario_names <- c("baseline",
-                    "DIN100pc",
-                    "DIN50pc",
-                    "DINTSM100pc",
-                    "DINTSM50pc",
-                    "DINP100pc",
-                    "NTSM100pc",
+                    "Pristine",
                     "Scenario A",
                     "Scenario B")
 
@@ -49,11 +39,14 @@ year_list <- c("2017","2018","2019")
 
 
 msmdi_period_avg <- function(scenario, years, polys_geo){
+
   
-  #  files <- paste0("OF800/res_v10f/MSMDI_modelling/",scenario,"/MSMDIpred_unproj_",years,"_BRTselect_martini_by_arendal_season_simp.tif")
- # files <- paste0("C:/Users/CJM/NIVA/230195 - Modellering av Oslofjorden - Documents/AP4_BioKval/MSMDI/Predictions/of800_v10aa/",scenario,"/MSMDIpred_unproj_",years,"_BRT_martini_season_simp.tif")
+  files <- paste0("C:/Users/CJM/NIVA/230195 - Modellering av Oslofjorden - Documents/AP4_BioKval/MSMDI/Predictions/of800_v10ad/",scenario,"/MSMDIpred_unproj_",years,"_BRT_martini_by_arendal_filledmonth_noChl_season.tif")
+
+#  files <- paste0("C:/Users/CJM/OneDrive - NIVA/_repositories/MARTINI/OF800/res_v10ad/MSMDI/",scenario,"/MSMDIpred_unproj_",years,"_BRT_martini_by_arendal_filledmonth_noChl_season.tif")
+
+  files <- paste0("C:/Users/CJM/NIVA/230195 - Modellering av Oslofjorden - Documents/AP4_BioKval/MSMDI/Predictions/of800_v10ad/",scenario,"/MSMDIpred_unproj_",years,"_BRT_martini_by_arendal_filledmonth_noChlnoZsd_season.tif")
   
-  files <- paste0("C:/Users/CJM/NIVA/230195 - Modellering av Oslofjorden - Documents/AP4_BioKval/MSMDI/Predictions/of800_v10aa/",scenario,"/MSMDIpred_unproj_",years,"_BRT_martini_by_arendal_filledmonth_noChl_season.tif")
   
   r_list <- lapply(files, terra::rast)
   
@@ -145,7 +138,7 @@ null_res <- lapply(res, is.null) %>% unlist()
 null_res <- c(1:length(res))[!null_res]
 rs_MSMDI <- res[null_res]
 
-saveRDS(rs_MSMDI, file="app/raster_OF800/res_v10aa_MSMDI.Rds")
+saveRDS(rs_MSMDI, file="app/raster_OF800/res_v10ad_MSMDI.Rds")
 
 # ------------------ check values baseline ------------------ 
 
@@ -175,7 +168,7 @@ ggplot() +
 # rs_MSMDI <- readRDS("app/raster_OF800/res_v10aa_MSMDI.Rds")
 
 
-ind_vals <- readRDS("OF800/res_v10aa/res_v10aa_raster_vals.Rds")
+ind_vals <- readRDS("OF800/res_v10ad/res_v10ad_raster_vals.Rds")
 
 msmdi_vals <- function(df){
   df <- df %>%
@@ -199,6 +192,6 @@ for(i in 1:length(rs_MSMDI)){
 
 names(ind_vals)
 
-saveRDS(ind_vals, "OF800/res_v10aa/res_v10aa_raster_vals.Rds")
+saveRDS(ind_vals, "OF800/res_v10ad/res_v10ad_raster_vals.Rds")
 
 

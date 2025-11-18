@@ -1,6 +1,32 @@
 # help functions for app
 
 
+df_indicator_list <- function(exclude=""){
+  df <- read.table(sep=";", header = T, comment.char = "", text="
+Kvalitetselement;Indicator;Indikator;IndikatorDesc
+Planteplankton;Chl_summer;Klfa sommer;Klorofyll a, sommer (µg/l)
+Planteplankton;Chl;Klfa 90pct;Klorofyll a, 90. percentil (µg/l)
+Makroalger;MSMDI;MSMDI;MSMDI (Nedre voksegrense) - EQR
+Fysisk-kjemiske;NO3_summer;NO3-N sommer;Nitrat-nitrogen, sommer (µg N/l)
+Fysisk-kjemiske;NO3_winter;NO3-N vinter;Nitrat-nitrogen, vinter (µg N/l)
+Fysisk-kjemiske;NH4_summer;NH4-N sommer;Ammonium-nitrogen, sommer (µg N/l)
+Fysisk-kjemiske;NH4_winter;NH4-N vinter;Ammonium-nitrogen, vinter (µg N/l)
+Fysisk-kjemiske;DO_bot;Oksygen;Oksygen (ml O2/l)
+Fysisk-kjemiske;TN_summer;TN sommer;Total nitrogen, sommer (µg N/l)
+Fysisk-kjemiske;TN_winter;TN vinter;Total nitrogen, vinter (µg N/l)
+Fysisk-kjemiske;TP_summer;TP sommer;Total fosfor, sommer (µg P/l)
+Fysisk-kjemiske;TP_winter;TP vinter;Total fosfor, vinter (µg P/l)
+Fysisk-kjemiske;PO4_summer;PO4-P sommer;Fosfat-fosfor, sommer (µg P/l)
+Fysisk-kjemiske;PO4_winter;PO4-P vinter;Fosfat-fosfor, vinter (µg P/l)
+Fysisk-kjemiske;Secchi;Siktdyp;Siktdyp (m), sommer
+")
+
+  df <- df %>%
+    filter(Indicator!=exclude)
+  return(df)
+}
+
+
 r_colors <- rgb(t(col2rgb(colors()) / 255))
 names(r_colors) <- colors()
 
@@ -383,15 +409,20 @@ indicator_info<- function(param, out=NA_character_){
 
 
 plot_pal <- function(pal=NA_character_){
-  
+
   pal_list <- c("AS","wes","rainbow","spectral","viridis")
   
   pal_id <- tryCatch({
     n <- as.numeric(pal)
   },
   warning=function(w){
-    return(NA)
+    NA
+  },
+  error=function(e){
+    NA
   })
+  
+  pal_id <- ifelse(length(pal_id)==0,NA,pal_id)
   
   if(!is.na(pal_id)){
     pal_id <- min(length(pal_list), pal_id)

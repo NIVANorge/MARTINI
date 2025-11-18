@@ -11,7 +11,7 @@ source("process_R/utils.R")
 
 # means <- readRDS(file="OF800/res_v10f/res_v10f_WB_means_incl_psu.Rds")
 # means <- readRDS(file="OF800/res_v10f/res_v10f_WB_means_incl_psu_20241016.Rds")
-means <- readRDS(file="OF800/res_v10aa/res_v10aa_WB_means_incl_psu.Rds")
+means <- readRDS(file="OF800/res_v10ad/res_v10ad_WB_means_incl_psu.Rds")
 
 
 
@@ -213,8 +213,8 @@ res_ind <- res_ind %>%
 
 file_res_wb <- "app/WB_results_OF.csv"
 file_res_ind <- "app/indicator_results_OF.csv"
-file_rds_res_wb <- "OF800/res_v10aa/WB_results_OF.Rds"
-file_rds_res_ind <- "OF800/res_v10aa/indicator_results_OF.Rds"
+file_rds_res_wb <- "OF800/res_v10ad/WB_results_OF.Rds"
+file_rds_res_ind <- "OF800/res_v10ad/indicator_results_OF.Rds"
 
 
 res_wb <- aggregate_wb(res_ind)

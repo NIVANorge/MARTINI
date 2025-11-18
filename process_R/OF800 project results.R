@@ -12,55 +12,29 @@ terra::crs(r_grid) <- wkt_OF800
 
 basefolder <- "./OF800/"
 
-result_set <- "v10f"
-result_set <- "v10aa"
-
+result_set <- "v10ad"
 
 scenario_ids <- c("",
-                  "DINsources100pcred",
-                  "DINsources50pcred", #*
-                  "DINTSMsources100pcred",
-                  "DINTSMsources50pcred", #*
-                  "DINPsources100pcred",
-                  "NTSMsources100pcred",
+                  "pristine",
                   "ScenarioA",
                   "ScenarioB")
 
 scenario_names <- c("baseline",
-                    "DIN100pc",
-                    "DIN50pc",
-                    "DINTSM100pc",
-                    "DINTSM50pc",
-                    "DINP100pc",
-                    "NTSM100pc",
+                    "Pristine",
                     "Scenario A",
                     "Scenario B")
 
-# DINsources100pcred 100% reduction of DIN loads
-# DINTSMsources100pcred 100% reduction of DIN loads and TSM loads
-# DINPsources100pcred 100% reduction of DIN and DIP loads
-# NTSMsources100pcred 100% reduction of N loads and TSM loads
 
-folders <- c("OF800/res_v10aa/OF800_v10aa/",
-             "OF800/res_v10aa/OF800_v10aa_DINsources100pcred/",
-             "OF800/res_v10aa/OF800_v10aa_DINsources50pcred/", #*
-             "OF800/res_v10aa/OF800_v10aa_DINTSMsources100pcred/",
-             "OF800/res_v10aa/OF800_v10aa_DINTSMsources50pcred/", #* 
-             "OF800/res_v10aa/OF800_v10aa_DINPsources100pcred/",
-             "OF800/res_v10aa/OF800_v10aa_NTSMsources100pcred/",
-             "OF800/res_v10aa/OF800_v10aa_v3_Scenario_A/",
-             "OF800/res_v10aa/OF800_v10aa_v3_Scenario_B/")
+folders <- c("OF800/res_v10ad/OF800_v10ad/",
+             "OF800/res_v10ad/OF800_v10ad_v3_pristine/",
+             "OF800/res_v10ad/OF800_v10ad_v3_Scenario_A/",
+             "OF800/res_v10ad/OF800_v10ad_v3_Scenario_B/")
 
 # files also have prefixes depending on scenario
-scenario_prefix <- c("of800_v10aa",
-                     "of800_v10aa_DINsources100pcred",
-                     "of800_v10aa_DINsources50pcred",
-                     "of800_v10aa_DINTSMsources100pcred",
-                     "of800_v10aa_DINTSMsources50pcred",
-                     "of800_v10aa_DINPsources100pcred",
-                     "of800_v10aa_NTSMsources100pcred",
-                     "of800_v10aa_v3_Scenario_A",
-                     "of800_v10aa_v3_Scenario_B")
+scenario_prefix <- c("of800_v10ad",
+                     "of800_v10ad_v3_pristine",
+                     "of800_v10ad_v3_Scenario_A",
+                     "of800_v10ad_v3_Scenario_B")
 
 files <- folders %>% 
   lapply(list.files, pattern="*.nc", full.names=T) %>%
@@ -69,27 +43,19 @@ files <- folders %>%
 filenames <- basename(files)
 
 
-param_ids <- c(# "light_Chl_0_5_10m_unweighted_av_monmean_summer_mean",
-                #"light_Chl_bc_0_5_10m_unweighted_av_monmean_summer_mean",
-                 # "light_Chl_sbc_0_5_10m_unweighted_av_monmean_summer_mean",
-                "light_Chl_vbc_0_5_10m_unweighted_av_monmean_summer_mean",
+param_ids <- c( "light_Chl_vbc_0_5_10m_unweighted_av_monmean_summer_mean",
                 "light_Chl_bc_0_5_10m_unweighted_av_timpctl90",
                 "N3_n_bc_0_5_10m_unweighted_av_monmean_summer_mean",
                 "N3_n_bc_0_5_10m_unweighted_av_monmean_winter_mean",
-                #"N4_n_0_5_10m_unweighted_av_monmean_summer_mean",
                 "N4_n_0_5_10m_unweighted_av_monmean_winter_mean",
                 "N4_n_bc_0_5_10m_unweighted_av_monmean_summer_mean",
-                #"N4_n_bc_0_5_10m_unweighted_av_monmean_winter_mean",
-                #  "O2_o_bc_bottom_hraw_timpctl10",
-                #"O2_o_sbc_s0_timpctl10",
-                "O2_o_vbc_s0_timpctl10",
+                "O2_o_vbc2_s0_timpctl10",
                 "TotN_bc_0_5_10m_unweighted_av_monmean_summer_mean",      
                 "TotN_bc_0_5_10m_unweighted_av_monmean_winter_mean",
                 "TotP_bc_0_5_10m_unweighted_av_monmean_summer_mean",
                 "TotP_bc_0_5_10m_unweighted_av_monmean_winter_mean",
                 "TRP_bc_0_5_10m_unweighted_av_monmean_summer_mean",
                 "TRP_bc_0_5_10m_unweighted_av_monmean_winter_mean",
-                #"zsd_bc_monmean_summer_mean",
                 "zsd_vbc_monmean_summer_mean")
 
 params <- c("Chl_summer",
