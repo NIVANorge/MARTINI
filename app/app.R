@@ -33,7 +33,13 @@ ui <- dashboardPage(skin = "black",title="MARTINI Status Assessment",
               dashboardBody(useShinyjs(),
                             tabItems(
                       # tab content
-                  tabItem(tabName = "Map",
+                    tabItem(tabName = "Map",
+                                      fluidRow( column(6,
+                                                       p(em("...results coming soon"))
+                                                       
+                                                       
+                                                       ))),
+                  tabItem(tabName = "MapX",
                          fluidRow(
                           
                             column(1, HTML("<br>"),p(actionButton("resetzoom", "Reset zoom"))),
@@ -113,11 +119,13 @@ ui <- dashboardPage(skin = "black",title="MARTINI Status Assessment",
                       tabItem(tabName = "about",
                               fluidRow( column(6,
                                                h3("About this app"),
-                                               p("The work to develop this app was part of the MARTINI project ('MARTINI - Understanding and predicting water quality for ecosystem-based management of Norwegian fjords, coastal waters and seas'), funded by the Norwegian Research Council (Forskningsrådet) under the MARINFORSK program (Marine Resources and Environent)."),
-                                               p(a(href="https://prosjektbanken.forskningsradet.no/project/FORISS/280759", "https://prosjektbanken.forskningsradet.no/project/FORISS/280759",target="_blank")),
-                                               p("This app is written in the R statistical programming language, using the 'Shiny' package. Results from the MARTINI biogeochemical model results (MARTINI800 Hindcast Archive 2017-2019) are used, showing spatial variation of ecologically relevant indicator parameters, representing both biological quality elements (phytoplankton, macroalgae and and benthic fauna) and supporting physico-chemical indicators (Secchi depth, bottom oxygen and nutrients)."),
+                                               h4("The Oslofjord Model project"),
+                                               p("In connection with the government's ", em("'Comprehensive Action Plan for the Oslo Fjord 2021-2026'"), ", the Norwegian Environment Agency, in collaboration with Akershus County Council and the Technical Council for Water and Wastewater Technical Cooperation in the Inner Oslo Fjord, commissioned a modeling project to attempt to quantify the necessary relief requirement for inputs to the Oslo Fjord in order for the fjord to achieve good ecological status in accordance with the Water Regulations. The project has been carried out by NIVA and the Norwegian Meteorological Institute (MET) in 2023 and 2024 using an integrated model system for the Oslo Fjord, where both the catchment area and the Oslo Fjord are included. The overall modeling efforts presented in this report are based on the development of models over several decades through various projects and activities, including the development of TEOTIL3 and projects funded by the Research Council of Norway: ", a(href="https://prosjektbanken.forskningsradet.no/project/FORISS/280759", "MARTINI 280759",target="_blank"), " and ",  a(href="https://prosjektbanken.forskningsradet.no/project/FORISS/280759", "MAREA 326976",target="_blank"), "."),
+                                               h4("Results"),
+                                               p("This app is written in the R statistical programming language, using the 'Shiny' package. Results from the Oslofjord biogeochemical model results (OF800 2017-2019) are used, showing spatial variation of ecologically relevant indicator parameters, representing both biological quality elements (phytoplankton, and macroalgae) and supporting physico-chemical indicators (Secchi depth, bottom oxygen and nutrient concentrations)."),
                                                p("Following the Water Framework Directive principles, the app aggregates estimated values of individual indicators to arrive at an overall ecological status in a selected waterbody. The user can investigate the the spatial variation of the indicator parameters as well as the resulting ecological status in coastal water bodies, expressed as an ecological quality ratio (EQR) determined by comparing simulated values of indicator parameters with official threshold values used to classify status of water bodies."),
-                                               p("Coming developments of the application will include results of simulations under different scenarios such as nutrient load reductions. This will allow users to examine resulting changes in estimated indicator parameters under these scenarios and in the predicted ecological status."))))
+                                               p(em(strong("29.10.2025 - Model results are currently being updated and will be shown here soon.")))
+                              )))
                       
                       )))
 
