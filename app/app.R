@@ -16,7 +16,6 @@ library(ggplot2)
 library(ggnewscale)
 library(basemaps)
 
-
 source("functions.R")
 
 # ----------------- UI -------------------------------------------------------- 
