@@ -47,9 +47,9 @@ param_ids <- c( "light_Chl_vbc_0_5_10m_unweighted_av_monmean_summer_mean",
                 "light_Chl_bc_0_5_10m_unweighted_av_timpctl90",
                 "N3_n_bc_0_5_10m_unweighted_av_monmean_summer_mean",
                 "N3_n_bc_0_5_10m_unweighted_av_monmean_winter_mean",
-                "N4_n_0_5_10m_unweighted_av_monmean_winter_mean",
                 "N4_n_bc_0_5_10m_unweighted_av_monmean_summer_mean",
-                "O2_o_vbc2_s0_timpctl10",
+                "N4_n_0_5_10m_unweighted_av_monmean_winter_mean",
+                "O2_o_vbc3_s0_timpctl10",
                 "TotN_bc_0_5_10m_unweighted_av_monmean_summer_mean",      
                 "TotN_bc_0_5_10m_unweighted_av_monmean_winter_mean",
                 "TotP_bc_0_5_10m_unweighted_av_monmean_summer_mean",
@@ -67,6 +67,7 @@ params <- c("Chl_summer",
             "TP_summer", "TP_winter",
             "PO4_summer", "PO4_winter",   
             "Secchi")
+
 
 
 # sid <- 1:length(param_ids)
@@ -101,8 +102,12 @@ saveRDS(ind_data, file=paste0("processing/res_", result_set, ".Rds"))
 
 ind_data <- readRDS(paste0("processing/res_", result_set, ".Rds"))
 
-rs <- purrr::map(ind_data, convert_nc, r0=r_grid, outfolder=paste0("OF800/res_", result_set, "/tif"), .progress=T)
-rs <- purrr::map(ind_data, convert_nc, r0=r_grid, pngfolder=paste0("OF800/res_", result_set, "/png"), .progress=T)
+do_replace <- T
+
+rs <- purrr::map(ind_data, convert_nc, r0=r_grid, outfolder=paste0("app/raster_OF800"), overwrite=do_replace, .progress=T)
+
+rs <- purrr::map(ind_data, convert_nc, r0=r_grid, outfolder=paste0("OF800/res_", result_set, "/tif"), overwrite=do_replace, .progress=T)
+rs <- purrr::map(ind_data, convert_nc, r0=r_grid, pngfolder=paste0("OF800/res_", result_set, "/png"), overwrite=do_replace,.progress=T)
 
 # without saving converted raster (tif) or figures (png)
 # rs <- purrr::map(ind_data, convert_nc, r0=r_grid, .progress=T)
