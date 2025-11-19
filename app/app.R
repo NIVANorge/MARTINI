@@ -78,29 +78,29 @@ ui <- dashboardPage(skin = "black",title="MARTINI Status Assessment",
                               ),
                   # ---------------------- Options -----------------------------------
                   tabItem(tabName = "Options",
-                          fluidRow(column(4,  h3("Options"))),
-                          fluidRow(column(4,  
+                          fluidRow(column(6,  h3("Options"))),
+                          fluidRow(column(6,  
     p("By default, the integrated ecological status assessment is made using all available modelled indicator parameters."),
     p("It is also possible to exclude individual indicators or groups of indicators from the aggregation process to sinvestigate how this affects theintegrated status."),
     p("Do this by changing the selection of indicators in the table below.")),
     #column(1,p("")),
-    column(2,
+    column(3,
            p(em("more explanation required...")),
            p("Select the set of threshold values to be used when calculating EQR values and status class from model results.")  
     )
     ),
                           
                           fluidRow(
-                            column(4,
+                            column(6,
                                    p(strong("Select Indicators:")),
                                  reactableOutput("tblSelectIndicators")),
-                            column(2,
+                            column(3,
                                    uiOutput("selectThresholds", inline=T)
                                  )
                             
                           ),
                           fluidRow(
-                            column(2,
+                            column(3,
                                   ""
                             )
                           )
@@ -194,7 +194,9 @@ server <- function(input, output, session) {
 
   # --------------- df_ind() ------------
   df_ind <- reactive({
-      return(df_ind1)
+    df <- df_ind1 %>%
+      filter(version==thresholds_version_selected())
+    return(df)
   })
   
   # --------------- df_wb() ------------
@@ -287,8 +289,9 @@ server <- function(input, output, session) {
   threshold_versions <- reactive({
    c(#"veileder (2018)"="2018",
      "veileder rev. (2023)"="2023",
-     "kystrev (2025)"="2025"
-     )
+     "kystrev (2025)"="2025",
+     "model-based"="model"
+   )
 
   })
   
@@ -483,6 +486,8 @@ server <- function(input, output, session) {
       select(-selected) %>%
       left_join(df, by="Indicator")
     
+    #browser()
+    
     dfagg <- aggregate_wb(df)
 
     return(dfagg)
@@ -570,7 +575,7 @@ server <- function(input, output, session) {
   
   # ------ output$mymap -------
   map_obj <- reactive({
-    
+    #browser()
     values$rezoom
     values$rezoom<-FALSE
     r <- rs()
@@ -1078,7 +1083,8 @@ server <- function(input, output, session) {
       rowwise() %>%
       mutate(grp=param_group(Indicator)) %>%
       ungroup() %>%
-      relocate(grp) 
+      relocate(grp) %>%
+      relocate(version, .before = "Ref")
     
     
     if(nrow(df)>0){
@@ -1114,12 +1120,15 @@ server <- function(input, output, session) {
               groupBy = c("Kvalitetselement","grp"),
               columns = list(
                 Indicator = colDef(show = F), #colDef(width=100), #show = F,name="WB [Period]"),
+                
                 IndikatorDesc = colDef(show=F), 
                 Indikator= colDef(name="Indikator", width=100, sticky = "left"),
                 Kvalitetselement=colDef(width=colwidthgrps, sticky = "left"),
                 grp = colDef(name="Gruppe",
                              width=colwidthgrps, 
                              sticky = "left"),
+                version = colDef(name="version",
+                                 width=50),
                 Ref=colDef(width=colw),
                 HG=colDef(width=colw),
                 GM=colDef(width=colw),
@@ -1189,7 +1198,8 @@ server <- function(input, output, session) {
                   }
                 )),
               columnGroups = list(
-                colGroup(name = "Thresholds", columns = c("Ref","HG","GM","MP","PB","Worst")),
+                colGroup(name = "Thresholds", 
+                         columns = c("version","Ref","HG","GM","MP","PB","Worst")),
                 colGroup(name = "Scenario", columns = c("Value",
                                                         "diff",
                                                         "EQR",

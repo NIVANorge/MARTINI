@@ -43,11 +43,29 @@ names <- names(rs)
 r_limits <- purrr::map2(rs, names, r_min_max, .progress=T) %>%
   bind_rows()
 
+lyr_params <- r_limits$param
+
+lyr_min_max <- function(layer, folder="app/raster_OF800/"){
+  rr <- terra::rast(paste0(folder, layer, ".tif"))
+  vals <- values(rr, na.rm=T)  
+  param <- names(rr)
+  min <- min(vals)
+  max <- max(vals)
+  df <- data.frame(name=layer, param=param, min=min, max=max)
+  return(df)
+}
+
+x <-  purrr::map(names, lyr_min_max, .progress=T)  %>%
+  bind_rows()
+
+
 param_lims <- r_limits %>%
   group_by(param) %>%
   summarise(min=min(min,na.rm=T),
             max=max(max,na.rm=T),
             .groups = "drop")
+
+
 
 write.table(param_lims, file="app/param_limits.csv", sep=";", row.names=F, col.names=T, quote=T, fileEncoding="UTF-8")
 

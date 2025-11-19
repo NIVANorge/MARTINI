@@ -199,6 +199,37 @@ res_ind <- res_ind %>%
 
 source("process_R/EQR_functions.R")
 
+
+# ------- add model-based boundaries ------------------
+
+res_ind_model <- res_ind %>%
+  filter(version=="2018") %>%
+  mutate(version="model") %>%
+  select(-c(EQR10, EQR08, EQR06, EQR04, EQR02, EQR00))
+  
+res_ind_model_bnds <- res_ind_model %>%  
+  filter(scenario=="Pristine") %>%
+  select(Vannforeko, Indikator, EQR10=mean) %>%
+  mutate(EQR08 = ifelse(Indikator %in% c("Siktdyp","Oksygen","MSMDI"),
+                        EQR10*0.8, EQR10*1.5),
+         EQR06 = ifelse(Indikator %in% c("Siktdyp","Oksygen","MSMDI"),
+                        EQR10*0.6, EQR10*(1.5^2)),
+         EQR04 = ifelse(Indikator %in% c("Siktdyp","Oksygen","MSMDI"),
+                        EQR10*0.4, EQR10*(1.5^3)),
+         EQR02 = ifelse(Indikator %in% c("Siktdyp","Oksygen","MSMDI"),
+                        EQR10*0.2, EQR10*(1.5^4)),
+         EQR00 = ifelse(Indikator %in% c("Siktdyp","Oksygen","MSMDI"),
+                        EQR10*0.2, EQR10*(1.5^5)))
+
+res_ind_model <- res_ind_model %>%
+  left_join(res_ind_model_bnds, by=c("Vannforeko", "Indikator"))
+
+res_ind <- res_ind %>% 
+  bind_rows(res_ind_model)
+
+# ------- END add model-based boundaries ------------------
+
+
 res_ind <- res_ind %>% 
   rename(value=mean, Ref=EQR10, HG=EQR08, GM=EQR06, MP=EQR04, PB=EQR02, Worst=EQR00) %>%
   CalcEQR()
@@ -217,10 +248,17 @@ file_rds_res_wb <- "OF800/res_v10ad/WB_results_OF.Rds"
 file_rds_res_ind <- "OF800/res_v10ad/indicator_results_OF.Rds"
 
 
+
+
+
+
 res_wb <- aggregate_wb(res_ind)
 
 write.table(res_wb, file=file_res_wb, sep=";", row.names=F, col.names=T, quote=T, fileEncoding="UTF-8")
 write.table(res_ind, file=file_res_ind, sep=";", row.names=F, col.names=T, quote=T, fileEncoding="UTF-8")
+
+
+
 
 saveRDS(res_ind, file = file_rds_res_ind)
 saveRDS(res_wb, file = file_rds_res_wb)
@@ -228,7 +266,7 @@ saveRDS(res_wb, file = file_rds_res_wb)
 
 
 
-
+# -------------- checks --------------------
 # get quality element names
 df <- res_ind
 
