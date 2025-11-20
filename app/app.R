@@ -81,7 +81,7 @@ ui <- dashboardPage(skin = "black",title="MARTINI Status Assessment",
                           fluidRow(column(6,  h3("Options"))),
                           fluidRow(column(6,  
     p("By default, the integrated ecological status assessment is made using all available modelled indicator parameters."),
-    p("It is also possible to exclude individual indicators or groups of indicators from the aggregation process to sinvestigate how this affects theintegrated status."),
+    p("It is also possible to exclude individual indicators or groups of indicators from the aggregation process to investigate how this affects theintegrated status."),
     p("Do this by changing the selection of indicators in the table below.")),
     #column(1,p("")),
     column(3,
@@ -95,7 +95,43 @@ ui <- dashboardPage(skin = "black",title="MARTINI Status Assessment",
                                    p(strong("Select Indicators:")),
                                  reactableOutput("tblSelectIndicators")),
                             column(3,
-                                   uiOutput("selectThresholds", inline=T)
+                                   uiOutput("selectThresholds", inline=T),
+                                   p(strong("veileder rev. (2023)"),
+                                     em("description...")),
+                                   p(strong("kystrev (2025)"),
+                                     em("description...")),
+                                   p(strong("model-based"),
+                                     em("description...")),
+                                   br(), br(),
+                                   uiOutput("selectAggregation", inline=T),
+                                   p(strong("seasons"),
+                                     "the average EQR values are first calculated for", 
+                                     em("summer"), "and", em("winter"), "eutrophication indicators.",
+                                     "The EQR for", em("eutrophication"), 
+                                     "is taken as the average of summer and winter values.",
+                                     "Finally, the worst EQR value of", 
+                                     em("eutrophication"), "and", 
+                                     em("organic"), 
+                                     "determines the overall result for the",
+                                     em("Physical-Chemical"), "quality element."),
+                                   p(strong("no seasons"),
+                                     "the average EQR for",em("eutrophication"), 
+                                     "indicators is calculated as a simple average of", 
+                                     "all values, ignoring seasons.",
+                                     "Finally, the worst EQR value of", 
+                                     em("eutrophication"), "and", 
+                                     em("organic"), 
+                                     "determines the overall result for the",
+                                     em("Physical-Chemical"), "quality element."),
+                                   p(strong("one-out all-out"),
+                                     "the EQR value for the", em("Physical-Chemical"),
+                                     "quality element", 
+                                     "is given by the worst (lowest) individual EQR", "
+                                     value from all supporting indicators.",
+                                     "the aggregated" , em("Biological"), "EQR value", 
+                                     "is given by the worst (lowest) individual EQR", "
+                                     value from all biological indicators,", 
+                                     em("without any averaging within quality elements")),
                                  )
                             
                           ),
@@ -310,6 +346,31 @@ server <- function(input, output, session) {
     ))
   })
   
+  # --------------- output$selectAggregation ------------
+  
+  aggregation_methods <- reactive({
+    c("seasons" = "seasons",
+      "no seasons"="no seasons",
+      "one-out all-out"="OOAO"
+    )
+    
+  })
+  
+  output$selectAggregation <- renderUI({
+    list_aggregation_methods <- aggregation_methods()
+    
+    tagList(selectInput(
+      "selAggregation",
+      "Aggregation:",
+      choices = list_aggregation_methods,
+      selected = list_aggregation_methods[1],
+      multiple = FALSE, 
+      width="300px",
+      selectize = T
+    ))
+  })
+  
+  
   
   output$selectPalette <- renderUI({
   
@@ -471,8 +532,18 @@ server <- function(input, output, session) {
     req(df_ind())
     req(input$selScenario)
     req(values$include)
+    #req(input$selAggregation)
     
     df <- df_ind()
+    
+    agg_method <- input$selAggregation
+    if(is.null(agg_method)){
+      list_aggregation_methods <- aggregation_methods()
+      agg_method <- list_aggregation_methods[1]
+    }
+      
+      
+    
     
     scenarios <- c("baseline",input$selScenario)
     
@@ -488,7 +559,7 @@ server <- function(input, output, session) {
     
     #browser()
     
-    dfagg <- aggregate_wb(df)
+    dfagg <- aggregate_wb(df, agg_method)
 
     return(dfagg)
   })
