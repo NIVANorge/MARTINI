@@ -30,7 +30,7 @@ Fysisk-kjemiske;Secchi;Siktdyp;Siktdyp (m), sommer
 r_colors <- rgb(t(col2rgb(colors()) / 255))
 names(r_colors) <- colors()
 
-adj_EQR<- function(bio,sup, reduce2classes=F){
+adj_EQR<- function(bio,sup, reduce2classes=T){
   
   if(length(bio)==0){
     return(NA)
@@ -76,17 +76,17 @@ adj_EQR<- function(bio,sup, reduce2classes=F){
 }
 
 
-aggregate_wb <- function(df, agg_method="season"){
+aggregate_wb <- function(df, agg_method="seasons"){
   
   # supporting - first average by season
   
   res_wb_sup <- df  %>%
     filter(QEtype=="Sup") %>%
     rowwise() %>%
-    mutate(season = indicator_info(Indicator, "seasons"),
+    mutate(season = indicator_info(Indicator, "season"),
            pressure = indicator_info(Indicator, "pres")) %>%
     ungroup()
-  
+  #browser()
   if(agg_method=="OOAO"){
     
     res_wb_sup_avg <- res_wb_sup %>%
@@ -118,17 +118,23 @@ aggregate_wb <- function(df, agg_method="season"){
 
 
   }else{
-    if(agg_method=="seasons"){
-      res_wb_sup_avg <- res_wb_sup %>%
+    
+    res_wb_sup_avg <- res_wb_sup %>%
         group_by(WB, Period,QEtype, Kvalitetselement, scenario, pressure, season) %>%
         summarise(EQR=mean(EQR, na.rm=T), .groups = "drop") 
-    }else{
-      res_wb_sup_avg <- res_wb_sup
-    }
-  
-    res_wb_sup_avg <- res_wb_sup_avg %>%
+    
+    
+    if(agg_method=="seasons"){
+      res_wb_sup_avg <- res_wb_sup_avg %>%
       group_by(WB, Period, QEtype, Kvalitetselement, scenario, pressure) %>%
       summarise(EQR=mean(EQR, na.rm=T), .groups = "drop") 
+    
+    }else{
+      res_wb_sup_avg <- res_wb_sup_avg %>%
+        mutate(pressure = stringr::str_replace(pressure, "Eutrofiering", "Eutrof.")) %>%
+        mutate(pressure = ifelse(season=="", pressure, paste0(pressure, ", ", stringr::str_to_lower(season))))
+    }
+  
     
     res_wb_sup <- res_wb_sup_avg %>%
       filter(QEtype=="Sup") %>%
@@ -180,10 +186,16 @@ aggregate_wb <- function(df, agg_method="season"){
                                 ifelse(EQR<0.4,"Poor",
                                        ifelse(EQR<0.6,"Mod",
                                               ifelse(EQR<0.8,"Good","High")))))) %>%
+    mutate(StatusSup=ifelse(is.na(Supporting),NA,
+                         ifelse(Supporting<0.2,"Bad",
+                                ifelse(Supporting<0.4,"Poor",
+                                       ifelse(Supporting<0.6,"Mod",
+                                              ifelse(Supporting<0.8,"Good","High")))))) %>%
     ungroup()
   
   res_wb <- res_wb %>%
-    select(WB,Period, scenario, Biological, Supporting, EQR, Status, Worst_Biological, Worst_Supporting)
+    select(WB,Period, scenario, Biological, Supporting, EQR, Status, 
+           Worst_Biological, Worst_Supporting, StatusSup)
   
   return(res_wb)
   

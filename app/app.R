@@ -104,7 +104,7 @@ ui <- dashboardPage(skin = "black",title="MARTINI Status Assessment",
                                      em("description...")),
                                    br(), br(),
                                    uiOutput("selectAggregation", inline=T),
-                                   p(strong("seasons"),
+                                   p(strong("aggregration between seasons"),
                                      "the average EQR values are first calculated for", 
                                      em("summer"), "and", em("winter"), "eutrophication indicators.",
                                      "The EQR for", em("eutrophication"), 
@@ -114,15 +114,14 @@ ui <- dashboardPage(skin = "black",title="MARTINI Status Assessment",
                                      em("organic"), 
                                      "determines the overall result for the",
                                      em("Physical-Chemical"), "quality element."),
-                                   p(strong("no seasons"),
-                                     "the average EQR for",em("eutrophication"), 
-                                     "indicators is calculated as a simple average of", 
-                                     "all values, ignoring seasons.",
-                                     "Finally, the worst EQR value of", 
-                                     em("eutrophication"), "and", 
-                                     em("organic"), 
-                                     "determines the overall result for the",
-                                     em("Physical-Chemical"), "quality element."),
+                                   p(strong("no aggregration between seasons"),
+                                     "the average EQR values are  calculated for", 
+                                     em("summer"), "and", em("winter"), 
+                                     "eutrophication indicators.", 
+                                     "The overall",em("Physical-Chemical"), 
+                                     "EQR is given by the worst (lowest) of (i)", 
+                                     em("organic,"), ", (ii)", em("summer"), "and (iii)",
+                                     em("winter"), "EQR values."),
                                    p(strong("one-out all-out"),
                                      "the EQR value for the", em("Physical-Chemical"),
                                      "quality element", 
@@ -269,6 +268,7 @@ server <- function(input, output, session) {
   # --------------- param_select_list() ------------
   param_select_list <- reactive({
       list_param_sel <- c("Ecological Status"="Ecological Status",
+                          "Phys./chem. Status"="Supporting Status",
                           "Chl a (90pct.)"="Chl",
                           "Chl a (summer)"="Chl_summer",
                           "MSMDI"="MSMDI",
@@ -284,7 +284,8 @@ server <- function(input, output, session) {
                           #"TP_summer","TP_winter"
       )
       
-    indicators_available <- c("Ecological Status", indicators_included())
+    indicators_available <- c("Ecological Status", "Supporting Status",
+                              indicators_included())
     
     list_param_sel <- list_param_sel[list_param_sel %in% indicators_available]
     return(list_param_sel)
@@ -349,8 +350,8 @@ server <- function(input, output, session) {
   # --------------- output$selectAggregation ------------
   
   aggregation_methods <- reactive({
-    c("seasons" = "seasons",
-      "no seasons"="no seasons",
+    c("aggregration between seasons" = "seasons",
+      "no aggregration between seasons"="no seasons",
       "one-out all-out"="OOAO"
     )
     
@@ -501,7 +502,8 @@ server <- function(input, output, session) {
     req(input$selParam)
     values$parameter<-input$selParam
     values$period<-  "2017-2019"  #input$selPeriod
-    if(values$parameter=="Ecological Status"){
+    if(values$parameter %in% c("Ecological Status",
+                               "Supporting Status")){
       return(NULL)
     }else{
       
@@ -592,6 +594,10 @@ server <- function(input, output, session) {
           dplyr::filter(scenario==input$selScenario) %>%
           dplyr::select(WB,Status)
       }
+    }else if(values$parameter=="Supporting Status"){
+        df<- wb_status_overall() %>%
+          dplyr::filter(scenario==input$selScenario) %>%
+          dplyr::select(WB,Status=StatusSup)
     }else{
     
     df<-df_ind() %>% 
@@ -1143,7 +1149,7 @@ server <- function(input, output, session) {
   output$tblind <- reactable::renderReactable({
    
     shiny::req(values$wbselected)
-    
+    input$selAggregation
     df <- tblind_df() 
     
     if(nrow(df)==0){
