@@ -482,7 +482,7 @@ plot_nc <- function(r, proj=NA, shp=NULL){
 
 
 convert_nc <- function(ind_data, r0, proj="EPSG:3857", outfolder="", pngfolder="", 
-                       overwrite=F, project=T){
+                       overwrite=F, project=T, ignore_conversion=F){
   
   require(terra)
   #' there seems to be a problem with the coordinates in the average result
@@ -528,19 +528,20 @@ convert_nc <- function(ind_data, r0, proj="EPSG:3857", outfolder="", pngfolder="
                   basename(file))
     stop(msg)
   }
-  
-  if(ind_data$parameter=="DO_bot"){
-    # convert from mmol/m3 to ml/L
-    # https://www.aqua-calc.com/calculate/mole-to-volume-and-weight
-    vals <- vals * 0.0223924
-  }
-  if(ind_data$parameter %in% c("NO3_summer","NO3_winter","NH4_summer","NH4_winter", "TN_summer", "TN_winter")){
-    # mmol/L  to mg-N/L
-    vals <- vals * 14.007
-  }
-  if(ind_data$parameter %in% c("TP_summer","TP_winter","PO4_summer","PO4_winter")){
-    # mmol/L  to mg-P/L
-    vals <- vals *  30.974
+  if(ignore_conversion==F){
+    if(ind_data$parameter=="DO_bot"){
+      # convert from mmol/m3 to ml/L
+      # https://www.aqua-calc.com/calculate/mole-to-volume-and-weight
+      vals <- vals * 0.0223924
+    }
+    if(ind_data$parameter %in% c("NO3_summer","NO3_winter","NH4_summer","NH4_winter", "TN_summer", "TN_winter")){
+      # mmol/L  to mg-N/L
+      vals <- vals * 14.007
+    }
+    if(ind_data$parameter %in% c("TP_summer","TP_winter","PO4_summer","PO4_winter")){
+      # mmol/L  to mg-P/L
+      vals <- vals *  30.974
+    }
   }
   
   r <- r0
