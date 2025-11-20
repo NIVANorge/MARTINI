@@ -76,60 +76,97 @@ adj_EQR<- function(bio,sup, reduce2classes=F){
 }
 
 
-aggregate_wb <- function(df){
-  
+aggregate_wb <- function(df, agg_method="season"){
   
   # supporting - first average by season
   
   res_wb_sup <- df  %>%
     filter(QEtype=="Sup") %>%
     rowwise() %>%
-    mutate(season = indicator_info(Indicator, "season"),
+    mutate(season = indicator_info(Indicator, "seasons"),
            pressure = indicator_info(Indicator, "pres")) %>%
     ungroup()
   
+  if(agg_method=="OOAO"){
+    
+    res_wb_sup_avg <- res_wb_sup %>%
+      group_by(Period, WB, scenario) %>%
+      arrange(EQR) %>%
+      slice(1) %>%
+      ungroup()
+      
+    res_wb_sup <- res_wb_sup_avg %>%
+      select(Period, WB, scenario, 
+             Worst_Supporting=Indicator, Supporting=EQR)
+    
+    # biological
+    res_wb_bio_QE <- df %>%
+      filter(QEtype=="Bio") %>%
+      select(Period, WB, scenario, Kvalitetselement, Indikator,EQR, Status, QEtype) 
+    
+    res_wb_bio_QE <- res_wb_bio_QE %>%
+      select(Period, WB, scenario, Kvalitetselement,Indikator, EQR, QEtype) %>%
+      group_by(WB, Period, QEtype, scenario) %>%
+      arrange(EQR) %>%
+      slice(1) %>%
+      ungroup()
+    
+    res_wb_bio <- res_wb_bio_QE %>%
+      select(Period, WB, scenario, 
+             Worst_Biological=Indikator,
+             Biological=EQR)
+
+
+  }else{
+    if(agg_method=="seasons"){
+      res_wb_sup_avg <- res_wb_sup %>%
+        group_by(WB, Period,QEtype, Kvalitetselement, scenario, pressure, season) %>%
+        summarise(EQR=mean(EQR, na.rm=T), .groups = "drop") 
+    }else{
+      res_wb_sup_avg <- res_wb_sup
+    }
   
-  res_wb_sup_avg <- res_wb_sup %>%
-    group_by(WB, Period,QEtype, Kvalitetselement, scenario, pressure, season) %>%
-    summarise(EQR=mean(EQR, na.rm=T), .groups = "drop") 
+    res_wb_sup_avg <- res_wb_sup_avg %>%
+      group_by(WB, Period, QEtype, Kvalitetselement, scenario, pressure) %>%
+      summarise(EQR=mean(EQR, na.rm=T), .groups = "drop") 
+    
+    res_wb_sup <- res_wb_sup_avg %>%
+      filter(QEtype=="Sup") %>%
+      select(Period, WB, QEtype, Kvalitetselement, scenario, pressure, EQR) %>%
+      #select(Period, WB, scenario, Kvalitetselement, Indikator,EQR, Status, QEtype) %>%
+      group_by(WB, Period, QEtype, scenario) %>%
+      arrange(EQR) %>%
+      slice(1) %>%
+      ungroup()
+    
+    res_wb_sup <- res_wb_sup %>%
+      select(Period, WB, scenario, 
+             Worst_Supporting=pressure, Supporting=EQR)
+    
+    # biological
+    res_wb_bio_QE <- df %>%
+      filter(QEtype=="Bio") %>%
+      select(Period, WB, scenario, Kvalitetselement, Indikator,EQR, Status, QEtype) %>%
+      group_by(WB, Period, QEtype, Kvalitetselement, scenario) %>%
+      summarise(EQR = mean(EQR, na.rm=T), .groups = "drop")
+    
+    res_wb_bio_QE <- res_wb_bio_QE %>%
+      select(Period, WB, scenario, Kvalitetselement, EQR, QEtype) %>%
+      group_by(WB, Period, QEtype, scenario) %>%
+      arrange(EQR) %>%
+      slice(1) %>%
+      ungroup()
+    
+    
+    res_wb_bio <- res_wb_bio_QE %>%
+      select(Period, WB, scenario, 
+             Worst_Biological=Kvalitetselement,
+             Biological=EQR)
+    
+  }
+
   
-  res_wb_sup_avg <- res_wb_sup_avg %>%
-    group_by(WB, Period, QEtype, Kvalitetselement, scenario, pressure) %>%
-    summarise(EQR=mean(EQR, na.rm=T), .groups = "drop") 
-  
-  
-  res_wb_sup <- res_wb_sup_avg %>%
-    filter(QEtype=="Sup") %>%
-    select(Period, WB, QEtype, Kvalitetselement, scenario, pressure, EQR) %>%
-    #select(Period, WB, scenario, Kvalitetselement, Indikator,EQR, Status, QEtype) %>%
-    group_by(WB, Period, QEtype, scenario) %>%
-    arrange(EQR) %>%
-    slice(1) %>%
-    ungroup()
-  
-  res_wb_sup <- res_wb_sup %>%
-    select(Period, WB, scenario, 
-           Worst_Supporting=pressure, Supporting=EQR)
-  
-  # biological
-  res_wb_bio_QE <- df %>%
-    filter(QEtype=="Bio") %>%
-    select(Period, WB, scenario, Kvalitetselement, Indikator,EQR, Status, QEtype) %>%
-    group_by(WB, Period, QEtype, Kvalitetselement, scenario) %>%
-    summarise(EQR = mean(EQR, na.rm=T), .groups = "drop")
-  
-  res_wb_bio_QE <- res_wb_bio_QE %>%
-    select(Period, WB, scenario, Kvalitetselement, EQR, QEtype) %>%
-    group_by(WB, Period, QEtype, scenario) %>%
-    arrange(EQR) %>%
-    slice(1) %>%
-    ungroup()
-  
-  
-  res_wb_bio <- res_wb_bio_QE %>%
-    select(Period, WB, scenario, 
-           Worst_Biological=Kvalitetselement,
-           Biological=EQR)
+ 
   
   res_wb <- merge(res_wb_bio, res_wb_sup, 
                   by=c("Period", "WB", "scenario"),

@@ -116,6 +116,8 @@ rs <- purrr::map(ind_data, convert_nc, r0=r_grid, pngfolder=paste0("OF800/res_",
 # redo DO
 ids <- (1:length(ind_data))[stringr::str_detect(names(ind_data),"DO_bot")]
 ind_data_DO <- ind_data[ids]
+rsDO <- purrr::map(ind_data_DO, convert_nc, r0=r_grid, outfolder="app/raster_OF800", overwrite=T,.progress=T)
+
 rsDO <- purrr::map(ind_data_DO, convert_nc, r0=r_grid, outfolder="OF800/tif", pngfolder="OF800/png", .progress=T)
 
 r_grid <- readRDS("processing/grid_OF800_PolarSterographic.Rds")
