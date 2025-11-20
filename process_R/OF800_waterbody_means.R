@@ -43,20 +43,20 @@ names <- names(rs)
 r_limits <- purrr::map2(rs, names, r_min_max, .progress=T) %>%
   bind_rows()
 
-lyr_params <- r_limits$param
-
-lyr_min_max <- function(layer, folder="app/raster_OF800/"){
-  rr <- terra::rast(paste0(folder, layer, ".tif"))
-  vals <- values(rr, na.rm=T)  
-  param <- names(rr)
-  min <- min(vals)
-  max <- max(vals)
-  df <- data.frame(name=layer, param=param, min=min, max=max)
-  return(df)
-}
-
-x <-  purrr::map(names, lyr_min_max, .progress=T)  %>%
-  bind_rows()
+# lyr_params <- r_limits$param
+# 
+# lyr_min_max <- function(layer, folder="app/raster_OF800/"){
+#   rr <- terra::rast(paste0(folder, layer, ".tif"))
+#   vals <- values(rr, na.rm=T)  
+#   param <- names(rr)
+#   min <- min(vals)
+#   max <- max(vals)
+#   df <- data.frame(name=layer, param=param, min=min, max=max)
+#   return(df)
+# }
+# 
+# x <-  purrr::map(names, lyr_min_max, .progress=T)  %>%
+#   bind_rows()
 
 
 param_lims <- r_limits %>%
@@ -72,9 +72,11 @@ write.table(param_lims, file="app/param_limits.csv", sep=";", row.names=F, col.n
 #grid <- readRDS("processing/raster_cellid_to_WB.Rds")
 grid <- readRDS("processing/raster_cellid_to_WB_OM3.Rds")
 
-means <- purrr::map2(rs, names, wb_means, grid=grid, .progress=T) %>%
-  bind_rows()
+grid1 <- readRDS("app/shp/intersect_wbs_grid_OF800_area2.Rds") %>%
+  select(id, Vannforeko=wb, f)
 
+means <- purrr::map2(rs, names, wb_means, grid=grid1, .progress=T) %>%
+  bind_rows()
 
 #saveRDS(means, file="OF800/res_v10f/res_v10f_WB_means_20241016.Rds")
 #means <- readRDS("OF800/res_v10f/res_v10f_WB_means_20241016.Rds")
@@ -117,6 +119,20 @@ means <- means %>%
 saveRDS(means, file="OF800/res_v10ad/res_v10ad_WB_means_incl_psu.Rds")
 
 
+
+# ----------------------------- x ----------------
+grid_OF800 <- readRDS("~/_repositories/MARTINI/processing/grid_OF800_geo_vector_incl_NAs.Rds")
+
+grid_OF800 <- grid_OF800 %>%
+  mutate(id=row_number()) %>%
+  relocate(id) %>%
+  select(id)
+
+shp_wb <- sf::st_read("app/shp/oslomod3.shp", quiet=T) %>%
+  select(wb=Vannforeko, wb_name=Vannfore_1) 
+
+shp_wb <- shp_wb %>%
+  sf::st_transform(crs=sf::st_crs(grid_OF800))
 
 
 

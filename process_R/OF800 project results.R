@@ -120,4 +120,37 @@ rsDO <- purrr::map(ind_data_DO, convert_nc, r0=r_grid, outfolder="OF800/tif", pn
 
 r_grid <- readRDS("processing/grid_OF800_PolarSterographic.Rds")
 
+ind_data_DO 
+convert_nc()
+id1 <- ind_data_DO[[1]]
+id1a <- id1
+id1a$file <- stringr::str_replace(id1a$file,
+                                  "vbc3","vbc2")
 
+
+
+file.remove("app/raster_OF800/DO_check/baseline_DO_bot_vbc2.tif")
+file.remove("app/raster_OF800/DO_check/baseline_DO_bot_vbc3.tif")
+
+rsDO1 <- convert_nc(id1, r0=r_grid, outfolder="app/raster_OF800/DO_check",
+                    pngfolder="app/raster_OF800/DO_check")
+
+file.rename(from = "app/raster_OF800/DO_check/baseline_DO_bot.tif",
+            to = "app/raster_OF800/DO_check/baseline_DO_bot_vbc3.tif")
+file.rename(from = "app/raster_OF800/DO_check/baseline_DO_bot.png",
+            to = "app/raster_OF800/DO_check/baseline_DO_bot_vbc3.png")
+
+rsDO2 <- convert_nc(id1a, r0=r_grid, outfolder="app/raster_OF800/DO_check",
+                    pngfolder="app/raster_OF800/DO_check")
+file.rename(from = "app/raster_OF800/DO_check/baseline_DO_bot.tif",
+            to = "app/raster_OF800/DO_check/baseline_DO_bot_vbc2.tif")
+file.rename(from = "app/raster_OF800/DO_check/baseline_DO_bot.png",
+            to = "app/raster_OF800/DO_check/baseline_DO_bot_vbc2.png")
+
+
+x2 <- terra::rast("app/raster_OF800/DO_check/baseline_DO_bot_vbc2.tif")
+x3 <- terra::rast("app/raster_OF800/DO_check/baseline_DO_bot_vbc3.tif")
+x2
+x3
+x0 <- terra::rast("app/raster_OF800/baseline_DO_bot.tif")
+x0
