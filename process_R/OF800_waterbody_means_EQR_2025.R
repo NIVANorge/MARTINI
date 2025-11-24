@@ -131,14 +131,18 @@ means <-means0
                "S3"="#006699",
                "S5" = "#dd8000",
                "unknown"="#ff0000")
-ggplot() +
-   geom_sf(data = shp_wb, 
-           aes(fill=Type), 
-           colour=NA, alpha=0.5) +
-   theme_minimal() +
-  scale_fill_manual(values = col_type) 
- 
+# ggplot() +
+#    geom_sf(data = shp_wb, 
+#            aes(fill=Type), 
+#            colour=NA, alpha=0.5) +
+#    theme_minimal() +
+#   scale_fill_manual(values = col_type) 
+#  
 
+
+# General
+ threshold <- threshold %>%
+   mutate(MatchValue=ifelse(MatchValue=="General", "unknown", MatchValue))
 
 means_chl <- means %>%
   filter(param %in% c("Chl_summer", "Chl")) %>%
