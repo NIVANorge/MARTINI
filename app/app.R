@@ -279,9 +279,9 @@ server <- function(input, output, session) {
                           "NO3 (summer)"="NO3_summer",
                           "NO3 (winter)"="NO3_winter",
                           "PO4 (summer)"="PO4_summer",
-                          "PO4 (winter)"="PO4_winter"
-                          #"TN_summer","TN_winter",
-                          #"TP_summer","TP_winter"
+                          "PO4 (winter)"="PO4_winter",
+                          "TN_summer","TN_winter",
+                          "TP_summer","TP_winter"
       )
       
     indicators_available <- c("Ecological Status", "Supporting Status",
