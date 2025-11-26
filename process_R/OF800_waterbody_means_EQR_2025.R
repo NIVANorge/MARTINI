@@ -22,7 +22,7 @@ thresholds_sup <- thresholds_supporting()  %>%
 
 
 find_bnds <- function(param, psu=NA, bnds, bnds_version=""){
-  #browser()
+ # browser()
   parameter<-param
   psu_mean <- psu
   bnds <- bnds %>%
@@ -50,6 +50,13 @@ find_bnds <- function(param, psu=NA, bnds, bnds_version=""){
       bnds <- bnds %>%
         filter(psu==psu_max)
     }else{
+      if(nrow(bnds)>2){
+        psu_min <- bnds$psu[bnds$psu <= psu_mean]
+        psu_min <- max(psu_min)
+        psu_max <- bnds$psu[bnds$psu >= psu_max]
+        psu_max <- min(psu_max)
+      }
+      
       frac <- (psu_mean - psu_min)/(psu_max-psu_min)
       bnds_min <- bnds %>%
         filter(psu==psu_min) %>%
