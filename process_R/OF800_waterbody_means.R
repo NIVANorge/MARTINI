@@ -110,7 +110,8 @@ means_psu <- means_psu %>%
 means <- means %>%
   mutate(season=ifelse(stringr::str_detect(name,"summer"),"summer",NA_character_)) %>%
   mutate(season=ifelse(stringr::str_detect(name,"winter"),"winter",season)) %>%
-  mutate(season=ifelse(stringr::str_detect(name,"Chl"),"summer",season))
+  mutate(season=ifelse(stringr::str_detect(name,"Chl"),"summer",season)) %>%
+  mutate(season=ifelse(stringr::str_detect(name,"Secchi"),"summer",season))
 
 
 means <- means %>%
