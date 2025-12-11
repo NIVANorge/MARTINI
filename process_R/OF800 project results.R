@@ -43,20 +43,35 @@ files <- folders %>%
 filenames <- basename(files)
 
 
-param_ids <- c( "light_Chl_vbc_0_5_10m_unweighted_av_monmean_summer_mean",
+param_ids_base <- c( "light_Chl_vbc_0_5_10m_unweighted_av_monmean_summer_mean",
                 "light_Chl_bc_0_5_10m_unweighted_av_timpctl90",
                 "N3_n_bc_0_5_10m_unweighted_av_monmean_summer_mean",
                 "N3_n_bc_0_5_10m_unweighted_av_monmean_winter_mean",
                 "N4_n_bc_0_5_10m_unweighted_av_monmean_summer_mean",
                 "N4_n_0_5_10m_unweighted_av_monmean_winter_mean",
                 "O2_o_vbc3_s0_timpctl10",
-                "TotN_bc_0_5_10m_unweighted_av_monmean_summer_mean",      
+                "TotN_bc_0_5_10m_unweighted_av_monmean_summer_mean",
                 "TotN_bc_0_5_10m_unweighted_av_monmean_winter_mean",
                 "TotP_bc_0_5_10m_unweighted_av_monmean_summer_mean",
                 "TotP_bc_0_5_10m_unweighted_av_monmean_winter_mean",
                 "TRP_bc_0_5_10m_unweighted_av_monmean_summer_mean",
                 "TRP_bc_0_5_10m_unweighted_av_monmean_winter_mean",
                 "zsd_vbc_monmean_summer_mean")
+
+param_ids_scenario <- c( "light_Chl_vbc_tc3to6yrs_0_5_10m_unweighted_av_monmean_summer_mean",
+                "light_Chl_bc_0_5_10m_unweighted_av_timpctl90",
+                "N3_n_bc_tc3to6yrs_0_5_10m_unweighted_av_monmean_summer_mean",
+                "N3_n_bc_tc3to6yrs_0_5_10m_unweighted_av_monmean_winter_mean",
+                "N4_n_bc_tc3to6yrs_0_5_10m_unweighted_av_monmean_summer_mean",
+                "N4_n_tc3to6yrs_0_5_10m_unweighted_av_monmean_winter_mean",
+                "O2_o_vbc3_tc3to6yrs_s0_timpctl10",
+                "TotN_bc_tc3to6yrs_0_5_10m_unweighted_av_monmean_summer_mean",      
+                "TotN_bc_tc3to6yrs_0_5_10m_unweighted_av_monmean_winter_mean",
+                "TotP_bc_tc3to6yrs_0_5_10m_unweighted_av_monmean_summer_mean",
+                "TotP_bc_tc3to6yrs_0_5_10m_unweighted_av_monmean_winter_mean",
+                "TRP_bc_tc3to6yrs_0_5_10m_unweighted_av_monmean_summer_mean",
+                "TRP_bc_tc3to6yrs_0_5_10m_unweighted_av_monmean_winter_mean",
+                "zsd_vbc_tc3to6yrs_monmean_summer_mean")
 
 params <- c("Chl_summer",
             "Chl",
@@ -77,12 +92,19 @@ params <- c("Chl_summer",
 ind_data <- list()
 
 for(sid in 1:length(scenario_ids)){
-  for(pid in 1:length(param_ids)){
+  for(pid in 1:length(param_ids_base)){
+    
+    if(sid==1){
+      param_ids <- param_ids_base
+    }else{
+      param_ids <- param_ids_scenario
+    }
     
     file <- paste0(folders[sid], scenario_prefix[sid],"_",  param_ids[pid], ".nc")
     
     if(!file.exists(file)){
       cat(paste0("file not found!    ", file, "\n"))
+      stop(paste0("file not found!    ", file, "\n"))
     }
     
     dat <- list(list(parameter=params[pid], 
@@ -107,6 +129,8 @@ do_replace <- T
 rs <- purrr::map(ind_data, convert_nc, r0=r_grid, outfolder=paste0("app/raster_OF800"), overwrite=do_replace, .progress=T)
 
 rs <- purrr::map(ind_data, convert_nc, r0=r_grid, outfolder=paste0("OF800/res_", result_set, "/tif"), overwrite=do_replace, .progress=T)
+
+
 rs <- purrr::map(ind_data, convert_nc, r0=r_grid, pngfolder=paste0("OF800/res_", result_set, "/png"), overwrite=do_replace,.progress=T)
 
 # without saving converted raster (tif) or figures (png)
