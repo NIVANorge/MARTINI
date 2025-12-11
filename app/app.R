@@ -20,7 +20,6 @@ source("functions.R")
 
 # ----------------- UI -------------------------------------------------------- 
 
-
 ui <- dashboardPage(skin = "black",title="MARTINI Status Assessment",
               dashboardHeader(title = "MARTINI\nOslofjord"),
               dashboardSidebar(sidebarMenu(id="tabs",
