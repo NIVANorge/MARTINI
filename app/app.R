@@ -83,10 +83,9 @@ ui <- dashboardPage(skin = "black",title="MARTINI Status Assessment",
     p("It is also possible to exclude individual indicators or groups of indicators from the aggregation process to investigate how this affects theintegrated status."),
     p("Do this by changing the selection of indicators in the table below.")),
     #column(1,p("")),
-    column(3,
-           p(em("more explanation required...")),
-           p("Select the set of threshold values to be used when calculating EQR values and status class from model results.")  
-    )
+   # column(3,
+   #        p("Select the set of threshold values to be used when calculating EQR values and status class from model results.")  
+    #)
     ),
                           
                           fluidRow(
@@ -95,12 +94,19 @@ ui <- dashboardPage(skin = "black",title="MARTINI Status Assessment",
                                  reactableOutput("tblSelectIndicators")),
                             column(3,
                                    uiOutput("selectThresholds", inline=T),
-                                   p(strong("veileder rev. (2023)"),
-                                     em("description...")),
+                                   p(strong("veileder (2018)"),
+                                     em(
+                        "(default) Current threshold values, as defined in Veileder 02:2018\n",
+    a(href="https://www.vannportalen.no/veiledere/klassifiseringsveileder/", 
+      "https://www.vannportalen.no/veiledere/klassifiseringsveileder/",
+      target="_blank")
+                                        )),
+                                   p(strong("Walday et al. (2023)"),
+        em("Revisjon av kystvannsdelen av veileder 02:2018. NIVA-rapport 7856-2023.")),
                                    p(strong("kystrev (2025)"),
-                                     em("description...")),
+                                     em("Assessment of the national Norwegian classification of nutrients and chlorophyll in coastal waters (report.)")),
                                    p(strong("model-based"),
-                                     em("description...")),
+                                     em("Derived from Oslofjord model results.")),
                                    br(), br(),
                                    uiOutput("selectAggregation", inline=T),
                                    p(strong("aggregration between seasons"),
@@ -119,7 +125,7 @@ ui <- dashboardPage(skin = "black",title="MARTINI Status Assessment",
                                      "eutrophication indicators.", 
                                      "The overall",em("Physical-Chemical"), 
                                      "EQR is given by the worst (lowest) of (i)", 
-                                     em("organic,"), ", (ii)", em("summer"), "and (iii)",
+                                     em("organic"), ", (ii)", em("summer"), "and (iii)",
                                      em("winter"), "EQR values."),
                                    p(strong("one-out all-out"),
                                      "the EQR value for the", em("Physical-Chemical"),
@@ -323,8 +329,8 @@ server <- function(input, output, session) {
   # --------------- output$selectThresholds ------------
   
   threshold_versions <- reactive({
-   c(#"veileder (2018)"="2018",
-     "veileder rev. (2023)"="2023",
+   c("veileder (2018)"="2018",
+     "Walday et al. (2023)"="2023",
      "kystrev (2025)"="2025",
      "model-based"="model"
    )
@@ -337,7 +343,8 @@ server <- function(input, output, session) {
     
     tagList(selectInput(
       "selVersion",
-      "Thresholds:",
+      div(p("Thresholds:"),
+        em("Select the set of threshold values to be used when calculating EQR values and status class from model results.")),
       choices = list_threshold_versions,
       selected = list_threshold_versions[1],
       multiple = FALSE, 
@@ -361,7 +368,8 @@ server <- function(input, output, session) {
     
     tagList(selectInput(
       "selAggregation",
-      "Aggregation:",
+      div(p("Aggregation:"),
+          em("Select the method for aggregation of indicator EQR values.")),
       choices = list_aggregation_methods,
       selected = list_aggregation_methods[1],
       multiple = FALSE, 
@@ -1076,7 +1084,7 @@ server <- function(input, output, session) {
     if(values$wbselected==""){
       df<-data.frame()
     }else{
-      
+       #browser()
       df <- df_ind()
       
       df <- df %>%

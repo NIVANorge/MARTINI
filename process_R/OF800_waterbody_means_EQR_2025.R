@@ -13,9 +13,19 @@ source("process_R/utils.R")
 # means <- readRDS(file="OF800/res_v10f/res_v10f_WB_means_incl_psu_20241016.Rds")
 means <- readRDS(file="OF800/res_v10ad/res_v10ad_WB_means_incl_psu.Rds")
 
+means_NFM <- results_NFM() %>%
+  pivot_longer(cols = c("baseline","Scenario.A","Scenario.B","Pristine"),
+               names_to="scenario", values_to = "mean") %>%
+  mutate(scenario = stringr::str_replace(scenario, "\\.", " ")) %>%
+  mutate(name=paste0(scenario, "_", param)) %>%
+  select(Vannforeko, mean, name, param)
 
 means <- means %>%
   filter(!is.na(mean))
+
+means <- means %>%
+  bind_rows(means_NFM)
+
 
 thresholds_sup <- thresholds_supporting()  %>%
   mutate(version=as.character(version))
