@@ -575,11 +575,54 @@ convert_nc <- function(ind_data, r0, proj="EPSG:3857", outfolder="", pngfolder="
   return(r_proj)
 }
 
+results_NFM <- function(){
+read.table(sep="\t", header=T, text="
+Vannforeko name	Vannforeko	param 	baseline 	Scenario A	Scenario B	Pristine
+Iddefjorden hovedbasseng	0101010202-1-C	DO_bot	-0.03	-0.03	-0.03	-0.03
+Bærumsbassenget	0101020602-C	DO_bot	-0.04	-0.04	-0.04	-0.02
+Mossesundet-ytre	0101020400-3-C	DO_bot	2.18	2.13	2.12	2.13
+Drammensfjorden-indre	0101020801-C	DO_bot	0.00	0.00	0.00	0.00
+Bekkelagsbassenget	0101020702-2-C	DO_bot	-0.10	0.00	0.00	0.01
+Frierfjorden	0110010701-C	DO_bot	0.00	0.00	0.00	0.00
+Oslofjorden	0101020601-C	DO_bot	0.10	0.12	0.15	0.29
+Bunnefjorden	0101020701-5-C	DO_bot	-0.01	0.00	0.00	-0.01
+Kilsfjorden	0110021101-1-C	DO_bot	-0.39	-0.39	-0.39	-0.39
+Iddefjorden hovedbasseng	0101010202-1-C	Chl_summer	6.56	6.06	5.81	5.85
+Iddefjorden hovedbasseng	0101010202-1-C	Chl	3.92	3.72	3.65	4.47
+Iddefjorden hovedbasseng	0101010202-1-C	NO3_summer	112.944	103.648	98.368	83.192
+Iddefjorden hovedbasseng	0101010202-1-C	NO3_winter	255.176	235.144	220.136	169.288
+Iddefjorden hovedbasseng	0101010202-1-C	NH4_summer	28.236	25.912	24.592	20.798
+Iddefjorden hovedbasseng	0101010202-1-C	NH4_winter	63.794	58.786	55.034	42.322
+Iddefjorden hovedbasseng	0101010202-1-C	PO4_summer	6.99	6.33	6.17	8.03
+Iddefjorden hovedbasseng	0101010202-1-C	PO4_winter	8.8	9.53	9.22	8.6
+")
+}
 
 
 thresholds_supporting <- function(){
 read.table(sep="\t", header=T, text="
 version	param	psu	EQR00	EQR02	EQR04	EQR06	EQR08	EQR10
+2018	NH4_summer	18	962.81	325	200	50	19	7.22
+2018	NH4_winter	18	674.91	325	155	75	33	14.52
+2018	NO3_summer	18	961.5384615	250	65	23	12	6.260869565
+2018	NO3_summer	5	590.8923767	363	223	156	97	60.31410256
+2018	NO3_winter	18	544.4444444	350	225	125	97	75.272
+2018	NO3_winter	5	700.8711656	478	326	226	143	90.48230088
+2018	PO4_summer	18	156.25	50	16	7	3.5	1.75
+2018	PO4_summer	5	58.8	21	7.5	3.5	2	1.142857143
+2018	PO4_winter	18	73.52941176	50	34	21	14.5	10.01190476
+2018	PO4_winter	5	60.0625	31	16	9	7	5.444444444
+2018	Secchi	18	1.388888889	2.5	4.5	6	7.5	9.375
+2018	Secchi	5	0.9	1.5	2.5	4.5	7	10.88888889
+2018	TN_summer	18	1280	800	500	330	250	189.3939394
+2018	TN_summer	5	1189.591078	800	538	383	250	163.1853786
+2018	TN_winter	18	1142.857143	800	560	380	291	222.8447368
+2018	TN_winter	5	1157.323689	800	553	385	261	176.9376623
+2018	TP_summer	18	124.137931	60	29	16	11.5	8.265625
+2018	TP_summer	5	127.6818182	53	22	12	8	5.333333333
+2018	TP_winter	18	85.71428571	60	42	25	20	16
+2018	TP_winter	5	108.0384615	53	26	14.5	10.5	7.603448276
+2018	DO_bot	NA	0	1.5	2.5	3.5	4.5	6
 2023	NH4_summer	NA	265.69	163	100	25	9.5	3.61
 2023	NH4_winter	NA	340.6282051	163	78	38	17	7.605263158
 2023	NO3_summer	18	961.5384615	250	65	23	12	6.260869565
