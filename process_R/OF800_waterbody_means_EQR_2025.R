@@ -20,8 +20,18 @@ means_NFM <- results_NFM() %>%
   mutate(name=paste0(scenario, "_", param)) %>%
   select(Vannforeko, mean, name, param)
 
+means_NFM_replace <- means_NFM %>%
+  select(Vannforeko, name) %>%
+  mutate(X=1)
+
 means <- means %>%
   filter(!is.na(mean))
+
+means <- means %>%
+  left_join(means_NFM_replace,
+            by=c("Vannforeko", "name")) %>%
+  filter(is.na(X)) %>%
+  select(-X)
 
 means <- means %>%
   bind_rows(means_NFM)
@@ -268,8 +278,14 @@ file_rds_res_wb <- "OF800/res_v10ad/WB_results_OF.Rds"
 file_rds_res_ind <- "OF800/res_v10ad/indicator_results_OF.Rds"
 
 
+nrow(means)
+# 18528
 
+nrow(res_ind)
+# 24704
 
+nrow(res_wb)
+# 1648
 
 
 res_wb <- aggregate_wb(res_ind)
@@ -311,4 +327,6 @@ indicator_info("tn_summer", out="QE")
 df_ind$Indikator %>% unique() %>% paste0(collapse="', '")
 
 
-
+x <- means %>% 
+  group_by(Vannforeko, param) %>% 
+  summarise(n=n(), .groups = "drop")
