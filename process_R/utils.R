@@ -582,6 +582,26 @@ Iddefjorden hovedbasseng	0101010202-1-C	DO_bot	-0.03	-0.03	-0.03	-0.03
 Bærumsbassenget	0101020602-C	DO_bot	-0.04	-0.04	-0.04	-0.02
 Mossesundet-ytre	0101020400-3-C	DO_bot	2.18	2.13	2.12	2.13
 Drammensfjorden-indre	0101020801-C	DO_bot	0.00	0.00	0.00	0.00
+Frierfjorden	0110010701-C	DO_bot	0.00	0.00	0.00	0.00
+Kilsfjorden	0110021101-1-C	DO_bot	-0.39	-0.39	-0.39	-0.39
+Iddefjorden hovedbasseng	0101010202-1-C	Chl_summer	4.9	4.65	4.5625	5.5875
+Iddefjorden hovedbasseng	0101010202-1-C	Chl	6.56	6.06	5.81	5.85
+Iddefjorden hovedbasseng	0101010202-1-C	NO3_summer	189	174.1629934	163.0470891	125.3857416
+Iddefjorden hovedbasseng	0101010202-1-C	NO3_winter	48	44.23187134	41.40878453	31.84399787
+Iddefjorden hovedbasseng	0101010202-1-C	NH4_summer	27.64	29.93286364	28.95918182	27.01181818
+Iddefjorden hovedbasseng	0101010202-1-C	NH4_winter	98.67	90.54883978	85.9361326	72.67809392
+Iddefjorden hovedbasseng	0101010202-1-C	PO4_summer	105	96.35784105	91.44921377	77.34062898
+Iddefjorden hovedbasseng	0101010202-1-C	PO4_winter	5.67	5.134635193	5.004849785	6.51360515
+")
+}
+
+results_NFMv1 <- function(){
+  read.table(sep="\t", header=T, text="
+Vannforeko name	Vannforeko	param 	baseline 	Scenario A	Scenario B	Pristine
+Iddefjorden hovedbasseng	0101010202-1-C	DO_bot	-0.03	-0.03	-0.03	-0.03
+Bærumsbassenget	0101020602-C	DO_bot	-0.04	-0.04	-0.04	-0.02
+Mossesundet-ytre	0101020400-3-C	DO_bot	2.18	2.13	2.12	2.13
+Drammensfjorden-indre	0101020801-C	DO_bot	0.00	0.00	0.00	0.00
 Bekkelagsbassenget	0101020702-2-C	DO_bot	-0.10	0.00	0.00	0.01
 Frierfjorden	0110010701-C	DO_bot	0.00	0.00	0.00	0.00
 Oslofjorden	0101020601-C	DO_bot	0.10	0.12	0.15	0.29
@@ -597,8 +617,6 @@ Iddefjorden hovedbasseng	0101010202-1-C	PO4_summer	6.99	6.33	6.17	8.03
 Iddefjorden hovedbasseng	0101010202-1-C	PO4_winter	8.8	9.53	9.22	8.6
 ")
 }
-
-
 thresholds_supporting <- function(){
 read.table(sep="\t", header=T, text="
 version	param	psu	EQR00	EQR02	EQR04	EQR06	EQR08	EQR10

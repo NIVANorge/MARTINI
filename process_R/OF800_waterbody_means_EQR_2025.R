@@ -277,6 +277,9 @@ file_res_ind <- "app/indicator_results_OF.csv"
 file_rds_res_wb <- "OF800/res_v10ad/WB_results_OF.Rds"
 file_rds_res_ind <- "OF800/res_v10ad/indicator_results_OF.Rds"
 
+res_wb <- aggregate_wb(res_ind)
+
+
 
 nrow(means)
 # 18528
@@ -287,8 +290,6 @@ nrow(res_ind)
 nrow(res_wb)
 # 1648
 
-
-res_wb <- aggregate_wb(res_ind)
 
 write.table(res_wb, file=file_res_wb, sep=";", row.names=F, col.names=T, quote=T, fileEncoding="UTF-8")
 write.table(res_ind, file=file_res_ind, sep=";", row.names=F, col.names=T, quote=T, fileEncoding="UTF-8")
